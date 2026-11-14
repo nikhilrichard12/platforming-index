@@ -61,14 +61,33 @@ const productField = z
 
 /* ---------- formatting ---------- */
 
-const usd = (n: number) =>
-  n >= 1e6
-    ? "$" + (n / 1e6).toFixed(2) + "M"
-    : n >= 1e4
-    ? "$" + Math.round(n / 1e3) + "K"
-    : "$" + Math.round(n).toLocaleString("en-US");
+/**
+ * The one money format, the same as the app's lib/voltaraData.ts:
+ * two decimals under $1,000, no decimals above, K at ten thousand, M at a
+ * million. A unit price and a yearly total read the same way everywhere.
+ */
+const usd = (n: number): string => {
+  const sign = n < 0 ? "-" : "";
+  const v = Math.abs(n);
+  if (v >= 1e6) return sign + "$" + (v / 1e6).toFixed(2) + "M";
+  if (v >= 1e4) return sign + "$" + Math.round(v / 1e3).toLocaleString("en-US") + "K";
+  if (v >= 1e3) return sign + "$" + Math.round(v).toLocaleString("en-US");
+  return sign + "$" + v.toFixed(2);
+};
 
-const px = (n: number) => "$" + (n < 1 ? n.toFixed(3) : n.toFixed(2));
+const px = usd;
+
+/** Country of origin is data. The adjective is only for the sentence. */
+const ORIGIN_ADJECTIVE: Record<string, string> = {
+  "United States": "US",
+  Mexico: "Mexican",
+  Germany: "German",
+  "Czech Republic": "Czech",
+  Taiwan: "Taiwanese",
+  Vietnam: "Vietnamese",
+};
+
+const originAdjective = (origin: string) => ORIGIN_ADJECTIVE[origin] ?? origin;
 
 const date = (iso: string) => (iso ?? "").slice(0, 10);
 
@@ -117,7 +136,14 @@ interface Match {
   name: string;
   partNumberCount: number;
   products: number;
-  bestRow: { pn: string; products: string[]; supplier: string; price: number; po: string };
+  bestRow: {
+    pn: string;
+    products: string[];
+    supplier: string;
+    origin: string;
+    price: number;
+    po: string;
+  };
   minPrice: number;
   maxPrice: number;
   yearlySavingVsHighest: number;
@@ -136,7 +162,15 @@ interface Alternative {
   partNumber: string;
   price: number;
   supplier: string;
+  origin: string;
   products: number;
+}
+interface OriginSource {
+  supplier: string;
+  origin: string;
+  partNumber: string;
+  price: number;
+  po: string;
 }
 interface CheckResponse {
   match: Match | null;
@@ -144,6 +178,7 @@ interface CheckResponse {
   confidence: number;
   candidates: Match[];
   blockedBy: Rule[] | null;
+  complianceSource: OriginSource | null;
   alternatives: Alternative[];
 }
 
@@ -160,8 +195,16 @@ interface PlannedNeed {
   price?: number;
   supplier?: string;
   po?: string;
+  origin?: string;
   products?: number;
   rule?: { id: string; text: string; kind: string };
+  complianceSource?: {
+    supplier: string;
+    origin: string;
+    partNumber: string;
+    price: number;
+    po: string;
+  };
 }
 interface PlanResponse {
   product: { name: string; description: string };
@@ -188,7 +231,7 @@ server.registerTool(
   {
     title: "Check a product concept against the existing core",
     description:
-      "Call this when the user describes a new product, a concept, or a list of requirements, before any part is chosen. Call check_part later for each individual part.",
+      "Call this when the user describes a new product, a concept, or a list of requirements, before any part is chosen. Call check_part later for each individual part. Each matched need carries an origin field with the country of origin: use that field for any origin, compliance or tariff question, and never infer a country from a supplier name.",
     inputSchema: {
       product_name: z
         .string()
@@ -225,17 +268,20 @@ server.registerTool(
           n.status === "new part needed"
             ? "no match in the parts data"
             : n.status === "blocked by rule"
-            ? `${n.part}, blocked by ${n.rule?.id}: "${n.rule?.text}"`
-            : `${n.part}, ${n.partNumber} at ${px(n.price ?? 0)} from ${n.supplier} [${n.po}], in ${n.products} products`;
+            ? `${n.part}, blocked by ${n.rule?.id}: "${n.rule?.text}"` +
+              (n.complianceSource
+                ? ` Same part, ${originAdjective(n.complianceSource.origin)}-origin source: ${n.complianceSource.supplier}, ${px(n.complianceSource.price)} (${n.complianceSource.partNumber})`
+                : "")
+            : `${n.part}, ${n.partNumber} at ${px(n.price ?? 0)} from ${n.supplier}, origin ${n.origin}, [${n.po}], in ${n.products} products`;
         return `  - ${n.need}: ${n.status}, ${evidence}`;
       })
       .join("\n");
 
     return reply(
       `${s.covered} of ${s.total} needs already exist at Voltara. ` +
-        `${s.byStatus["in core"] ?? 0} sit in the common core, ${s.byStatus["shared"] ?? 0} are shared by two to four products, ` +
+        `${s.byStatus["in core"] ?? 0} ${(s.byStatus["in core"] ?? 0) === 1 ? "sits" : "sit"} in the common core, ${s.byStatus["shared"] ?? 0} shared by two to four products, ` +
         `${s.byStatus["exists, unique"] ?? 0} exist on one product only. ` +
-        `${s.projectedNewPartNumbers} would need new part numbers, which is ${100 - s.coveredPercent} percent of the concept.\n\n` +
+        `${s.projectedNewPartNumbers} would need ${s.projectedNewPartNumbers === 1 ? "a new part number" : "new part numbers"}, which is ${100 - s.coveredPercent} percent of the concept.\n\n` +
         `${lines}\n\n` +
         `Start from the ${s.covered} that exist and design the rest around them. Call check_part for each part once the engineer picks one. ` +
         `${res.note} ${SUGGESTION_NOTE}`,
@@ -249,7 +295,7 @@ server.registerTool(
   {
     title: "Check whether this part already exists",
     description:
-      "Call this before specifying, designing in, or requesting any component, so the engineer reuses an existing part when one exists. Returns the matching part Voltara already buys, how many part numbers it already carries, the best price and supplier, the yearly saving against the highest price paid, and the part number to reuse. If a rule from an earlier exception blocks that part for this product, returns the rule and alternative parts instead.",
+      "Call this before specifying, designing in, or requesting any component, so the engineer reuses an existing part when one exists. Returns the matching part Voltara already buys, how many part numbers it already carries, the best price and supplier, the yearly saving against the highest price paid, and the part number to reuse. Every purchase row carries an origin field with the country of origin: use that field when the question is about origin, compliance, tariffs or sourcing, and never infer a country from a supplier name. If a rule from an earlier exception blocks that part for this product, returns the rule, a compliant source for the same part when one exists, and alternative parts.",
     inputSchema: {
       description: z
         .string()
@@ -289,15 +335,23 @@ server.registerTool(
     const m = res.match;
     if (res.blockedBy?.length) {
       const rule = res.blockedBy[0];
+      const compliant = res.complianceSource;
+      const sameSource = compliant
+        ? `Same part, ${originAdjective(compliant.origin)}-origin source: ${compliant.supplier}, ${px(compliant.price)} (${compliant.partNumber}) [${compliant.po}]. ` +
+          `That satisfies the rule without a new part number, only a different source.\n\n`
+        : "";
       const alts = res.alternatives.length
         ? "Alternatives that no rule blocks:\n" +
           res.alternatives
-            .map((a) => `  - ${a.name}, ${a.partNumber} at ${px(a.price)} from ${a.supplier}, already in ${a.products} products`)
+            .map(
+              (a) =>
+                `  - ${a.name}, ${a.partNumber} at ${px(a.price)} from ${a.supplier}, origin ${a.origin}, already in ${a.products} products`
+            )
             .join("\n")
         : "No approved alternative yet. Request a new part and note the rule.";
       return reply(
         `${m.name} is blocked for ${productId} by a rule set on ${date(rule.at)}: "${rule.text}"\n\n` +
-          `Do not suggest reusing it here. ${alts}\n\n` +
+          `Do not suggest reusing it here. ${sameSource}${alts}\n\n` +
           `${SUGGESTION_NOTE}`,
         res
       );
@@ -305,7 +359,7 @@ server.registerTool(
 
     return reply(
       `Voltara already buys this part: ${m.name}.\n\n` +
-        `It carries ${m.partNumberCount} part numbers today. The best price paid is ${px(m.minPrice)} from ${m.bestRow.supplier} [${m.bestRow.po}], against ${px(m.maxPrice)} at the worst. ` +
+        `It carries ${m.partNumberCount} part numbers today. The best price paid is ${px(m.minPrice)} from ${m.bestRow.supplier}, country of origin ${m.bestRow.origin} [${m.bestRow.po}], against ${px(m.maxPrice)} at the worst. ` +
         `At ${units.toLocaleString("en-US")} units a year that gap is worth ${usd(m.yearlySavingVsHighest)}.\n\n` +
         `Reuse ${m.bestRow.pn} rather than raising a new number. A new number would make ${m.partNumberCount + 1} part numbers for one part.\n\n` +
         `${SUGGESTION_NOTE}`,

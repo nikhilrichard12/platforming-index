@@ -9,6 +9,7 @@ import {
   VoltaraData,
   heatColor,
   isReviewRow,
+  priceSpan,
   px,
   usd,
 } from "@/lib/voltaraData";
@@ -196,7 +197,7 @@ function PartRows({
         <td className={`px-2 py-2 text-text-2 ${NUM}`}>{part.rows.length}</td>
         <td className={`px-2 py-2 text-text-2 ${NUM}`}>{part.products}</td>
         <td className="px-2 py-2 text-text-2">
-          {part.min === part.max ? px(part.min) : `${px(part.min)} to ${px(part.max)}`}
+          {priceSpan(part.min, part.max)}
         </td>
         <td
           className={`px-2 py-2 ${NUM} ${tint ? "text-text" : "text-text-3"}`}
@@ -230,6 +231,7 @@ function PartRows({
                   <th className="px-2 py-2 font-normal">Named in this product as</th>
                   <th className="px-2 py-2 font-normal">Product</th>
                   <th className="px-2 py-2 font-normal">Supplier</th>
+                  <th className="px-2 py-2 font-normal">Origin</th>
                   <th className={`px-2 py-2 font-normal ${NUM}`}>Avg unit price</th>
                   <th className="py-2 pl-3 font-normal">Source</th>
                 </tr>
@@ -248,6 +250,7 @@ function PartRows({
                     </td>
                     <td className="px-2 py-2 text-text-2">{r.products.join(", ")}</td>
                     <td className="px-2 py-2 text-text-2">{r.supplier}</td>
+                    <td className="px-2 py-2 text-text-2">{r.origin}</td>
                     <td className={`px-2 py-2 text-text-2 ${NUM}`}>{px(r.price)}</td>
                     <td className="py-2 pl-3">
                       <button

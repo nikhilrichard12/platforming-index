@@ -11,6 +11,7 @@ import {
   headline,
 } from "@/lib/plan";
 import { px } from "@/lib/voltaraData";
+import { ORIGIN_ADJECTIVE, originLine } from "@/lib/origin";
 
 const TONE: Record<NeedStatus, "positive" | "neutral" | "warn"> = {
   "in core": "positive",
@@ -158,7 +159,10 @@ export default function NewProductTab({
                     Need
                   </th>
                   <th className="px-2 py-2 font-normal">Status</th>
-                  <th className="px-2 py-2 font-normal">Matched part</th>
+                  <th className="max-w-[200px] truncate px-2 py-2 font-normal">
+                    Matched part
+                  </th>
+                  <th className="px-2 py-2 font-normal">Origin</th>
                   <th className="px-2 py-2 text-right font-normal">Best price</th>
                   <th className="py-2 pl-2 pr-4 font-normal">Source</th>
                 </tr>
@@ -178,11 +182,28 @@ export default function NewProductTab({
                     <td className="px-2 py-2">
                       <Badge tone={TONE[n.status]}>{n.status}</Badge>
                     </td>
-                    <td className="px-2 py-2 text-text-2" title={n.rule?.text}>
+                    <td
+                      className="max-w-[200px] truncate px-2 py-2 text-text-2"
+                      title={n.rule?.text ?? n.part}
+                    >
                       {n.part ?? "—"}
                       {n.rule && (
                         <span className="ml-2 font-mono text-[11px] text-text-3">
                           {n.rule.id}
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-2 py-2 text-text-2">
+                      {n.origin ?? "—"}
+                      {n.complianceSource && (
+                        <span
+                          className="ml-2 text-[12px] text-text-3"
+                          title={originLine(n.complianceSource)}
+                        >
+                          {"→ "}
+                          {ORIGIN_ADJECTIVE[n.complianceSource.origin] ??
+                            n.complianceSource.origin}{" "}
+                          source
                         </span>
                       )}
                     </td>
@@ -207,6 +228,33 @@ export default function NewProductTab({
               </tbody>
             </table>
           </div>
+
+          {plan.needs.some((n) => n.complianceSource) && (
+            <div className="bg-panel p-5">
+              <p className="text-[13px] text-text-2">
+                A rule about origin does not have to mean a new part number:
+              </p>
+              <ul className="mt-2 space-y-1">
+                {plan.needs
+                  .filter((n) => n.complianceSource)
+                  .map((n, i) => (
+                    <li key={`${n.need}-src-${i}`} className="text-[13px] text-text">
+                      {n.need}: {originLine(n.complianceSource!)}{" "}
+                      <span className="font-mono text-[12px] text-text-2">
+                        {n.complianceSource!.partNumber}
+                      </span>{" "}
+                      <button
+                        type="button"
+                        onClick={() => onTag(n.complianceSource!.po)}
+                        className="rounded-field border border-line-2 px-[6px] py-px font-mono text-[11px] text-text-2 transition-colors hover:border-text-2 hover:text-text"
+                      >
+                        {n.complianceSource!.po}
+                      </button>
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          )}
 
           <p className="text-[12px] leading-relaxed text-text-3">
             A match is a suggestion until engineering confirms fit. Blocked and

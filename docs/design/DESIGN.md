@@ -58,7 +58,7 @@ Shared components live in `app/components/ui/`.
 - **PageHeader**: breadcrumb, then title, with optional right-side actions.
 - **Tabs**: plain text, active tab has a 1px white underline, a hairline (`line`) runs under the whole row. Our addition: a 6px `risk` dot after a tab whose answers are incomplete.
 - **Button**: pill, 34px tall, `panel-2` fill, 1px `line-2` border, white text. The `muted` variant (transparent fill, `line` border, text-3) is the disabled state of a primary action that is not ready yet.
-  - **PrimaryButton**: not a pill. The reference "Get Results" button is a **chamfered hexagon** (14px cut on each end) in `accent` with #1E1E1E text and a 1px `line-2` edge. Image beats the earlier "pill" note in this doc. One per screen.
+  - **PrimaryButton**: the same 34px pill as `Button`, filled `accent` with #1E1E1E text and no border. One per screen. The reference "Get Results" button is a chamfered hexagon; we tried that shape and it read as a pointed tag rather than a button beside our other pills, so every button in this app is a pill and only the fill separates the primary one.
   - **IconButton**: outlined circle, 34px.
 - **Field**: fieldset with the legend sitting on the top border, 1px `line-2` outline, 2px radius, transparent fill. Error state turns the outline `risk` and prints a 12px `risk` line underneath.
 - **ChoiceGroup**: a wrapping row of selectable options. Unselected is `panel-2` fill with a `line` border and text-2 label. Selected is a transparent fill with a 1px white border and white text, so orange stays reserved for the one primary action.
@@ -69,7 +69,7 @@ Shared components live in `app/components/ui/`.
 - **GapChart**: plain SVG, no library. Thin bars in `warn` with the largest in `accent`, five `line` gridlines, dollar axis on the left, three-line part labels below. Hover dims the other bars and draws a readout in chart space; click asks the assistant.
 - **SourcePopover**: centered dialog over a 60% black scrim, `panel` fill, one label/value row per field with `line` rules. Opens from a [POxxxxxx] tag and closes on Escape or an outside click.
 - **Blocked state**: when a rule rules a part out for a product, the badge turns `warn` and reads "Blocked by a rule for this product", the rule text and its date replace the tiles, the alternatives list replaces the reuse line, and the accent primary button is removed entirely. Same shape in the dashboard and in the extension card.
-- **Extension card** (`extension/content.js`): the design system on someone else's page. 380px, fixed to the right of the viewport below the host's header, drawn in a Shadow DOM so neither stylesheet can reach the other. Black header with the wordmark, a `positive` badge, three `panel-2` tiles, the chamfered accent primary and an outline pill. The CSS is hand-written there rather than Tailwind because the extension ships no build step; keep the hex values in step with the token table above.
+- **Extension card** (`extension/content.js`): the design system on someone else's page. 380px, fixed to the right of the viewport below the host's header, drawn in a Shadow DOM so neither stylesheet can reach the other. Black header with the wordmark, a `positive` badge, three `panel-2` tiles, the accent primary pill and an outline pill. The CSS is hand-written there rather than Tailwind because the extension ships no build step; keep the hex values in step with the token table above.
 - **IndexStrip**: one slim full-width row above the two-column split. Score at 56px/300 with "of 100" and a Provisional badge, the one-line read and four inline dimension bars, then the three steps with the current one picked out by a white top rule. About 165px tall.
 - **StepStrip**: four or five columns of orange line icon, 20px/800 title, 15px text-2 body, with a thin text-2 arrow between columns. Icons are 56px with 2.6px strokes. Stacks to one column under `md`. Used for the survey overview and again on Connections for the three moments a part number can be born.
 - **Possible match card**: the lighter sibling of the confident card, shown when the best score lands between 0.35 and 0.6. No badge, no tiles, no primary button. A text-2 "Possible match" line, up to three candidates with their part number count and best price, and "Keep typing to narrow it down." in text-3. It suggests, it does not ask for a decision.
@@ -78,6 +78,7 @@ Shared components live in `app/components/ui/`.
 - **Merge panel** (`252 become 60`, top of Parts): 252 7px squares, one per part number, blocked and tinted by product in six tints walked from text-3 to text-2. They travel to 60 clusters on a 12 by 5 grid, staggered 6ms by start position so the motion reads as a wave left to right. Cluster footprint is the number of part numbers merged. Core candidates land in accent, two-to-four in text-2, unique in text-3. About 5 seconds, once per tab open.
 - **Exploded view** (Summary): an isometric stack, one diamond slab per layer, parts drawn as small outlined diamonds on the slab surface. Stroke 1.1px on slabs, 1.5px on blocks, no fills except an 88% `surface` wash so a slab occludes what sits behind it. Accent for five or more products, text for two to four, text-3 for unique. Assembled sits centred in the same frame the exploded stack fills, so the panel never changes height.
 - **Live stage** (Connections): three outlined stations, a Rules tray under the middle one, and chips that carry one call across it. Chips are `panel-2` on a `line` border; the result keeps its badges inside the station box and its numbers as a caption below it.
+- **Origin column and line**: country of origin is a column in the parts rows, the source popover and the New product table, and a line on every card. When a compliance rule blocks a part, the same part from a compliant supplier is offered in 13px text above the alternatives: "Same part, US-origin source: Ostrava Thermal, $12.73", with the part number and its PO tag. Origin is read from `voltara_suppliers.csv`, never guessed from a supplier name, and the copy says so wherever an agent might guess.
 - **New product tab**: a name field beside a tall concept textarea, one text link ("Load sample concept") on the left of the row and the single accent button ("Check against the core") on the right. The answer is a 17px light headline, two supporting lines, then the standard table: need, status badge, matched part, best price, PO tag. Status badges read `positive` in core, `neutral` shared and unique, `warn` for blocked and for new part needed, because both of those end in a new part number.
 - **ActivityTable**: the standard table with a 2px left rule per row, transparent at rest and `accent` for one second on a row that arrived since the last poll. The Source column carries a `positive` badge with the agent's own name when the call came through MCP, otherwise a `neutral` badge. 20 rows on Connections, 3 on Decisions.
 - Sidebar (when used): black, small text-3 group labels, 14px nav items, active item gets a surface-colored row.
@@ -88,13 +89,22 @@ Shared components live in `app/components/ui/`.
 ## Rules
 
 - Dark theme only. Flat. No gradients, shadows, glows, or rounded cards.
-- Corners are square or nearly square (2px on fields and chips). Only the outline button and icon button are pills; the primary button is a chamfered hexagon.
+- Corners are square or nearly square (2px on fields and chips). Every button is a pill, including the primary one; fill, not shape, marks the primary action.
 - Orange appears once per screen, on the main action. Two exceptions, both
   carrying meaning rather than decoration: the build screen's transient marks
   (the ring on the running stage, the 1 second left rule on an arriving
   section), and the largest bar in the dashboard's gap chart.
 - Page gutter is 48px. 24px between blocks, 16px inside tiles.
 - Every number shows a source tag in text-3 beneath or beside it.
+- One money format everywhere, `usd()` in `lib/voltaraData.ts`, mirrored in the
+  MCP server and the extension because neither shares our bundle: two decimals
+  under $1,000, no decimals above it, K at ten thousand, M at a million,
+  thousands separators throughout. A unit price and a yearly total are the same
+  kind of number to a reader. `priceSpan()` prints one figure when both ends of
+  a range round the same way.
+- The assistant badge names the role from the saved profile, the same string
+  the page title uses. The four role lenses are an internal mapping, never a
+  label: a CEO is never told they are "Finance".
 - No em dashes in UI copy. This covers prompt text rendered on screen, so `lib/agent/buildSystemPrompt.ts` carries none either.
 - Every number on screen reads from `data/derived/*.json` through `lib/voltaraData.server.ts`. No figure is typed into a component, including the counts in filter labels and the evidence lines on the alignment view.
 - The index score leads the dashboard. It sits above the fold at 1440x900, with the KPI tiles and the top of the chart.

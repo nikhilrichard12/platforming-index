@@ -63,6 +63,7 @@ export interface ActivityDetail {
   minPrice?: number;
   savingUsd?: number;
   po?: string;
+  origin?: string;
   candidates?: string[];
   /** Set when a rule blocks the matched part for this product. */
   ruleText?: string;

@@ -60,3 +60,4 @@ Swap owners if you prefer, but only one person edits a folder at a time.
 - One capacitor comes from three suppliers at about $3.95, $4.60, and $5.35.
 - Paying the lowest existing price on every shared part saves about $1.13M a year.
 - A few battery cabinet lines say only "SEE DWG". Text matching will miss them. They belong in human review.
+- voltara_suppliers.csv gives each of the 12 suppliers a country of origin: 4 United States, the rest in Mexico, Germany, Czech Republic, Taiwan, Vietnam. Origin is data, not a guess from the supplier name. Ostrava Thermal ships from the United States; Norwick Components does not. engine/add_origin.py joins it onto every row of data/derived/voltara_parts.json.

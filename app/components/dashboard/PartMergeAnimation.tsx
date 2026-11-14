@@ -5,13 +5,13 @@ import { createTimeline, stagger, utils } from "animejs";
 import AnimationPanel from "@/components/ui/AnimationPanel";
 import useReducedMotion from "@/components/ui/useReducedMotion";
 import { PRODUCT_TINTS, TOKEN } from "@/lib/anim";
-import { PRODUCT_MASTER, Part, VoltaraData, px } from "@/lib/voltaraData";
+import { PRODUCT_MASTER, Part, VoltaraData, priceSpan } from "@/lib/voltaraData";
 
 const SQ = 7; // square side at rest
 const CELL = 9; // start grid pitch
 const COLS = 12; // squares across inside one product block
 const LABEL_H = 16;
-const STAGE_H = 186;
+const STAGE_H = 152;
 const END_SCALE = 0.62;
 const CLUSTER_PITCH = 5;
 
@@ -81,7 +81,9 @@ function buildLayout(data: VoltaraData, width: number): Layout {
   const gridCols = 12;
   const gridRows = Math.ceil(ordered.length / gridCols);
   const colW = width / gridCols;
-  const top = LABEL_H + 4 * CELL + 4;
+  // The clusters start just under the product labels. The start blocks sit in
+  // the same band, which is only ever occupied by one of the two states.
+  const top = LABEL_H + 6;
   const rowH = (STAGE_H - top) / gridRows;
 
   const clusters: Cluster[] = ordered.map((part, i) => ({
@@ -347,7 +349,7 @@ export default function PartMergeAnimation({
               {hover.count} part numbers merged
             </p>
             <p className="text-[12px] text-text-3">
-              {px(hover.part.min)} to {px(hover.part.max)}
+              {priceSpan(hover.part.min, hover.part.max)}
             </p>
           </div>
         )}

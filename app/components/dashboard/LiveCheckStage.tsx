@@ -70,6 +70,9 @@ export default function LiveCheckStage({
   const [verdict, setVerdict] = useState<Verdict | null>(null);
   const [tray, setTray] = useState<Rule[]>([]);
   const [idle, setIdle] = useState(true);
+  // Once a call has played out, the first two stations keep saying what it
+  // asked and what it found, so the stage is never blank between calls.
+  const [settled, setSettled] = useState(false);
 
   const queue = useRef<Activity[]>([]);
   const busy = useRef(false);
@@ -186,6 +189,7 @@ export default function LiveCheckStage({
     tlRef.current?.revert();
 
     const finish = () => {
+      setSettled(true);
       busy.current = false;
       pump();
     };
@@ -199,6 +203,7 @@ export default function LiveCheckStage({
       return;
     }
 
+    setSettled(false);
     utils.set(req, { opacity: 0, x: 0, y: 0, scale: 0.94 });
     utils.set(pnEls, { opacity: 0, x: 0, y: 0 });
     utils.set(res, { opacity: 0, x: 0, y: 0, scale: 0.94 });
@@ -319,6 +324,18 @@ export default function LiveCheckStage({
   const v = d ? verdictOf(d) : null;
   const pns = (d?.partNumbers ?? []).slice(0, MAX_PN);
 
+  /** What the last call asked for, and what the index found for it. */
+  const asked = d
+    ? `Needs: ${d.description}${shot?.product ? ` for ${shot.product}` : ""}`
+    : null;
+  const found = !d
+    ? null
+    : d.level === "match"
+    ? `${d.partNumbers?.length ?? 0} part numbers, 1 real part`
+    : d.level === "possible"
+    ? `${d.candidates?.length ?? 0} possible matches, nothing certain`
+    : "No match in the parts data";
+
   return (
     <AnimationPanel
       title="What the agent just did"
@@ -334,16 +351,25 @@ export default function LiveCheckStage({
       <div ref={stageRef} className="relative w-full" style={{ height: STAGE_H }}>
         {/* Stations */}
         {[
-          { x: geom.agentX, w: SIDE_W, label: "Engineer's agent" },
-          { x: geom.centerX, w: CENTER_W, label: "Platforming Index" },
-          { x: geom.resultX, w: SIDE_W, label: "Result" },
-        ].map((s) => (
+          { x: geom.agentX, w: SIDE_W, label: "Engineer's agent", body: asked },
+          { x: geom.centerX, w: CENTER_W, label: "Platforming Index", body: found },
+          { x: geom.resultX, w: SIDE_W, label: "Result", body: null },
+        ].map((st) => (
           <div
-            key={s.label}
+            key={st.label}
             className="absolute border border-line-2"
-            style={{ left: s.x, top: 0, width: s.w, height: BOX_H }}
+            style={{ left: st.x, top: 0, width: st.w, height: BOX_H }}
           >
-            <p className="px-3 pt-2 text-[12px] text-text-2">{s.label}</p>
+            <p className="px-3 pt-2 text-[12px] text-text-2">{st.label}</p>
+            {st.body && (
+              <p
+                className={`px-3 pt-3 text-[12px] leading-snug text-text transition-opacity duration-500 ${
+                  settled ? "opacity-100" : "opacity-0"
+                }`}
+              >
+                {st.body}
+              </p>
+            )}
           </div>
         ))}
 
@@ -436,13 +462,17 @@ export default function LiveCheckStage({
                     : "no part")}
               </span>
             </div>
-            <div data-reveal className="mt-2 opacity-0">
-              <Badge tone={v.tone}>{v.label}</Badge>
-            </div>
+            {/* One badge: the decision replaces the verdict once it lands. */}
+            {!verdict && (
+              <div data-reveal className="mt-2 opacity-0">
+                <Badge tone={v.tone}>{v.label}</Badge>
+              </div>
+            )}
             {d.level === "match" && !d.blocked && (
-              <div data-reveal className="mt-2 space-y-[2px] opacity-0">
+              <div data-reveal className="mt-[16px] space-y-[2px] opacity-0">
                 <p className="text-[11px] text-text-2">
                   Best price {px(d.minPrice ?? 0)}
+                  {d.origin ? `, ${d.origin}` : ""}
                 </p>
                 <p className="text-[11px] text-text-2">
                   Saves {usd(d.savingUsd ?? 0)} a year
@@ -453,12 +483,12 @@ export default function LiveCheckStage({
               </div>
             )}
             {d.blocked && (
-              <p data-reveal className="mt-2 text-[11px] leading-snug text-text-2 opacity-0">
+              <p data-reveal className="mt-[16px] text-[11px] leading-snug text-text-2 opacity-0">
                 {d.ruleText ?? "A rule covers this part for this product."}
               </p>
             )}
             {d.level === "possible" && (
-              <p data-reveal className="mt-2 text-[11px] text-text-3 opacity-0">
+              <p data-reveal className="mt-[16px] text-[11px] text-text-3 opacity-0">
                 {d.candidates?.slice(0, 2).join(", ")}
               </p>
             )}

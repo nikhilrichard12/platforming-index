@@ -4,6 +4,7 @@ import { matchCandidates } from "@/lib/matcher";
 import { corsHeaders, preflight } from "@/lib/cors";
 import { blockingRules, logActivity } from "@/lib/rules.server";
 import { callerOf } from "@/lib/sources.server";
+import { originFromText, sourceFrom } from "@/lib/origin";
 import {
   PLAN_FLOOR,
   PLAN_NOTE,
@@ -70,15 +71,25 @@ export async function POST(req: NextRequest) {
       partNumber: best.bestRow.pn,
       price: best.minPrice,
       supplier: best.bestRow.supplier,
+      origin: best.bestRow.origin,
       po: best.bestRow.po,
       products: best.products,
       partNumberCount: best.partNumberCount,
     };
 
     if (blocked.length > 0) {
+      // A rule about origin is answered by the same part from a compliant
+      // supplier, so the concept does not have to carry a new part number.
+      const originRule = blocked.find((r) => r.kind === "compliance_or_origin");
+      const wanted = originRule ? originFromText(originRule.text) : null;
+      const part = data.parts.find((p) => p.name === best.name);
+      const complianceSource =
+        wanted && part ? sourceFrom(part, wanted) ?? undefined : undefined;
+
       return {
         ...row,
         status: "blocked by rule",
+        complianceSource,
         rule: {
           id: blocked[0].id,
           text: blocked[0].text,

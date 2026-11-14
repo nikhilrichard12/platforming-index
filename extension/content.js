@@ -77,14 +77,29 @@ function writePartNumber(value) {
 
 /* ---------- formatting ---------- */
 
-const usd = (n) =>
-  n >= 1e6
-    ? "$" + (n / 1e6).toFixed(2) + "M"
-    : n >= 1e4
-    ? "$" + Math.round(n / 1e3) + "K"
-    : "$" + Math.round(n).toLocaleString("en-US");
+/* The one money format, the same as the app and the MCP server. */
+const usd = (n) => {
+  const sign = n < 0 ? "-" : "";
+  const v = Math.abs(n);
+  if (v >= 1e6) return sign + "$" + (v / 1e6).toFixed(2) + "M";
+  if (v >= 1e4) return sign + "$" + Math.round(v / 1e3).toLocaleString("en-US") + "K";
+  if (v >= 1e3) return sign + "$" + Math.round(v).toLocaleString("en-US");
+  return sign + "$" + v.toFixed(2);
+};
 
-const px = (n) => "$" + (n < 1 ? n.toFixed(3) : n.toFixed(2));
+const px = usd;
+
+/* Country of origin comes from the data, never from the supplier name. */
+const ORIGIN_ADJECTIVE = {
+  "United States": "US",
+  Mexico: "Mexican",
+  Germany: "German",
+  "Czech Republic": "Czech",
+  Taiwan: "Taiwanese",
+  Vietnam: "Vietnamese",
+};
+
+const originAdjective = (origin) => ORIGIN_ADJECTIVE[origin] || origin;
 
 const reasonLabel = (kind) =>
   (REASON_KINDS.find(([id]) => id === kind) ?? [null, "Other"])[1];
@@ -154,8 +169,7 @@ const STYLE = `
   }
   .actions { display: flex; align-items: center; gap: 10px; margin-top: 16px; }
   .primary {
-    -webkit-clip-path: polygon(12px 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 12px 100%, 0 50%);
-    clip-path: polygon(12px 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 12px 100%, 0 50%);
+    border-radius: 999px;
     background: #EC5E31; color: #1E1E1E; border: 0; height: 32px; padding: 0 20px;
     font: inherit; font-size: 13px; cursor: pointer;
   }
@@ -228,6 +242,8 @@ function cardHtml(result, form) {
   const n = match.partNumberCount;
   const row = match.bestRow;
 
+  const compliant = result.complianceSource;
+
   const body = blocked
     ? `
         <span class="badge warn">Blocked by a rule for this product</span>
@@ -236,13 +252,20 @@ function cardHtml(result, form) {
           <span class="meta">${esc(reasonLabel(blocked.kind))}, set ${esc(blocked.at.slice(0, 10))}</span>
         </p>
         ${
+          compliant
+            ? `<p class="read">Same part, ${esc(originAdjective(compliant.origin))}-origin source: ${esc(compliant.supplier)}, ${px(compliant.price)}
+                 <span class="pn">${esc(compliant.partNumber)}</span>
+                 <span class="meta">No new part number needed, only a different source.</span></p>`
+            : ""
+        }
+        ${
           result.alternatives && result.alternatives.length
             ? `<p class="read">Parts that no rule blocks:</p>
                <ul class="alts">${result.alternatives
                  .map(
                    (a) =>
                      `<li>${esc(a.name)} <span class="pn">${esc(a.partNumber)}</span>
-                        <span class="meta">at ${px(a.price)} from ${esc(a.supplier)}, already in ${a.products} products</span></li>`
+                        <span class="meta">at ${px(a.price)} from ${esc(a.supplier)} (${esc(a.origin)}), already in ${a.products} products</span></li>`
                  )
                  .join("")}</ul>`
             : `<p class="read">No approved alternative yet. Request a new part and note the rule.</p>`
@@ -261,7 +284,7 @@ function cardHtml(result, form) {
           <div class="tile">
             <span class="l">Best price paid</span>
             <span class="v">${px(match.minPrice)}</span>
-            <span class="s">${esc(row.supplier)}</span>
+            <span class="s">${esc(row.supplier)}, ${esc(row.origin)}</span>
           </div>
           <div class="tile wide">
             <span class="l">Yearly saving versus the highest price paid</span>

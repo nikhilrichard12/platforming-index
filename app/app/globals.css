@@ -38,18 +38,6 @@ body {
   color: #1e1e1e;
 }
 
-/* Chamfered primary action, as on the PERLab "Get Results" button. */
-.clip-chamfer {
-  clip-path: polygon(
-    14px 0,
-    calc(100% - 14px) 0,
-    100% 50%,
-    calc(100% - 14px) 100%,
-    14px 100%,
-    0 50%
-  );
-}
-
 /* Running stage mark. */
 @keyframes pulse-ring {
   50% {

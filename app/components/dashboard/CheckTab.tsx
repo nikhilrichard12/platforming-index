@@ -6,13 +6,21 @@ import Badge from "@/components/ui/Badge";
 import Tile from "@/components/ui/Tile";
 import { Button, PrimaryButton } from "@/components/ui/Button";
 import { px, usd } from "@/lib/voltaraData";
+import { OriginSource, originLine } from "@/lib/origin";
 import { ACTIVITY_LABEL, Decision, REASON_KINDS, ReasonKind, Rule, reasonLabel } from "@/lib/rules";
 import { useActivity } from "./ActivityTable";
 
 interface Match {
   name: string;
   partNumberCount: number;
-  bestRow: { pn: string; products: string[]; supplier: string; price: number; po: string };
+  bestRow: {
+    pn: string;
+    products: string[];
+    supplier: string;
+    origin: string;
+    price: number;
+    po: string;
+  };
   minPrice: number;
   maxPrice: number;
   yearlySavingVsHighest: number;
@@ -24,6 +32,7 @@ interface Alternative {
   partNumber: string;
   price: number;
   supplier: string;
+  origin: string;
   products: number;
 }
 
@@ -33,6 +42,7 @@ interface CheckResult {
   confidence: number;
   candidates: Match[];
   blockedBy: Rule[] | null;
+  complianceSource: OriginSource | null;
   alternatives: Alternative[];
 }
 
@@ -240,6 +250,25 @@ export default function CheckTab({
                     {reasonLabel(blocked.kind)}, set {blocked.at.slice(0, 10)}
                   </span>
                 </p>
+                {result!.complianceSource && (
+                  <p className="mt-3 text-[13px] text-text">
+                    {originLine(result!.complianceSource)}{" "}
+                    <span className="font-mono text-[12px] text-text-2">
+                      {result!.complianceSource.partNumber}
+                    </span>{" "}
+                    <button
+                      type="button"
+                      onClick={() => onTag(result!.complianceSource!.po)}
+                      className="rounded-field border border-line-2 px-[6px] py-px font-mono text-[11px] text-text-2 transition-colors hover:border-text-2 hover:text-text"
+                    >
+                      {result!.complianceSource.po}
+                    </button>{" "}
+                    <span className="text-text-3">
+                      No new part number needed, only a different source.
+                    </span>
+                  </p>
+                )}
+
                 {result!.alternatives.length > 0 ? (
                   <div className="mt-3">
                     <p className="text-[13px] text-text-2">
@@ -253,8 +282,8 @@ export default function CheckTab({
                             {a.partNumber}
                           </span>{" "}
                           <span className="text-text-3">
-                            at {px(a.price)} from {a.supplier}, already in{" "}
-                            {a.products} products
+                            at {px(a.price)} from {a.supplier} ({a.origin}),
+                            already in {a.products} products
                           </span>
                         </li>
                       ))}
@@ -282,7 +311,7 @@ export default function CheckTab({
                     {
                       label: "Best price paid",
                       value: px(match.minPrice),
-                      sub: match.bestRow.supplier,
+                      sub: `${match.bestRow.supplier}, ${match.bestRow.origin}`,
                     },
                     {
                       label: "Yearly saving versus the highest price paid",

@@ -392,7 +392,7 @@ export default function DashboardClient({
                 <div className="flex items-baseline justify-between gap-3">
                   <div className="flex items-baseline gap-3">
                     <h2 className="text-[15px] font-semibold text-text">Assistant</h2>
-                    <Badge>Answering for {view.name}</Badge>
+                    <Badge>Answering for {role}</Badge>
                   </div>
                   <button
                     type="button"

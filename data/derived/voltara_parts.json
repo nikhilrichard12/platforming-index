@@ -69,7 +69,8 @@
      ],
      "price": 0.0299,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO450529"
+     "po": "PO450529",
+     "origin": "United States"
     },
     {
      "pn": "10-39389",
@@ -79,7 +80,8 @@
      ],
      "price": 0.03,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO450497"
+     "po": "PO450497",
+     "origin": "United States"
     },
     {
      "pn": "SL5-7333A",
@@ -89,7 +91,8 @@
      ],
      "price": 0.0308,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO453454"
+     "po": "PO453454",
+     "origin": "United States"
     },
     {
      "pn": "SL5-5288B",
@@ -99,7 +102,8 @@
      ],
      "price": 0.0309,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO453437"
+     "po": "PO453437",
+     "origin": "United States"
     },
     {
      "pn": "30-38135",
@@ -109,7 +113,8 @@
      ],
      "price": 0.0323,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO451573"
+     "po": "PO451573",
+     "origin": "United States"
     },
     {
      "pn": "30-26374",
@@ -119,7 +124,8 @@
      ],
      "price": 0.0324,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO451549"
+     "po": "PO451549",
+     "origin": "United States"
     },
     {
      "pn": "SL10-2810A",
@@ -129,7 +135,8 @@
      ],
      "price": 0.0336,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO454441"
+     "po": "PO454441",
+     "origin": "United States"
     },
     {
      "pn": "SL10-8717D",
@@ -139,7 +146,8 @@
      ],
      "price": 0.0337,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO454423"
+     "po": "PO454423",
+     "origin": "United States"
     },
     {
      "pn": "MX227621",
@@ -149,7 +157,8 @@
      ],
      "price": 0.0364,
      "supplier": "Norwick Components",
-     "po": "PO452470"
+     "po": "PO452470",
+     "origin": "Taiwan"
     },
     {
      "pn": "MX388497",
@@ -159,7 +168,8 @@
      ],
      "price": 0.0367,
      "supplier": "Norwick Components",
-     "po": "PO452497"
+     "po": "PO452497",
+     "origin": "Taiwan"
     },
     {
      "pn": "BS-5302-11",
@@ -169,7 +179,8 @@
      ],
      "price": 0.0391,
      "supplier": "Tarn Valley Fasteners",
-     "po": "PO455264"
+     "po": "PO455264",
+     "origin": "Czech Republic"
     },
     {
      "pn": "BS-2111-15",
@@ -179,7 +190,8 @@
      ],
      "price": 0.0392,
      "supplier": "Tarn Valley Fasteners",
-     "po": "PO455283"
+     "po": "PO455283",
+     "origin": "Czech Republic"
     }
    ]
   },
@@ -202,7 +214,8 @@
      ],
      "price": 0.0198,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO450607"
+     "po": "PO450607",
+     "origin": "United States"
     },
     {
      "pn": "10-46954",
@@ -212,7 +225,8 @@
      ],
      "price": 0.0199,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO450574"
+     "po": "PO450574",
+     "origin": "United States"
     },
     {
      "pn": "SL5-2297D",
@@ -222,7 +236,8 @@
      ],
      "price": 0.0204,
      "supplier": "Norwick Components",
-     "po": "PO453538"
+     "po": "PO453538",
+     "origin": "Taiwan"
     },
     {
      "pn": "SL5-2611D",
@@ -232,7 +247,8 @@
      ],
      "price": 0.0207,
      "supplier": "Norwick Components",
-     "po": "PO453513"
+     "po": "PO453513",
+     "origin": "Taiwan"
     },
     {
      "pn": "30-42684",
@@ -242,7 +258,8 @@
      ],
      "price": 0.0215,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO451630"
+     "po": "PO451630",
+     "origin": "United States"
     },
     {
      "pn": "30-50105",
@@ -252,7 +269,8 @@
      ],
      "price": 0.0216,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO451650"
+     "po": "PO451650",
+     "origin": "United States"
     },
     {
      "pn": "SL10-6670C",
@@ -262,7 +280,8 @@
      ],
      "price": 0.0225,
      "supplier": "Norwick Components",
-     "po": "PO454499"
+     "po": "PO454499",
+     "origin": "Taiwan"
     },
     {
      "pn": "SL10-4939D",
@@ -272,7 +291,8 @@
      ],
      "price": 0.0225,
      "supplier": "Norwick Components",
-     "po": "PO454524"
+     "po": "PO454524",
+     "origin": "Taiwan"
     },
     {
      "pn": "MX560096",
@@ -282,7 +302,8 @@
      ],
      "price": 0.0243,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO452550"
+     "po": "PO452550",
+     "origin": "United States"
     },
     {
      "pn": "MX230756",
@@ -292,7 +313,8 @@
      ],
      "price": 0.0244,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO452564"
+     "po": "PO452564",
+     "origin": "United States"
     },
     {
      "pn": "BS-6758-20",
@@ -302,7 +324,8 @@
      ],
      "price": 0.026,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO455335"
+     "po": "PO455335",
+     "origin": "United States"
     },
     {
      "pn": "BS-3995-18",
@@ -312,7 +335,8 @@
      ],
      "price": 0.026,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO455362"
+     "po": "PO455362",
+     "origin": "United States"
     }
    ]
   },
@@ -335,7 +359,8 @@
      ],
      "price": 0.0496,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO450553"
+     "po": "PO450553",
+     "origin": "United States"
     },
     {
      "pn": "10-90422",
@@ -345,7 +370,8 @@
      ],
      "price": 0.05,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO450567"
+     "po": "PO450567",
+     "origin": "United States"
     },
     {
      "pn": "SL5-2308A",
@@ -355,7 +381,8 @@
      ],
      "price": 0.0511,
      "supplier": "Tarn Valley Fasteners",
-     "po": "PO453502"
+     "po": "PO453502",
+     "origin": "Czech Republic"
     },
     {
      "pn": "SL5-4739A",
@@ -365,7 +392,8 @@
      ],
      "price": 0.0512,
      "supplier": "Tarn Valley Fasteners",
-     "po": "PO453468"
+     "po": "PO453468",
+     "origin": "Czech Republic"
     },
     {
      "pn": "30-70429",
@@ -375,7 +403,8 @@
      ],
      "price": 0.0541,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO451615"
+     "po": "PO451615",
+     "origin": "United States"
     },
     {
      "pn": "30-81215",
@@ -385,7 +414,8 @@
      ],
      "price": 0.0544,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO451592"
+     "po": "PO451592",
+     "origin": "United States"
     },
     {
      "pn": "SL10-2180D",
@@ -395,7 +425,8 @@
      ],
      "price": 0.0559,
      "supplier": "Tarn Valley Fasteners",
-     "po": "PO454467"
+     "po": "PO454467",
+     "origin": "Czech Republic"
     },
     {
      "pn": "SL10-3406A",
@@ -405,7 +436,8 @@
      ],
      "price": 0.0562,
      "supplier": "Tarn Valley Fasteners",
-     "po": "PO454487"
+     "po": "PO454487",
+     "origin": "Czech Republic"
     },
     {
      "pn": "MX366455",
@@ -415,7 +447,8 @@
      ],
      "price": 0.0609,
      "supplier": "Tarn Valley Fasteners",
-     "po": "PO452539"
+     "po": "PO452539",
+     "origin": "Czech Republic"
     },
     {
      "pn": "MX289544",
@@ -425,7 +458,8 @@
      ],
      "price": 0.0612,
      "supplier": "Tarn Valley Fasteners",
-     "po": "PO452519"
+     "po": "PO452519",
+     "origin": "Czech Republic"
     },
     {
      "pn": "BS-7677-11",
@@ -435,7 +469,8 @@
      ],
      "price": 0.0646,
      "supplier": "Tarn Valley Fasteners",
-     "po": "PO455302"
+     "po": "PO455302",
+     "origin": "Czech Republic"
     },
     {
      "pn": "BS-9745-20",
@@ -445,7 +480,8 @@
      ],
      "price": 0.0649,
      "supplier": "Tarn Valley Fasteners",
-     "po": "PO455319"
+     "po": "PO455319",
+     "origin": "Czech Republic"
     }
    ]
   },
@@ -468,7 +504,8 @@
      ],
      "price": 21.95,
      "supplier": "Sable Enclosures",
-     "po": "PO450853"
+     "po": "PO450853",
+     "origin": "Czech Republic"
     }
    ]
   },
@@ -491,7 +528,8 @@
      ],
      "price": 0.01,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO450626"
+     "po": "PO450626",
+     "origin": "United States"
     },
     {
      "pn": "10-54889",
@@ -501,7 +539,8 @@
      ],
      "price": 0.01,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO450647"
+     "po": "PO450647",
+     "origin": "United States"
     },
     {
      "pn": "SL5-7374D",
@@ -511,7 +550,8 @@
      ],
      "price": 0.0103,
      "supplier": "Norwick Components",
-     "po": "PO453557"
+     "po": "PO453557",
+     "origin": "Taiwan"
     },
     {
      "pn": "SL5-4706A",
@@ -521,7 +561,8 @@
      ],
      "price": 0.0104,
      "supplier": "Norwick Components",
-     "po": "PO453571"
+     "po": "PO453571",
+     "origin": "Taiwan"
     },
     {
      "pn": "30-47624",
@@ -531,7 +572,8 @@
      ],
      "price": 0.0108,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO451670"
+     "po": "PO451670",
+     "origin": "United States"
     },
     {
      "pn": "30-92462",
@@ -541,7 +583,8 @@
      ],
      "price": 0.0108,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO451699"
+     "po": "PO451699",
+     "origin": "United States"
     },
     {
      "pn": "SL10-9548B",
@@ -551,7 +594,8 @@
      ],
      "price": 0.0112,
      "supplier": "Norwick Components",
-     "po": "PO454553"
+     "po": "PO454553",
+     "origin": "Taiwan"
     },
     {
      "pn": "SL10-2070C",
@@ -561,7 +605,8 @@
      ],
      "price": 0.0113,
      "supplier": "Norwick Components",
-     "po": "PO454568"
+     "po": "PO454568",
+     "origin": "Taiwan"
     },
     {
      "pn": "MX818370",
@@ -571,7 +616,8 @@
      ],
      "price": 0.0121,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO452613"
+     "po": "PO452613",
+     "origin": "United States"
     },
     {
      "pn": "MX333043",
@@ -581,7 +627,8 @@
      ],
      "price": 0.0123,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO452591"
+     "po": "PO452591",
+     "origin": "United States"
     },
     {
      "pn": "BS-2441-02",
@@ -591,7 +638,8 @@
      ],
      "price": 0.0129,
      "supplier": "Tarn Valley Fasteners",
-     "po": "PO455382"
+     "po": "PO455382",
+     "origin": "Czech Republic"
     },
     {
      "pn": "BS-7510-08",
@@ -601,7 +649,8 @@
      ],
      "price": 0.013,
      "supplier": "Tarn Valley Fasteners",
-     "po": "PO455375"
+     "po": "PO455375",
+     "origin": "Czech Republic"
     }
    ]
   },
@@ -624,7 +673,8 @@
      ],
      "price": 0.0199,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO450746"
+     "po": "PO450746",
+     "origin": "United States"
     },
     {
      "pn": "10-86992",
@@ -634,7 +684,8 @@
      ],
      "price": 0.0202,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO450722"
+     "po": "PO450722",
+     "origin": "United States"
     },
     {
      "pn": "SL5-7568B",
@@ -644,7 +695,8 @@
      ],
      "price": 0.0205,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO453621"
+     "po": "PO453621",
+     "origin": "United States"
     },
     {
      "pn": "SL5-5038D",
@@ -654,7 +706,8 @@
      ],
      "price": 0.0205,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO453642"
+     "po": "PO453642",
+     "origin": "United States"
     },
     {
      "pn": "30-24380",
@@ -664,7 +717,8 @@
      ],
      "price": 0.0216,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO451758"
+     "po": "PO451758",
+     "origin": "United States"
     },
     {
      "pn": "30-92686",
@@ -674,7 +728,8 @@
      ],
      "price": 0.0216,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO451787"
+     "po": "PO451787",
+     "origin": "United States"
     },
     {
      "pn": "SL10-1808C",
@@ -684,7 +739,8 @@
      ],
      "price": 0.0222,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO454634"
+     "po": "PO454634",
+     "origin": "United States"
     },
     {
      "pn": "SL10-5218D",
@@ -694,7 +750,8 @@
      ],
      "price": 0.0224,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO454650"
+     "po": "PO454650",
+     "origin": "United States"
     },
     {
      "pn": "MX192310",
@@ -704,7 +761,8 @@
      ],
      "price": 0.0243,
      "supplier": "Norwick Components",
-     "po": "PO452691"
+     "po": "PO452691",
+     "origin": "Taiwan"
     },
     {
      "pn": "MX161439",
@@ -714,7 +772,8 @@
      ],
      "price": 0.0244,
      "supplier": "Norwick Components",
-     "po": "PO452682"
+     "po": "PO452682",
+     "origin": "Taiwan"
     },
     {
      "pn": "BS-5235-12",
@@ -724,7 +783,8 @@
      ],
      "price": 0.026,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO455443"
+     "po": "PO455443",
+     "origin": "United States"
     },
     {
      "pn": "BS-7164-17",
@@ -734,7 +794,8 @@
      ],
      "price": 0.0261,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO455463"
+     "po": "PO455463",
+     "origin": "United States"
     }
    ]
   },
@@ -758,7 +819,8 @@
      ],
      "price": 86.5125,
      "supplier": "Kestrel Device Distribution",
-     "po": "PO450008"
+     "po": "PO450008",
+     "origin": "Mexico"
     },
     {
      "pn": "SL5-8935B",
@@ -769,7 +831,8 @@
      ],
      "price": 89.1887,
      "supplier": "Lumen Board Assembly",
-     "po": "PO452889"
+     "po": "PO452889",
+     "origin": "United States"
     },
     {
      "pn": "MX352609",
@@ -779,7 +842,8 @@
      ],
      "price": 104.725,
      "supplier": "Kestrel Device Distribution",
-     "po": "PO451942"
+     "po": "PO451942",
+     "origin": "Mexico"
     },
     {
      "pn": "BS-9145-01",
@@ -789,7 +853,8 @@
      ],
      "price": 112.1725,
      "supplier": "Kestrel Device Distribution",
-     "po": "PO454888"
+     "po": "PO454888",
+     "origin": "Mexico"
     }
    ]
   },
@@ -812,7 +877,8 @@
      ],
      "price": 1.3067,
      "supplier": "Dunmore Cable and Harness",
-     "po": "PO450393"
+     "po": "PO450393",
+     "origin": "Mexico"
     },
     {
      "pn": "SL5-1323C",
@@ -822,7 +888,8 @@
      ],
      "price": 1.334,
      "supplier": "Norwick Components",
-     "po": "PO453313"
+     "po": "PO453313",
+     "origin": "Taiwan"
     },
     {
      "pn": "30-62858",
@@ -832,7 +899,8 @@
      ],
      "price": 1.4067,
      "supplier": "Dunmore Cable and Harness",
-     "po": "PO451379"
+     "po": "PO451379",
+     "origin": "Mexico"
     },
     {
      "pn": "SL10-4352C",
@@ -842,7 +910,8 @@
      ],
      "price": 1.456,
      "supplier": "Norwick Components",
-     "po": "PO454290"
+     "po": "PO454290",
+     "origin": "Taiwan"
     },
     {
      "pn": "MX131972",
@@ -852,7 +921,8 @@
      ],
      "price": 1.5867,
      "supplier": "Norwick Components",
-     "po": "PO452339"
+     "po": "PO452339",
+     "origin": "Taiwan"
     },
     {
      "pn": "BS-1563-09",
@@ -862,7 +932,8 @@
      ],
      "price": 1.69,
      "supplier": "Norwick Components",
-     "po": "PO455150"
+     "po": "PO455150",
+     "origin": "Taiwan"
     }
    ]
   },
@@ -886,7 +957,8 @@
      ],
      "price": 21.1271,
      "supplier": "Calder Power Devices",
-     "po": "PO451050"
+     "po": "PO451050",
+     "origin": "Germany"
     },
     {
      "pn": "SL5-3947A",
@@ -897,7 +969,8 @@
      ],
      "price": 21.9014,
      "supplier": "Lumen Board Assembly",
-     "po": "PO454014"
+     "po": "PO454014",
+     "origin": "United States"
     },
     {
      "pn": "MX336730",
@@ -907,7 +980,8 @@
      ],
      "price": 25.47,
      "supplier": "Lumen Board Assembly",
-     "po": "PO452081"
+     "po": "PO452081",
+     "origin": "United States"
     },
     {
      "pn": "BS-3463-14",
@@ -917,7 +991,8 @@
      ],
      "price": 27.385,
      "supplier": "Calder Power Devices",
-     "po": "PO454995"
+     "po": "PO454995",
+     "origin": "Germany"
     }
    ]
   },
@@ -940,7 +1015,8 @@
      ],
      "price": 16.002,
      "supplier": "Helix Electro Supply",
-     "po": "PO450357"
+     "po": "PO450357",
+     "origin": "Vietnam"
     },
     {
      "pn": "30-40927",
@@ -950,7 +1026,8 @@
      ],
      "price": 17.185,
      "supplier": "Helix Electro Supply",
-     "po": "PO451364"
+     "po": "PO451364",
+     "origin": "Vietnam"
     },
     {
      "pn": "MX858877",
@@ -960,7 +1037,8 @@
      ],
      "price": 19.492,
      "supplier": "Helix Electro Supply",
-     "po": "PO452315"
+     "po": "PO452315",
+     "origin": "Vietnam"
     }
    ]
   },
@@ -983,7 +1061,8 @@
      ],
      "price": 0.1193,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO450693"
+     "po": "PO450693",
+     "origin": "United States"
     },
     {
      "pn": "10-58462",
@@ -993,7 +1072,8 @@
      ],
      "price": 0.1202,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO450681"
+     "po": "PO450681",
+     "origin": "United States"
     },
     {
      "pn": "SL5-3737A",
@@ -1003,7 +1083,8 @@
      ],
      "price": 0.124,
      "supplier": "Norwick Components",
-     "po": "PO453593"
+     "po": "PO453593",
+     "origin": "Taiwan"
     },
     {
      "pn": "SL5-3511D",
@@ -1013,7 +1094,8 @@
      ],
      "price": 0.1243,
      "supplier": "Norwick Components",
-     "po": "PO453607"
+     "po": "PO453607",
+     "origin": "Taiwan"
     },
     {
      "pn": "30-98163",
@@ -1023,7 +1105,8 @@
      ],
      "price": 0.1298,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO451742"
+     "po": "PO451742",
+     "origin": "United States"
     },
     {
      "pn": "30-36309",
@@ -1033,7 +1116,8 @@
      ],
      "price": 0.13,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO451720"
+     "po": "PO451720",
+     "origin": "United States"
     },
     {
      "pn": "SL10-8112C",
@@ -1043,7 +1127,8 @@
      ],
      "price": 0.133,
      "supplier": "Norwick Components",
-     "po": "PO454586"
+     "po": "PO454586",
+     "origin": "Taiwan"
     },
     {
      "pn": "SL10-8039D",
@@ -1053,7 +1138,8 @@
      ],
      "price": 0.1339,
      "supplier": "Norwick Components",
-     "po": "PO454608"
+     "po": "PO454608",
+     "origin": "Taiwan"
     },
     {
      "pn": "MX954276",
@@ -1063,7 +1149,8 @@
      ],
      "price": 0.1462,
      "supplier": "Norwick Components",
-     "po": "PO452627"
+     "po": "PO452627",
+     "origin": "Taiwan"
     },
     {
      "pn": "MX534102",
@@ -1073,7 +1160,8 @@
      ],
      "price": 0.1477,
      "supplier": "Norwick Components",
-     "po": "PO452658"
+     "po": "PO452658",
+     "origin": "Taiwan"
     },
     {
      "pn": "BS-2880-07",
@@ -1083,7 +1171,8 @@
      ],
      "price": 0.1549,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO455422"
+     "po": "PO455422",
+     "origin": "United States"
     },
     {
      "pn": "BS-1821-15",
@@ -1093,7 +1182,8 @@
      ],
      "price": 0.1554,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO455404"
+     "po": "PO455404",
+     "origin": "United States"
     }
    ]
   },
@@ -1116,7 +1206,8 @@
      ],
      "price": 0.9586,
      "supplier": "Dunmore Cable and Harness",
-     "po": "PO450422"
+     "po": "PO450422",
+     "origin": "Mexico"
     },
     {
      "pn": "SL5-5906C",
@@ -1126,7 +1217,8 @@
      ],
      "price": 0.976,
      "supplier": "Dunmore Cable and Harness",
-     "po": "PO453341"
+     "po": "PO453341",
+     "origin": "Mexico"
     },
     {
      "pn": "30-63838",
@@ -1136,7 +1228,8 @@
      ],
      "price": 1.028,
      "supplier": "Dunmore Cable and Harness",
-     "po": "PO451435"
+     "po": "PO451435",
+     "origin": "Mexico"
     },
     {
      "pn": "SL10-7650D",
@@ -1146,7 +1239,8 @@
      ],
      "price": 1.068,
      "supplier": "Dunmore Cable and Harness",
-     "po": "PO454316"
+     "po": "PO454316",
+     "origin": "Mexico"
     },
     {
      "pn": "MX387968",
@@ -1156,7 +1250,8 @@
      ],
      "price": 1.1633,
      "supplier": "Norwick Components",
-     "po": "PO452371"
+     "po": "PO452371",
+     "origin": "Taiwan"
     },
     {
      "pn": "BS-7112-06",
@@ -1166,7 +1261,8 @@
      ],
      "price": 1.248,
      "supplier": "Norwick Components",
-     "po": "PO455194"
+     "po": "PO455194",
+     "origin": "Taiwan"
     }
    ]
   },
@@ -1190,7 +1286,8 @@
      ],
      "price": 27.245,
      "supplier": "Calder Power Devices",
-     "po": "PO450143"
+     "po": "PO450143",
+     "origin": "Germany"
     },
     {
      "pn": "SL5-7400B",
@@ -1201,7 +1298,8 @@
      ],
      "price": 27.9462,
      "supplier": "Kestrel Device Distribution",
-     "po": "PO453043"
+     "po": "PO453043",
+     "origin": "Mexico"
     },
     {
      "pn": "MX474000",
@@ -1211,7 +1309,8 @@
      ],
      "price": 32.8133,
      "supplier": "Lumen Board Assembly",
-     "po": "PO452112"
+     "po": "PO452112",
+     "origin": "United States"
     }
    ]
   },
@@ -1235,7 +1334,8 @@
      ],
      "price": 18.6062,
      "supplier": "Calder Power Devices",
-     "po": "PO450960"
+     "po": "PO450960",
+     "origin": "Germany"
     },
     {
      "pn": "SL5-9563B",
@@ -1246,7 +1346,8 @@
      ],
      "price": 19.2378,
      "supplier": "Lumen Board Assembly",
-     "po": "PO453925"
+     "po": "PO453925",
+     "origin": "United States"
     },
     {
      "pn": "MX256813",
@@ -1256,7 +1357,8 @@
      ],
      "price": 22.64,
      "supplier": "Calder Power Devices",
-     "po": "PO451988"
+     "po": "PO451988",
+     "origin": "Germany"
     },
     {
      "pn": "BS-7019-07",
@@ -1266,7 +1368,8 @@
      ],
      "price": 24.165,
      "supplier": "Lumen Board Assembly",
-     "po": "PO454925"
+     "po": "PO454925",
+     "origin": "United States"
     }
    ]
   },
@@ -1290,7 +1393,8 @@
      ],
      "price": 34.3325,
      "supplier": "Calder Power Devices",
-     "po": "PO451470"
+     "po": "PO451470",
+     "origin": "Germany"
     },
     {
      "pn": "MX647383",
@@ -1300,7 +1404,8 @@
      ],
      "price": 41.498,
      "supplier": "Kestrel Device Distribution",
-     "po": "PO452386"
+     "po": "PO452386",
+     "origin": "Mexico"
     }
    ]
   },
@@ -1323,7 +1428,8 @@
      ],
      "price": 58.138,
      "supplier": "Arden Battery Systems",
-     "po": "PO450888"
+     "po": "PO450888",
+     "origin": "United States"
     }
    ]
   },
@@ -1346,7 +1452,8 @@
      ],
      "price": 1.0975,
      "supplier": "Helix Electro Supply",
-     "po": "PO450288"
+     "po": "PO450288",
+     "origin": "Vietnam"
     },
     {
      "pn": "SL5-3322C",
@@ -1356,7 +1463,8 @@
      ],
      "price": 1.135,
      "supplier": "Helix Electro Supply",
-     "po": "PO453242"
+     "po": "PO453242",
+     "origin": "Vietnam"
     },
     {
      "pn": "30-96174",
@@ -1366,7 +1474,8 @@
      ],
      "price": 1.18,
      "supplier": "Helix Electro Supply",
-     "po": "PO451253"
+     "po": "PO451253",
+     "origin": "Vietnam"
     },
     {
      "pn": "SL10-1644A",
@@ -1376,7 +1485,8 @@
      ],
      "price": 1.2333,
      "supplier": "Helix Electro Supply",
-     "po": "PO454201"
+     "po": "PO454201",
+     "origin": "Vietnam"
     }
    ]
   },
@@ -1399,7 +1509,8 @@
      ],
      "price": 12.41,
      "supplier": "Norwick Components",
-     "po": "PO450242"
+     "po": "PO450242",
+     "origin": "Taiwan"
     },
     {
      "pn": "SL5-3400B",
@@ -1409,7 +1520,8 @@
      ],
      "price": 12.91,
      "supplier": "Norwick Components",
-     "po": "PO453182"
+     "po": "PO453182",
+     "origin": "Taiwan"
     },
     {
      "pn": "30-67700",
@@ -1419,7 +1531,8 @@
      ],
      "price": 13.514,
      "supplier": "Norwick Components",
-     "po": "PO451204"
+     "po": "PO451204",
+     "origin": "Taiwan"
     }
    ]
   },
@@ -1442,7 +1555,8 @@
      ],
      "price": 0.9,
      "supplier": "Norwick Components",
-     "po": "PO450448"
+     "po": "PO450448",
+     "origin": "Taiwan"
     },
     {
      "pn": "SL5-3772D",
@@ -1452,7 +1566,8 @@
      ],
      "price": 0.928,
      "supplier": "Norwick Components",
-     "po": "PO453384"
+     "po": "PO453384",
+     "origin": "Taiwan"
     },
     {
      "pn": "30-84946",
@@ -1462,7 +1577,8 @@
      ],
      "price": 0.9722,
      "supplier": "Norwick Components",
-     "po": "PO451497"
+     "po": "PO451497",
+     "origin": "Taiwan"
     },
     {
      "pn": "SL10-7940D",
@@ -1472,7 +1588,8 @@
      ],
      "price": 1.008,
      "supplier": "Norwick Components",
-     "po": "PO454365"
+     "po": "PO454365",
+     "origin": "Taiwan"
     }
    ]
   },
@@ -1495,7 +1612,8 @@
      ],
      "price": 1.7375,
      "supplier": "Helix Electro Supply",
-     "po": "PO450313"
+     "po": "PO450313",
+     "origin": "Vietnam"
     },
     {
      "pn": "SL5-6009D",
@@ -1505,7 +1623,8 @@
      ],
      "price": 1.795,
      "supplier": "Calder Power Devices",
-     "po": "PO453270"
+     "po": "PO453270",
+     "origin": "Germany"
     },
     {
      "pn": "30-69337",
@@ -1515,7 +1634,8 @@
      ],
      "price": 1.8925,
      "supplier": "Helix Electro Supply",
-     "po": "PO451302"
+     "po": "PO451302",
+     "origin": "Vietnam"
     },
     {
      "pn": "SL10-5792A",
@@ -1525,7 +1645,8 @@
      ],
      "price": 1.9467,
      "supplier": "Calder Power Devices",
-     "po": "PO454232"
+     "po": "PO454232",
+     "origin": "Germany"
     }
    ]
   },
@@ -1548,7 +1669,8 @@
      ],
      "price": 0.7478,
      "supplier": "Helix Electro Supply",
-     "po": "PO450814"
+     "po": "PO450814",
+     "origin": "Vietnam"
     },
     {
      "pn": "SL5-1999B",
@@ -1558,7 +1680,8 @@
      ],
      "price": 0.7744,
      "supplier": "Calder Power Devices",
-     "po": "PO453744"
+     "po": "PO453744",
+     "origin": "Germany"
     },
     {
      "pn": "30-40679",
@@ -1568,7 +1691,8 @@
      ],
      "price": 0.8079,
      "supplier": "Helix Electro Supply",
-     "po": "PO451860"
+     "po": "PO451860",
+     "origin": "Vietnam"
     },
     {
      "pn": "SL10-7812C",
@@ -1578,7 +1702,8 @@
      ],
      "price": 0.8495,
      "supplier": "Calder Power Devices",
-     "po": "PO454752"
+     "po": "PO454752",
+     "origin": "Germany"
     },
     {
      "pn": "MX769189",
@@ -1588,7 +1713,8 @@
      ],
      "price": 0.9141,
      "supplier": "Calder Power Devices",
-     "po": "PO452755"
+     "po": "PO452755",
+     "origin": "Germany"
     },
     {
      "pn": "BS-2068-17",
@@ -1598,7 +1724,8 @@
      ],
      "price": 0.9675,
      "supplier": "Helix Electro Supply",
-     "po": "PO455561"
+     "po": "PO455561",
+     "origin": "Vietnam"
     }
    ]
   },
@@ -1621,7 +1748,8 @@
      ],
      "price": 3.18,
      "supplier": "Norwick Components",
-     "po": "PO450407"
+     "po": "PO450407",
+     "origin": "Taiwan"
     },
     {
      "pn": "30-97440",
@@ -1631,7 +1759,8 @@
      ],
      "price": 3.468,
      "supplier": "Norwick Components",
-     "po": "PO451400"
+     "po": "PO451400",
+     "origin": "Taiwan"
     },
     {
      "pn": "MX139702",
@@ -1641,7 +1770,8 @@
      ],
      "price": 3.9175,
      "supplier": "Dunmore Cable and Harness",
-     "po": "PO452353"
+     "po": "PO452353",
+     "origin": "Mexico"
     },
     {
      "pn": "BS-3771-19",
@@ -1651,7 +1781,8 @@
      ],
      "price": 4.2,
      "supplier": "Dunmore Cable and Harness",
-     "po": "PO455174"
+     "po": "PO455174",
+     "origin": "Mexico"
     }
    ]
   },
@@ -1674,7 +1805,8 @@
      ],
      "price": 2.3925,
      "supplier": "Helix Electro Supply",
-     "po": "PO450115"
+     "po": "PO450115",
+     "origin": "Vietnam"
     },
     {
      "pn": "SL5-3295D",
@@ -1684,7 +1816,8 @@
      ],
      "price": 2.4925,
      "supplier": "Norwick Components",
-     "po": "PO453001"
+     "po": "PO453001",
+     "origin": "Taiwan"
     },
     {
      "pn": "30-53784",
@@ -1694,7 +1827,8 @@
      ],
      "price": 2.58,
      "supplier": "Helix Electro Supply",
-     "po": "PO451018"
+     "po": "PO451018",
+     "origin": "Vietnam"
     },
     {
      "pn": "SL10-5614B",
@@ -1704,7 +1838,8 @@
      ],
      "price": 2.67,
      "supplier": "Norwick Components",
-     "po": "PO453987"
+     "po": "PO453987",
+     "origin": "Taiwan"
     },
     {
      "pn": "MX812812",
@@ -1714,7 +1849,8 @@
      ],
      "price": 2.916,
      "supplier": "Helix Electro Supply",
-     "po": "PO452056"
+     "po": "PO452056",
+     "origin": "Vietnam"
     },
     {
      "pn": "BS-3443-13",
@@ -1724,7 +1860,8 @@
      ],
      "price": 3.0925,
      "supplier": "Calder Power Devices",
-     "po": "PO454983"
+     "po": "PO454983",
+     "origin": "Germany"
     }
    ]
   },
@@ -1747,7 +1884,8 @@
      ],
      "price": 3.9,
      "supplier": "Helix Electro Supply",
-     "po": "PO450268"
+     "po": "PO450268",
+     "origin": "Vietnam"
     },
     {
      "pn": "SL5-1920A",
@@ -1757,7 +1895,8 @@
      ],
      "price": 4.015,
      "supplier": "Helix Electro Supply",
-     "po": "PO453204"
+     "po": "PO453204",
+     "origin": "Vietnam"
     },
     {
      "pn": "30-94044",
@@ -1767,7 +1906,8 @@
      ],
      "price": 4.235,
      "supplier": "Helix Electro Supply",
-     "po": "PO451232"
+     "po": "PO451232",
+     "origin": "Vietnam"
     },
     {
      "pn": "SL10-5812C",
@@ -1777,7 +1917,8 @@
      ],
      "price": 4.3733,
      "supplier": "Helix Electro Supply",
-     "po": "PO454177"
+     "po": "PO454177",
+     "origin": "Vietnam"
     }
    ]
   },
@@ -1800,7 +1941,8 @@
      ],
      "price": 0.6006,
      "supplier": "Lumen Board Assembly",
-     "po": "PO450471"
+     "po": "PO450471",
+     "origin": "United States"
     },
     {
      "pn": "SL5-6561B",
@@ -1810,7 +1952,8 @@
      ],
      "price": 0.6159,
      "supplier": "Kestrel Device Distribution",
-     "po": "PO453411"
+     "po": "PO453411",
+     "origin": "Mexico"
     },
     {
      "pn": "30-71265",
@@ -1820,7 +1963,8 @@
      ],
      "price": 0.6482,
      "supplier": "Lumen Board Assembly",
-     "po": "PO451508"
+     "po": "PO451508",
+     "origin": "United States"
     },
     {
      "pn": "SL10-6910A",
@@ -1830,7 +1974,8 @@
      ],
      "price": 0.6708,
      "supplier": "Kestrel Device Distribution",
-     "po": "PO454400"
+     "po": "PO454400",
+     "origin": "Mexico"
     },
     {
      "pn": "MX175454",
@@ -1840,7 +1985,8 @@
      ],
      "price": 0.726,
      "supplier": "Kestrel Device Distribution",
-     "po": "PO452446"
+     "po": "PO452446",
+     "origin": "Mexico"
     }
    ]
   },
@@ -1863,7 +2009,8 @@
      ],
      "price": 23.886,
      "supplier": "Kestrel Device Distribution",
-     "po": "PO450033"
+     "po": "PO450033",
+     "origin": "Mexico"
     },
     {
      "pn": "SL5-3519A",
@@ -1873,7 +2020,8 @@
      ],
      "price": 24.63,
      "supplier": "Calder Power Devices",
-     "po": "PO452917"
+     "po": "PO452917",
+     "origin": "Germany"
     },
     {
      "pn": "30-66344",
@@ -1883,7 +2031,8 @@
      ],
      "price": 26.01,
      "supplier": "Kestrel Device Distribution",
-     "po": "PO450941"
+     "po": "PO450941",
+     "origin": "Mexico"
     },
     {
      "pn": "SL10-7892D",
@@ -1893,7 +2042,8 @@
      ],
      "price": 26.6675,
      "supplier": "Calder Power Devices",
-     "po": "PO453904"
+     "po": "PO453904",
+     "origin": "Germany"
     },
     {
      "pn": "MX876039",
@@ -1903,7 +2053,8 @@
      ],
      "price": 29.0033,
      "supplier": "Calder Power Devices",
-     "po": "PO451964"
+     "po": "PO451964",
+     "origin": "Germany"
     },
     {
      "pn": "BS-7505-09",
@@ -1913,7 +2064,8 @@
      ],
      "price": 31.315,
      "supplier": "Calder Power Devices",
-     "po": "PO454901"
+     "po": "PO454901",
+     "origin": "Germany"
     }
    ]
   },
@@ -1936,7 +2088,8 @@
      ],
      "price": 0.4482,
      "supplier": "Ostrava Thermal",
-     "po": "PO450785"
+     "po": "PO450785",
+     "origin": "United States"
     },
     {
      "pn": "10-31108",
@@ -1946,7 +2099,8 @@
      ],
      "price": 0.4514,
      "supplier": "Ostrava Thermal",
-     "po": "PO450767"
+     "po": "PO450767",
+     "origin": "United States"
     },
     {
      "pn": "SL5-1250A",
@@ -1956,7 +2110,8 @@
      ],
      "price": 0.4615,
      "supplier": "Ostrava Thermal",
-     "po": "PO453663"
+     "po": "PO453663",
+     "origin": "United States"
     },
     {
      "pn": "SL5-3795A",
@@ -1966,7 +2121,8 @@
      ],
      "price": 0.4616,
      "supplier": "Ostrava Thermal",
-     "po": "PO453691"
+     "po": "PO453691",
+     "origin": "United States"
     },
     {
      "pn": "30-31826",
@@ -1976,7 +2132,8 @@
      ],
      "price": 0.4841,
      "supplier": "Ostrava Thermal",
-     "po": "PO451812"
+     "po": "PO451812",
+     "origin": "United States"
     },
     {
      "pn": "30-72717",
@@ -1986,7 +2143,8 @@
      ],
      "price": 0.487,
      "supplier": "Ostrava Thermal",
-     "po": "PO451840"
+     "po": "PO451840",
+     "origin": "United States"
     },
     {
      "pn": "SL10-9635D",
@@ -1996,7 +2154,8 @@
      ],
      "price": 0.5026,
      "supplier": "Ostrava Thermal",
-     "po": "PO454674"
+     "po": "PO454674",
+     "origin": "United States"
     },
     {
      "pn": "SL10-4215B",
@@ -2006,7 +2165,8 @@
      ],
      "price": 0.509,
      "supplier": "Ostrava Thermal",
-     "po": "PO454691"
+     "po": "PO454691",
+     "origin": "United States"
     },
     {
      "pn": "MX974058",
@@ -2016,7 +2176,8 @@
      ],
      "price": 0.5481,
      "supplier": "Ostrava Thermal",
-     "po": "PO452717"
+     "po": "PO452717",
+     "origin": "United States"
     },
     {
      "pn": "MX461930",
@@ -2026,7 +2187,8 @@
      ],
      "price": 0.5511,
      "supplier": "Ostrava Thermal",
-     "po": "PO452742"
+     "po": "PO452742",
+     "origin": "United States"
     },
     {
      "pn": "BS-9103-10",
@@ -2036,7 +2198,8 @@
      ],
      "price": 0.5824,
      "supplier": "Norwick Components",
-     "po": "PO455485"
+     "po": "PO455485",
+     "origin": "Taiwan"
     },
     {
      "pn": "BS-9704-09",
@@ -2046,7 +2209,8 @@
      ],
      "price": 0.5867,
      "supplier": "Norwick Components",
-     "po": "PO455503"
+     "po": "PO455503",
+     "origin": "Taiwan"
     }
    ]
   },
@@ -2069,7 +2233,8 @@
      ],
      "price": 30.8667,
      "supplier": "Kestrel Device Distribution",
-     "po": "PO450226"
+     "po": "PO450226",
+     "origin": "Mexico"
     },
     {
      "pn": "SL5-3821A",
@@ -2079,7 +2244,8 @@
      ],
      "price": 31.945,
      "supplier": "Kestrel Device Distribution",
-     "po": "PO453153"
+     "po": "PO453153",
+     "origin": "Mexico"
     },
     {
      "pn": "30-58688",
@@ -2089,7 +2255,8 @@
      ],
      "price": 33.632,
      "supplier": "Kestrel Device Distribution",
-     "po": "PO451179"
+     "po": "PO451179",
+     "origin": "Mexico"
     }
    ]
   },
@@ -2112,7 +2279,8 @@
      ],
      "price": 3.9525,
      "supplier": "Calder Power Devices",
-     "po": "PO450194"
+     "po": "PO450194",
+     "origin": "Germany"
     },
     {
      "pn": "30-84239",
@@ -2122,7 +2290,8 @@
      ],
      "price": 3.962,
      "supplier": "Calder Power Devices",
-     "po": "PO451146"
+     "po": "PO451146",
+     "origin": "Germany"
     },
     {
      "pn": "SL10-1462D",
@@ -2132,7 +2301,8 @@
      ],
      "price": 4.6,
      "supplier": "Kestrel Device Distribution",
-     "po": "PO454078"
+     "po": "PO454078",
+     "origin": "Mexico"
     },
     {
      "pn": "SL5-8451B",
@@ -2142,7 +2312,8 @@
      ],
      "price": 4.6233,
      "supplier": "Kestrel Device Distribution",
-     "po": "PO453113"
+     "po": "PO453113",
+     "origin": "Mexico"
     },
     {
      "pn": "MX618969",
@@ -2152,7 +2323,8 @@
      ],
      "price": 5.332,
      "supplier": "Lumen Board Assembly",
-     "po": "PO452198"
+     "po": "PO452198",
+     "origin": "United States"
     }
    ]
   },
@@ -2175,7 +2347,8 @@
      ],
      "price": 11.025,
      "supplier": "Helix Electro Supply",
-     "po": "PO450333"
+     "po": "PO450333",
+     "origin": "Vietnam"
     },
     {
      "pn": "SL5-1119C",
@@ -2185,7 +2358,8 @@
      ],
      "price": 11.3067,
      "supplier": "Helix Electro Supply",
-     "po": "PO453296"
+     "po": "PO453296",
+     "origin": "Vietnam"
     },
     {
      "pn": "30-82977",
@@ -2195,7 +2369,8 @@
      ],
      "price": 11.9233,
      "supplier": "Helix Electro Supply",
-     "po": "PO451341"
+     "po": "PO451341",
+     "origin": "Vietnam"
     }
    ]
   },
@@ -2218,7 +2393,8 @@
      ],
      "price": 0.8457,
      "supplier": "Lumen Board Assembly",
-     "po": "PO450162"
+     "po": "PO450162",
+     "origin": "United States"
     },
     {
      "pn": "SL5-3020D",
@@ -2228,7 +2404,8 @@
      ],
      "price": 0.874,
      "supplier": "Kestrel Device Distribution",
-     "po": "PO453089"
+     "po": "PO453089",
+     "origin": "Mexico"
     },
     {
      "pn": "30-74595",
@@ -2238,7 +2415,8 @@
      ],
      "price": 0.9141,
      "supplier": "Lumen Board Assembly",
-     "po": "PO451120"
+     "po": "PO451120",
+     "origin": "United States"
     },
     {
      "pn": "SL10-4980D",
@@ -2248,7 +2426,8 @@
      ],
      "price": 0.9496,
      "supplier": "Kestrel Device Distribution",
-     "po": "PO454053"
+     "po": "PO454053",
+     "origin": "Mexico"
     },
     {
      "pn": "MX939791",
@@ -2258,7 +2437,8 @@
      ],
      "price": 1.036,
      "supplier": "Calder Power Devices",
-     "po": "PO452168"
+     "po": "PO452168",
+     "origin": "Germany"
     },
     {
      "pn": "BS-9493-12",
@@ -2268,7 +2448,8 @@
      ],
      "price": 1.1075,
      "supplier": "Lumen Board Assembly",
-     "po": "PO455015"
+     "po": "PO455015",
+     "origin": "United States"
     }
    ]
   },
@@ -2291,7 +2472,8 @@
      ],
      "price": 0.8015,
      "supplier": "Ostrava Thermal",
-     "po": "PO450829"
+     "po": "PO450829",
+     "origin": "United States"
     },
     {
      "pn": "SL5-6799C",
@@ -2301,7 +2483,8 @@
      ],
      "price": 0.8266,
      "supplier": "Norwick Components",
-     "po": "PO453770"
+     "po": "PO453770",
+     "origin": "Taiwan"
     },
     {
      "pn": "30-79443",
@@ -2311,7 +2494,8 @@
      ],
      "price": 0.864,
      "supplier": "Ostrava Thermal",
-     "po": "PO451866"
+     "po": "PO451866",
+     "origin": "United States"
     },
     {
      "pn": "SL10-1858B",
@@ -2321,7 +2505,8 @@
      ],
      "price": 0.8923,
      "supplier": "Norwick Components",
-     "po": "PO454774"
+     "po": "PO454774",
+     "origin": "Taiwan"
     },
     {
      "pn": "MX729199",
@@ -2331,7 +2516,8 @@
      ],
      "price": 0.9735,
      "supplier": "Norwick Components",
-     "po": "PO452779"
+     "po": "PO452779",
+     "origin": "Taiwan"
     },
     {
      "pn": "BS-8555-04",
@@ -2341,7 +2527,8 @@
      ],
      "price": 1.0375,
      "supplier": "Norwick Components",
-     "po": "PO455577"
+     "po": "PO455577",
+     "origin": "Taiwan"
     }
    ]
   },
@@ -2364,7 +2551,8 @@
      ],
      "price": 14.075,
      "supplier": "Norwick Components",
-     "po": "PO450056"
+     "po": "PO450056",
+     "origin": "Taiwan"
     },
     {
      "pn": "SL5-3046B",
@@ -2374,7 +2562,8 @@
      ],
      "price": 14.2875,
      "supplier": "Norwick Components",
-     "po": "PO452953"
+     "po": "PO452953",
+     "origin": "Taiwan"
     },
     {
      "pn": "30-48149",
@@ -2384,7 +2573,8 @@
      ],
      "price": 15.13,
      "supplier": "Norwick Components",
-     "po": "PO450982"
+     "po": "PO450982",
+     "origin": "Taiwan"
     },
     {
      "pn": "SL10-6852B",
@@ -2394,7 +2584,8 @@
      ],
      "price": 15.7025,
      "supplier": "Norwick Components",
-     "po": "PO453942"
+     "po": "PO453942",
+     "origin": "Taiwan"
     },
     {
      "pn": "MX913750",
@@ -2404,7 +2595,8 @@
      ],
      "price": 17.04,
      "supplier": "Norwick Components",
-     "po": "PO452007"
+     "po": "PO452007",
+     "origin": "Taiwan"
     },
     {
      "pn": "BS-8493-14",
@@ -2414,7 +2606,8 @@
      ],
      "price": 18.3125,
      "supplier": "Ostrava Thermal",
-     "po": "PO454947"
+     "po": "PO454947",
+     "origin": "United States"
     }
    ]
   },
@@ -2437,7 +2630,8 @@
      ],
      "price": 9.772,
      "supplier": "Norwick Components",
-     "po": "PO450076"
+     "po": "PO450076",
+     "origin": "Taiwan"
     },
     {
      "pn": "SL5-2214B",
@@ -2447,7 +2641,8 @@
      ],
      "price": 10.1125,
      "supplier": "Norwick Components",
-     "po": "PO452967"
+     "po": "PO452967",
+     "origin": "Taiwan"
     },
     {
      "pn": "30-28492",
@@ -2457,7 +2652,8 @@
      ],
      "price": 10.5775,
      "supplier": "Norwick Components",
-     "po": "PO451002"
+     "po": "PO451002",
+     "origin": "Taiwan"
     },
     {
      "pn": "SL10-4006A",
@@ -2467,7 +2663,8 @@
      ],
      "price": 10.9725,
      "supplier": "Norwick Components",
-     "po": "PO453968"
+     "po": "PO453968",
+     "origin": "Taiwan"
     },
     {
      "pn": "MX739609",
@@ -2477,7 +2674,8 @@
      ],
      "price": 11.9267,
      "supplier": "Norwick Components",
-     "po": "PO452029"
+     "po": "PO452029",
+     "origin": "Taiwan"
     },
     {
      "pn": "BS-6955-17",
@@ -2487,7 +2685,8 @@
      ],
      "price": 12.73,
      "supplier": "Ostrava Thermal",
-     "po": "PO454965"
+     "po": "PO454965",
+     "origin": "United States"
     }
    ]
   },
@@ -2510,7 +2709,8 @@
      ],
      "price": 28.9867,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO451894"
+     "po": "PO451894",
+     "origin": "United States"
     }
    ]
   },
@@ -2533,7 +2733,8 @@
      ],
      "price": 111.83,
      "supplier": "Arden Battery Systems",
-     "po": "PO451914"
+     "po": "PO451914",
+     "origin": "United States"
     }
    ]
   },
@@ -2556,7 +2757,8 @@
      ],
      "price": 16.77,
      "supplier": "Norwick Components",
-     "po": "PO451317"
+     "po": "PO451317",
+     "origin": "Taiwan"
     },
     {
      "pn": "SL10-6968C",
@@ -2566,7 +2768,8 @@
      ],
      "price": 17.31,
      "supplier": "Calder Power Devices",
-     "po": "PO454243"
+     "po": "PO454243",
+     "origin": "Germany"
     },
     {
      "pn": "MX308247",
@@ -2576,7 +2779,8 @@
      ],
      "price": 18.9325,
      "supplier": "Norwick Components",
-     "po": "PO452284"
+     "po": "PO452284",
+     "origin": "Taiwan"
     },
     {
      "pn": "BS-7123-02",
@@ -2586,7 +2790,8 @@
      ],
      "price": 20.25,
      "supplier": "Calder Power Devices",
-     "po": "PO455111"
+     "po": "PO455111",
+     "origin": "Germany"
     }
    ]
   },
@@ -2609,7 +2814,8 @@
      ],
      "price": 7.89,
      "supplier": "Lumen Board Assembly",
-     "po": "PO453075"
+     "po": "PO453075",
+     "origin": "United States"
     },
     {
      "pn": "30-53594",
@@ -2619,7 +2825,8 @@
      ],
      "price": 8.16,
      "supplier": "Lumen Board Assembly",
-     "po": "PO451100"
+     "po": "PO451100",
+     "origin": "United States"
     },
     {
      "pn": "SL10-9627B",
@@ -2629,7 +2836,8 @@
      ],
      "price": 8.5567,
      "supplier": "Lumen Board Assembly",
-     "po": "PO454047"
+     "po": "PO454047",
+     "origin": "United States"
     },
     {
      "pn": "MX744933",
@@ -2639,7 +2847,8 @@
      ],
      "price": 9.332,
      "supplier": "Lumen Board Assembly",
-     "po": "PO452136"
+     "po": "PO452136",
+     "origin": "United States"
     },
     {
      "pn": "BS-8979-16",
@@ -2649,7 +2858,8 @@
      ],
      "price": 9.96,
      "supplier": "Lumen Board Assembly",
-     "po": "PO455008"
+     "po": "PO455008",
+     "origin": "United States"
     }
    ]
   },
@@ -2672,7 +2882,8 @@
      ],
      "price": 406.8575,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO452827"
+     "po": "PO452827",
+     "origin": "United States"
     }
    ]
   },
@@ -2695,7 +2906,8 @@
      ],
      "price": 0.0722,
      "supplier": "Tarn Valley Fasteners",
-     "po": "PO453799"
+     "po": "PO453799",
+     "origin": "Czech Republic"
     },
     {
      "pn": "SL10-5720A",
@@ -2705,7 +2917,8 @@
      ],
      "price": 0.0781,
      "supplier": "Tarn Valley Fasteners",
-     "po": "PO454799"
+     "po": "PO454799",
+     "origin": "Czech Republic"
     },
     {
      "pn": "MX667426",
@@ -2715,7 +2928,8 @@
      ],
      "price": 0.0858,
      "supplier": "Tarn Valley Fasteners",
-     "po": "PO452803"
+     "po": "PO452803",
+     "origin": "Czech Republic"
     },
     {
      "pn": "BS-3273-20",
@@ -2725,7 +2939,8 @@
      ],
      "price": 0.0909,
      "supplier": "Norwick Components",
-     "po": "PO455607"
+     "po": "PO455607",
+     "origin": "Taiwan"
     }
    ]
   },
@@ -2748,7 +2963,8 @@
      ],
      "price": 139.856,
      "supplier": "Lumen Board Assembly",
-     "po": "PO452862"
+     "po": "PO452862",
+     "origin": "United States"
     }
    ]
   },
@@ -2771,7 +2987,8 @@
      ],
      "price": 31.2425,
      "supplier": "Norwick Components",
-     "po": "PO454154"
+     "po": "PO454154",
+     "origin": "Taiwan"
     },
     {
      "pn": "MX876233",
@@ -2781,7 +2998,8 @@
      ],
      "price": 34.4333,
      "supplier": "Norwick Components",
-     "po": "PO452259"
+     "po": "PO452259",
+     "origin": "Taiwan"
     },
     {
      "pn": "BS-5453-15",
@@ -2791,7 +3009,8 @@
      ],
      "price": 36.328,
      "supplier": "Calder Power Devices",
-     "po": "PO455066"
+     "po": "PO455066",
+     "origin": "Germany"
     }
    ]
   },
@@ -2814,7 +3033,8 @@
      ],
      "price": 9.7175,
      "supplier": "Kestrel Device Distribution",
-     "po": "PO452427"
+     "po": "PO452427",
+     "origin": "Mexico"
     },
     {
      "pn": "BS-1746-19",
@@ -2824,7 +3044,8 @@
      ],
      "price": 10.4425,
      "supplier": "Calder Power Devices",
-     "po": "PO455244"
+     "po": "PO455244",
+     "origin": "Germany"
     }
    ]
   },
@@ -2847,7 +3068,8 @@
      ],
      "price": 10.715,
      "supplier": "Norwick Components",
-     "po": "PO454386"
+     "po": "PO454386",
+     "origin": "Taiwan"
     },
     {
      "pn": "MX207571",
@@ -2857,7 +3079,8 @@
      ],
      "price": 11.5775,
      "supplier": "Calder Power Devices",
-     "po": "PO452411"
+     "po": "PO452411",
+     "origin": "Germany"
     },
     {
      "pn": "BS-3612-15",
@@ -2867,7 +3090,8 @@
      ],
      "price": 12.3125,
      "supplier": "Norwick Components",
-     "po": "PO455220"
+     "po": "PO455220",
+     "origin": "Taiwan"
     }
    ]
   },
@@ -2890,7 +3114,8 @@
      ],
      "price": 56.0633,
      "supplier": "Norwick Components",
-     "po": "PO452273"
+     "po": "PO452273",
+     "origin": "Taiwan"
     },
     {
      "pn": "BS-8270-11",
@@ -2900,7 +3125,8 @@
      ],
      "price": 60.36,
      "supplier": "Calder Power Devices",
-     "po": "PO455091"
+     "po": "PO455091",
+     "origin": "Germany"
     }
    ]
   },
@@ -2923,7 +3149,8 @@
      ],
      "price": 81.9433,
      "supplier": "Calder Power Devices",
-     "po": "PO454135"
+     "po": "PO454135",
+     "origin": "Germany"
     },
     {
      "pn": "MX214878",
@@ -2933,7 +3160,8 @@
      ],
      "price": 90.042,
      "supplier": "Kestrel Device Distribution",
-     "po": "PO452235"
+     "po": "PO452235",
+     "origin": "Mexico"
     },
     {
      "pn": "BS-8190-14",
@@ -2943,7 +3171,8 @@
      ],
      "price": 95.7425,
      "supplier": "Calder Power Devices",
-     "po": "PO455049"
+     "po": "PO455049",
+     "origin": "Germany"
     }
    ]
   },
@@ -2966,7 +3195,8 @@
      ],
      "price": 37.118,
      "supplier": "Brightwater Magnetics",
-     "po": "PO454265"
+     "po": "PO454265",
+     "origin": "Germany"
     },
     {
      "pn": "MX404162",
@@ -2976,7 +3206,8 @@
      ],
      "price": 40.3975,
      "supplier": "Helix Electro Supply",
-     "po": "PO452295"
+     "po": "PO452295",
+     "origin": "Vietnam"
     },
     {
      "pn": "BS-3891-13",
@@ -2986,7 +3217,8 @@
      ],
      "price": 42.895,
      "supplier": "Brightwater Magnetics",
-     "po": "PO455123"
+     "po": "PO455123",
+     "origin": "Germany"
     }
    ]
   },
@@ -3009,7 +3241,8 @@
      ],
      "price": 7.065,
      "supplier": "Kestrel Device Distribution",
-     "po": "PO453127"
+     "po": "PO453127",
+     "origin": "Mexico"
     },
     {
      "pn": "SL10-7958B",
@@ -3019,7 +3252,8 @@
      ],
      "price": 7.78,
      "supplier": "Kestrel Device Distribution",
-     "po": "PO454109"
+     "po": "PO454109",
+     "origin": "Mexico"
     },
     {
      "pn": "MX441834",
@@ -3029,7 +3263,8 @@
      ],
      "price": 8.4767,
      "supplier": "Calder Power Devices",
-     "po": "PO452223"
+     "po": "PO452223",
+     "origin": "Germany"
     },
     {
      "pn": "BS-9197-09",
@@ -3039,7 +3274,8 @@
      ],
      "price": 9.05,
      "supplier": "Calder Power Devices",
-     "po": "PO455037"
+     "po": "PO455037",
+     "origin": "Germany"
     }
    ]
   },
@@ -3062,7 +3298,8 @@
      ],
      "price": 95.0433,
      "supplier": "Sable Enclosures",
-     "po": "PO452845"
+     "po": "PO452845",
+     "origin": "Czech Republic"
     }
    ]
   },
@@ -3085,7 +3322,8 @@
      ],
      "price": 47.7633,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO453846"
+     "po": "PO453846",
+     "origin": "United States"
     }
    ]
   },
@@ -3108,7 +3346,8 @@
      ],
      "price": 1.2333,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO453828"
+     "po": "PO453828",
+     "origin": "United States"
     },
     {
      "pn": "SL10-2450C",
@@ -3118,7 +3357,8 @@
      ],
      "price": 1.3425,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO454827"
+     "po": "PO454827",
+     "origin": "United States"
     },
     {
      "pn": "BS-9055-05",
@@ -3128,7 +3368,8 @@
      ],
      "price": 1.55,
      "supplier": "Tarn Valley Fasteners",
-     "po": "PO455620"
+     "po": "PO455620",
+     "origin": "Czech Republic"
     }
    ]
   },
@@ -3152,7 +3393,8 @@
      ],
      "price": 12.3822,
      "supplier": "Lumen Board Assembly",
-     "po": "PO453361"
+     "po": "PO453361",
+     "origin": "United States"
     }
    ]
   },
@@ -3175,7 +3417,8 @@
      ],
      "price": 0.9268,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO453721"
+     "po": "PO453721",
+     "origin": "United States"
     },
     {
      "pn": "SL10-4872C",
@@ -3185,7 +3428,8 @@
      ],
      "price": 1.002,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO454731"
+     "po": "PO454731",
+     "origin": "United States"
     },
     {
      "pn": "BS-7341-07",
@@ -3195,7 +3439,8 @@
      ],
      "price": 1.17,
      "supplier": "Norwick Components",
-     "po": "PO455539"
+     "po": "PO455539",
+     "origin": "Taiwan"
     }
    ]
   },
@@ -3218,7 +3463,8 @@
      ],
      "price": 39.455,
      "supplier": "Kestrel Device Distribution",
-     "po": "PO453858"
+     "po": "PO453858",
+     "origin": "Mexico"
     }
    ]
   },
@@ -3241,7 +3487,8 @@
      ],
      "price": 66.2775,
      "supplier": "Sable Enclosures",
-     "po": "PO454845"
+     "po": "PO454845",
+     "origin": "Czech Republic"
     }
    ]
   },
@@ -3264,7 +3511,8 @@
      ],
      "price": 51.96,
      "supplier": "Lumen Board Assembly",
-     "po": "PO454874"
+     "po": "PO454874",
+     "origin": "United States"
     }
    ]
   },
@@ -3287,7 +3535,8 @@
      ],
      "price": 781.8925,
      "supplier": "Pinecrest Metalworks",
-     "po": "PO455632"
+     "po": "PO455632",
+     "origin": "United States"
     }
    ]
   },
@@ -3310,7 +3559,8 @@
      ],
      "price": 165.3825,
      "supplier": "Calder Power Devices",
-     "po": "PO455650"
+     "po": "PO455650",
+     "origin": "Germany"
     }
    ]
   },
@@ -3333,7 +3583,8 @@
      ],
      "price": 1355.254,
      "supplier": "Arden Battery Systems",
-     "po": "PO455680"
+     "po": "PO455680",
+     "origin": "United States"
     }
    ]
   },
@@ -3356,9 +3607,60 @@
      ],
      "price": 418.8867,
      "supplier": "Ostrava Thermal",
-     "po": "PO455709"
+     "po": "PO455709",
+     "origin": "United States"
     }
    ]
+  }
+ ],
+ "suppliers": [
+  {
+   "name": "Arden Battery Systems",
+   "origin": "United States"
+  },
+  {
+   "name": "Brightwater Magnetics",
+   "origin": "Germany"
+  },
+  {
+   "name": "Calder Power Devices",
+   "origin": "Germany"
+  },
+  {
+   "name": "Dunmore Cable and Harness",
+   "origin": "Mexico"
+  },
+  {
+   "name": "Helix Electro Supply",
+   "origin": "Vietnam"
+  },
+  {
+   "name": "Kestrel Device Distribution",
+   "origin": "Mexico"
+  },
+  {
+   "name": "Lumen Board Assembly",
+   "origin": "United States"
+  },
+  {
+   "name": "Norwick Components",
+   "origin": "Taiwan"
+  },
+  {
+   "name": "Ostrava Thermal",
+   "origin": "United States"
+  },
+  {
+   "name": "Pinecrest Metalworks",
+   "origin": "United States"
+  },
+  {
+   "name": "Sable Enclosures",
+   "origin": "Czech Republic"
+  },
+  {
+   "name": "Tarn Valley Fasteners",
+   "origin": "Czech Republic"
   }
  ]
 }

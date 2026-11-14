@@ -26,7 +26,7 @@ export function buildSystemPrompt(
 /**
  * One compact line per part, as in the reference prototype's context():
  * name | counts | gap | spend :: part number (products, "description as written",
- * average unit price, supplier, [purchase order tag]); ...
+ * average unit price, supplier, origin, [purchase order tag]); ...
  */
 function partsTable(data: VoltaraData): string {
   return data.byGap
@@ -36,7 +36,7 @@ function partsTable(data: VoltaraData): string {
         g.rows
           .map(
             (r) =>
-              `${r.pn} (${r.products.join("+")}, "${r.desc}", ${px(r.price)}, ${r.supplier}, [${r.po}])`
+              `${r.pn} (${r.products.join("+")}, "${r.desc}", ${px(r.price)}, ${r.supplier}, origin ${r.origin}, [${r.po}])`
           )
           .join("; ")
     )
@@ -111,7 +111,7 @@ export function buildPromptSections(
         `Peer benchmark [kearney_survey]: ${survey.benchmark.text}`,
         `Products [product_master] (id, name, units per year, lead time weeks, sustaining engineering hours per year):`,
         PRODUCT_MASTER.map((p) => [p.id, p.name, p.units, p.leadWeeks, p.hours].join(", ")).join("\n"),
-        `Parts (name | counts | gap | spend :: part number (product, description as written, average unit price, supplier, [purchase order tag])):`,
+        `Parts (name | counts | gap | spend :: part number (product, description as written, average unit price, supplier, country of origin, [purchase order tag])). Origin is data: never infer a country from a supplier name:`,
         partsTable(data),
       ].join("\n"),
       source: "data/derived/voltara_parts.json",

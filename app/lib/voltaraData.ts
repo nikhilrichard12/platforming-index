@@ -4,6 +4,8 @@ export interface PartRow {
   products: string[];
   price: number;
   supplier: string;
+  /** Country of origin, joined from voltara_suppliers.csv by engine/add_origin.py. */
+  origin: string;
   po: string;
 }
 
@@ -49,6 +51,7 @@ export interface VoltaraFile {
   };
   index: { score: number; status: string; dimensions: IndexDimension[]; step: number };
   parts: Part[];
+  suppliers: { name: string; origin: string }[];
 }
 
 /** Everything the UI and the prompt read, derived once from the file. */
@@ -101,10 +104,26 @@ export function deriveVoltaraData(raw: VoltaraFile): VoltaraData {
 
 /* Formatting, shared by the dashboard and the prompt. */
 
+/**
+ * The one money formatter. A unit price and a yearly total are the same kind
+ * of number to a reader, so they are written the same way everywhere: the
+ * dashboard, the cards, the popover, the prompt, the extension and the MCP
+ * replies all call this.
+ *
+ *   $3.95        under $1,000, two decimals
+ *   $781.89
+ *   $1,355       $1,000 and above, no decimals
+ *   $31K         $10,000 and above
+ *   $1.13M       $1,000,000 and above
+ */
 export function usd(n: number): string {
-  if (n >= 1_000_000) return "$" + (n / 1_000_000).toFixed(2) + "M";
-  if (n >= 10_000) return "$" + Math.round(n / 1_000) + "K";
-  return "$" + Math.round(n).toLocaleString("en-US");
+  const sign = n < 0 ? "-" : "";
+  const v = Math.abs(n);
+  if (v >= 1_000_000) return sign + "$" + (v / 1_000_000).toFixed(2) + "M";
+  if (v >= 10_000)
+    return sign + "$" + Math.round(v / 1_000).toLocaleString("en-US") + "K";
+  if (v >= 1_000) return sign + "$" + Math.round(v).toLocaleString("en-US");
+  return sign + "$" + v.toFixed(2);
 }
 
 /**
@@ -120,6 +139,12 @@ export function heatColor(t: number): string {
   return `rgb(${r} ${g} ${b})`;
 }
 
-export function px(n: number): string {
-  return "$" + (n < 1 ? n.toFixed(3) : n.toFixed(2));
+/** Kept as a name for prices. Same formatter: one money format, one shape. */
+export const px = usd;
+
+/** A price span, printed once when both ends round to the same figure. */
+export function priceSpan(min: number, max: number): string {
+  const lo = usd(min);
+  const hi = usd(max);
+  return lo === hi ? lo : `${lo} to ${hi}`;
 }

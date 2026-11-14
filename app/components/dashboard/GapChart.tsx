@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Part, px, usd } from "@/lib/voltaraData";
+import { Part, priceSpan, usd } from "@/lib/voltaraData";
 
 const W = 900;
 const H = 300;
@@ -111,7 +111,7 @@ export default function GapChart({
               onMouseLeave={() => setHover(null)}
               onClick={() => onAsk(p)}
             >
-              <title>{`${p.name}: ${px(p.min)} to ${px(p.max)}, gap ${usd(p.gap)}`}</title>
+              <title>{`${p.name}: ${priceSpan(p.min, p.max)}, gap ${usd(p.gap)}`}</title>
             </rect>
             {label.map((line, li) => (
               <text
@@ -145,7 +145,7 @@ export default function GapChart({
                 {p.name.length > 30 ? p.name.slice(0, 29) + "…" : p.name}
               </text>
               <text x={bx + 12} y={by + 36} fill="#B8BBBE" fontSize={11}>
-                {px(p.min)} to {px(p.max)} across {p.products} products
+                {priceSpan(p.min, p.max)} across {p.products} products
               </text>
               <text x={bx + 12} y={by + 51} fill="#B8BBBE" fontSize={11}>
                 Yearly gap {usd(p.gap)}. Click to ask why.

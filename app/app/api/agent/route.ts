@@ -72,7 +72,7 @@ function fallbackReply(
 
   const top = data.byGap[0];
   return [
-    `Offline mode answers from a fixed set. Here is the headline for ${view.name}: ${data.summary.partNumbers} part numbers describe ${data.summary.realParts} real parts, and the yearly price gap on shared parts is ${usd(data.summary.yearlyPriceGapUsd)}.`,
+    `Offline mode answers from a fixed set. Here is the headline for ${profile.role || "your role"}: ${data.summary.partNumbers} part numbers describe ${data.summary.realParts} real parts, and the yearly price gap on shared parts is ${usd(data.summary.yearlyPriceGapUsd)}.`,
     `The largest single gap is ${top.name} at ${usd(top.gap)}. ${`[${top.rows[0].po}]`}`,
     `Try a number on the dashboard, or ask about price gaps, duplicates, the common core, suppliers, or lead time.`,
   ].join("\n\n");

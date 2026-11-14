@@ -33,10 +33,19 @@ export interface PlannedNeed {
   partNumber?: string;
   price?: number;
   supplier?: string;
+  origin?: string;
   po?: string;
   products?: number;
   partNumberCount?: number;
   rule?: { id: string; text: string; kind: ReasonKind };
+  /** Same part from a supplier whose origin already satisfies the rule. */
+  complianceSource?: {
+    supplier: string;
+    origin: string;
+    partNumber: string;
+    price: number;
+    po: string;
+  };
 }
 
 export interface PlanSummary {

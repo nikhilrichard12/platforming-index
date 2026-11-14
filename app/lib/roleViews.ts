@@ -1,5 +1,5 @@
 import { Role } from "./types";
-import { VoltaraData, findPart, px, usd } from "./voltaraData";
+import { VoltaraData, findPart, priceSpan, px, usd } from "./voltaraData";
 
 /**
  * Ported from docs/design/reference-prototype.html: four role lenses, four
@@ -91,7 +91,7 @@ export const ROLE_VIEWS: Record<RoleKey, RoleView> = {
             ].join("\n\n"),
         },
         {
-          value: `${px(cap.min)} to ${px(cap.max)}`,
+          value: priceSpan(cap.min, cap.max),
           label: "One capacitor, three suppliers",
           source: "voltara_spend_cube.csv",
           question: "Why do we pay three different prices for the DC link capacitor?",

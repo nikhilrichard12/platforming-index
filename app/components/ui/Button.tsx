@@ -35,7 +35,10 @@ export function Button({
   );
 }
 
-/** Primary action: chamfered accent block with dark text. One per screen. */
+/**
+ * Primary action: accent pill with dark text, the same shape and height as
+ * every other button on the page. One per screen.
+ */
 export function PrimaryButton({
   children,
   onClick,
@@ -44,16 +47,14 @@ export function PrimaryButton({
   className = "",
 }: Common) {
   return (
-    <span className={`clip-chamfer inline-block bg-line-2 p-px ${className}`}>
-      <button
-        type={type}
-        onClick={onClick}
-        disabled={disabled}
-        className="clip-chamfer block h-8 bg-accent px-7 text-[14px] font-normal text-[#1E1E1E] transition-opacity hover:opacity-90 disabled:opacity-40"
-      >
-        {children}
-      </button>
-    </span>
+    <button
+      type={type}
+      onClick={onClick}
+      disabled={disabled}
+      className={`h-[34px] rounded-full bg-accent px-7 text-[14px] font-normal text-[#1E1E1E] transition-opacity hover:opacity-90 disabled:opacity-40 ${className}`}
+    >
+      {children}
+    </button>
   );
 }
 

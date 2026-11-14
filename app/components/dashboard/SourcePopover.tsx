@@ -40,6 +40,7 @@ export default function SourcePopover({
     ["Named in this product as", row.desc],
     ["Product", row.products.join(", ")],
     ["Supplier", row.supplier],
+    ["Country of origin", row.origin],
     ["Average unit price", px(row.price)],
     ["File", "voltara_spend_cube.csv"],
   ];

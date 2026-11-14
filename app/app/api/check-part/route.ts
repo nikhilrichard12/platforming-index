@@ -4,6 +4,7 @@ import { headNoun, matchCandidates } from "@/lib/matcher";
 import { corsHeaders, preflight } from "@/lib/cors";
 import { Rule } from "@/lib/rules";
 import { blockingRules, listRules, logActivity } from "@/lib/rules.server";
+import { OriginSource, originFromText, sourceFrom } from "@/lib/origin";
 import { callerOf } from "@/lib/sources.server";
 
 export const runtime = "nodejs";
@@ -17,6 +18,7 @@ export interface Alternative {
   partNumber: string;
   price: number;
   supplier: string;
+  origin: string;
   products: number;
 }
 
@@ -51,6 +53,7 @@ function alternativesFor(
         partNumber: best.pn,
         price: best.price,
         supplier: best.supplier,
+        origin: best.origin,
         products: p.products,
       };
     });
@@ -84,6 +87,19 @@ export async function POST(req: NextRequest) {
   const alternatives =
     blockedBy.length > 0 && best ? alternativesFor(data, best.name, product) : [];
 
+  /**
+   * A rule about where a part comes from is answered by the same part from a
+   * supplier that already satisfies it, not by a different part. Origin is
+   * read from the data, never inferred from the supplier name.
+   */
+  let complianceSource: OriginSource | null = null;
+  const originRule = blockedBy.find((r) => r.kind === "compliance_or_origin");
+  if (originRule && best) {
+    const wanted = originFromText(originRule.text);
+    const part = data.parts.find((p) => p.name === best.name);
+    if (wanted && part) complianceSource = sourceFrom(part, wanted);
+  }
+
   const caller = callerOf(req);
   logActivity({
     ...caller,
@@ -102,6 +118,7 @@ export async function POST(req: NextRequest) {
       minPrice: best && level === "match" ? best.minPrice : undefined,
       savingUsd: best && level === "match" ? best.yearlySavingVsHighest : undefined,
       po: best && level === "match" ? best.bestRow.po : undefined,
+      origin: best && level === "match" ? best.bestRow.origin : undefined,
       candidates: level === "possible" ? candidates.map((c) => c.name) : undefined,
       ruleText: blockedBy[0]?.text,
     },
@@ -122,6 +139,7 @@ export async function POST(req: NextRequest) {
       confidence,
       candidates: level === "possible" ? candidates : [],
       blockedBy: blockedBy.length > 0 ? blockedBy : null,
+      complianceSource,
       alternatives,
       product,
       unitsPerYear: units,

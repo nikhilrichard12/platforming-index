@@ -120,7 +120,14 @@ export interface PartMatch {
   name: string;
   partNumberCount: number;
   products: number;
-  bestRow: { pn: string; products: string[]; supplier: string; price: number; po: string };
+  bestRow: {
+    pn: string;
+    products: string[];
+    supplier: string;
+    origin: string;
+    price: number;
+    po: string;
+  };
   minPrice: number;
   maxPrice: number;
   yearlySavingVsHighest: number;
@@ -188,6 +195,7 @@ function toMatch(
       pn: row.pn,
       products: row.products,
       supplier: row.supplier,
+      origin: row.origin,
       price: row.price,
       po: row.po,
     },
