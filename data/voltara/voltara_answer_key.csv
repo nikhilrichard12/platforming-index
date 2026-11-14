@@ -1,0 +1,253 @@
+part_number,canonical_part_id,canonical_name,category,products_using_canonical_part,core_candidate
+10-17542,C019,Fast Acting Fuse 30A,Electrical,4,no
+10-18398,C001,DSP Control Board Rev C,Electronics,6,yes
+10-19560,C017,Power Relay 30A 24VDC Coil,Electrical,4,no
+10-23053,C034,Pan Head Machine Screw M4x10,Hardware,6,yes
+10-24818,C025,20 Pin Ribbon Cable 300mm,Cable,6,yes
+10-26200,C036,Zinc Hex Nut M5,Hardware,6,yes
+10-29438,C007,RS485 Modbus Communication Card,Electronics,6,yes
+10-31108,C040,Silicone Thermal Pad 40x40mm,Thermal,6,yes
+10-39389,C034,Pan Head Machine Screw M4x10,Hardware,6,yes
+10-40120,C033,Bleeder Resistor 10k 10W,Electronics,5,yes
+10-40886,C015,Single Phase EMI Filter 30A,Electrical,3,no
+10-40983,C002,Isolated Gate Driver Board 6 Channel,Electronics,6,yes
+10-41548,U002,VRLA Battery Pack 36V 9Ah,Energy storage,1,no
+10-43759,C024,Auxiliary Isolation Transformer 100VA,Magnetics,3,no
+10-43892,C040,Silicone Thermal Pad 40x40mm,Thermal,6,yes
+10-46954,C036,Zinc Hex Nut M5,Hardware,6,yes
+10-48955,C035,Pan Head Machine Screw M5x12,Hardware,6,yes
+10-49481,C038,Hex Brass Standoff M3x10,Hardware,6,yes
+10-52145,C010,NTC Temperature Sensor 10k,Electronics,6,yes
+10-54889,C037,Split Lock Washer M4,Hardware,6,yes
+10-55941,C013,Half Bridge IGBT Module 600V 50A,Electronics,3,no
+10-55950,U001,Sheet Metal 2U Chassis 1kVA,Mechanical,1,no
+10-55970,C043,Wire Fan Guard 120mm,Thermal,6,yes
+10-58462,C038,Hex Brass Standoff M3x10,Hardware,6,yes
+10-58600,C027,Signal 8 Pin Connector,Cable,6,yes
+10-61585,C030,Surge MOV Varistor 275V,Electrical,4,no
+10-65130,C039,Nylon Cable Tie 150mm,Hardware,6,yes
+10-65662,C008,LCD Display Module 4.3in,Electronics,5,yes
+10-68063,C037,Split Lock Washer M4,Hardware,6,yes
+10-69648,C003,Auxiliary Power Supply 24V 60W,Electronics,6,yes
+10-73029,C004,Extruded Aluminum Heatsink 200mm,Thermal,6,yes
+10-73260,C028,SNMP Ethernet Network Card,Electronics,3,no
+10-73889,C020,Panel Mount Fuse Holder 30A,Electrical,4,no
+10-79127,C042,Copper Grounding Lug 35mm2,Electrical,6,yes
+10-79364,C026,Power 3 Pin Connector 50A,Cable,4,no
+10-86992,C039,Nylon Cable Tie 150mm,Hardware,6,yes
+10-89633,C011,Electrolytic DC Link Capacitor 470uF 450V,Electronics,5,yes
+10-90422,C035,Pan Head Machine Screw M5x12,Hardware,6,yes
+10-92550,C005,Axial Fan 120mm 24VDC,Thermal,6,yes
+10-93822,C006,6 Pole Terminal Block 30A,Electrical,6,yes
+10-97248,C022,PFC Inductor 1mH 30A,Magnetics,3,no
+30-24380,C039,Nylon Cable Tie 150mm,Hardware,6,yes
+30-26374,C034,Pan Head Machine Screw M4x10,Hardware,6,yes
+30-28492,C005,Axial Fan 120mm 24VDC,Thermal,6,yes
+30-31446,U003,Sheet Metal 2U Chassis 3kVA,Mechanical,1,no
+30-31826,C040,Silicone Thermal Pad 40x40mm,Thermal,6,yes
+30-36309,C038,Hex Brass Standoff M3x10,Hardware,6,yes
+30-38135,C034,Pan Head Machine Screw M4x10,Hardware,6,yes
+30-40679,C042,Copper Grounding Lug 35mm2,Electrical,6,yes
+30-40927,C024,Auxiliary Isolation Transformer 100VA,Magnetics,3,no
+30-42684,C036,Zinc Hex Nut M5,Hardware,6,yes
+30-47624,C037,Split Lock Washer M4,Hardware,6,yes
+30-48149,C004,Extruded Aluminum Heatsink 200mm,Thermal,6,yes
+30-50105,C036,Zinc Hex Nut M5,Hardware,6,yes
+30-53594,C009,Hall Effect Current Sensor 100A,Electronics,5,yes
+30-53784,C006,6 Pole Terminal Block 30A,Electrical,6,yes
+30-55641,U004,VRLA Battery Pack 72V 9Ah,Energy storage,1,no
+30-58688,C013,Half Bridge IGBT Module 600V 50A,Electronics,3,no
+30-62858,C025,20 Pin Ribbon Cable 300mm,Cable,6,yes
+30-63838,C027,Signal 8 Pin Connector,Cable,6,yes
+30-66344,C002,Isolated Gate Driver Board 6 Channel,Electronics,6,yes
+30-66755,C021,2 Pole Circuit Breaker 63A,Electrical,4,no
+30-67700,C015,Single Phase EMI Filter 30A,Electrical,3,no
+30-69337,C020,Panel Mount Fuse Holder 30A,Electrical,4,no
+30-70429,C035,Pan Head Machine Screw M5x12,Hardware,6,yes
+30-71265,C033,Bleeder Resistor 10k 10W,Electronics,5,yes
+30-72717,C040,Silicone Thermal Pad 40x40mm,Thermal,6,yes
+30-74595,C010,NTC Temperature Sensor 10k,Electronics,6,yes
+30-79443,C043,Wire Fan Guard 120mm,Thermal,6,yes
+30-81215,C035,Pan Head Machine Screw M5x12,Hardware,6,yes
+30-82977,C022,PFC Inductor 1mH 30A,Magnetics,3,no
+30-84239,C011,Electrolytic DC Link Capacitor 470uF 450V,Electronics,5,yes
+30-84946,C030,Surge MOV Varistor 275V,Electrical,4,no
+30-92462,C037,Split Lock Washer M4,Hardware,6,yes
+30-92686,C039,Nylon Cable Tie 150mm,Hardware,6,yes
+30-94044,C017,Power Relay 30A 24VDC Coil,Electrical,4,no
+30-96174,C019,Fast Acting Fuse 30A,Electrical,4,no
+30-97440,C026,Power 3 Pin Connector 50A,Cable,4,no
+30-98163,C038,Hex Brass Standoff M3x10,Hardware,6,yes
+BS-1563-09,C025,20 Pin Ribbon Cable 300mm,Cable,6,yes
+BS-1746-19,C032,Precision Shunt Resistor 500A,Electronics,2,no
+BS-1821-15,C038,Hex Brass Standoff M3x10,Hardware,6,yes
+BS-2068-17,C042,Copper Grounding Lug 35mm2,Electrical,6,yes
+BS-2111-15,C034,Pan Head Machine Screw M4x10,Hardware,6,yes
+BS-2441-02,C037,Split Lock Washer M4,Hardware,6,yes
+BS-2880-07,C038,Hex Brass Standoff M3x10,Hardware,6,yes
+BS-3273-20,C044,Rubber Grommet 20mm,Hardware,4,no
+BS-3443-13,C006,6 Pole Terminal Block 30A,Electrical,6,yes
+BS-3463-14,C007,RS485 Modbus Communication Card,Electronics,6,yes
+BS-3612-15,C031,Copper Busbar 200A,Electrical,3,no
+BS-3771-19,C026,Power 3 Pin Connector 50A,Cable,4,no
+BS-3891-13,C023,Output Filter Inductor 0.5mH 60A,Magnetics,3,no
+BS-3995-18,C036,Zinc Hex Nut M5,Hardware,6,yes
+BS-5235-12,C039,Nylon Cable Tie 150mm,Hardware,6,yes
+BS-5302-11,C034,Pan Head Machine Screw M4x10,Hardware,6,yes
+BS-5453-15,C016,Three Phase EMI Filter 50A,Electrical,3,no
+BS-6758-20,C036,Zinc Hex Nut M5,Hardware,6,yes
+BS-6955-17,C005,Axial Fan 120mm 24VDC,Thermal,6,yes
+BS-7019-07,C003,Auxiliary Power Supply 24V 60W,Electronics,6,yes
+BS-7112-06,C027,Signal 8 Pin Connector,Cable,6,yes
+BS-7123-02,C021,2 Pole Circuit Breaker 63A,Electrical,4,no
+BS-7164-17,C039,Nylon Cable Tie 150mm,Hardware,6,yes
+BS-7341-07,C041,Nylon Cable Gland M20,Hardware,3,no
+BS-7505-09,C002,Isolated Gate Driver Board 6 Channel,Electronics,6,yes
+BS-7510-08,C037,Split Lock Washer M4,Hardware,6,yes
+BS-7677-11,C035,Pan Head Machine Screw M5x12,Hardware,6,yes
+BS-7724-15,U015,Cabinet Mount HVAC Unit 1kW,Thermal,1,no
+BS-8175-10,U012,Outdoor Steel Cabinet 50kWh,Mechanical,1,no
+BS-8190-14,C014,Half Bridge IGBT Module 1200V 100A,Electronics,3,no
+BS-8270-11,C018,DC Contactor 150A,Electrical,2,no
+BS-8486-08,U014,LFP Battery Module 5kWh,Energy storage,1,no
+BS-8493-14,C004,Extruded Aluminum Heatsink 200mm,Thermal,6,yes
+BS-8555-04,C043,Wire Fan Guard 120mm,Thermal,6,yes
+BS-8979-16,C009,Hall Effect Current Sensor 100A,Electronics,5,yes
+BS-9055-05,C045,EPDM Strip Gasket 10mm 1m,Hardware,3,no
+BS-9103-10,C040,Silicone Thermal Pad 40x40mm,Thermal,6,yes
+BS-9145-01,C001,DSP Control Board Rev C,Electronics,6,yes
+BS-9197-09,C012,Film Capacitor 20uF 800V,Electronics,4,no
+BS-9493-12,C010,NTC Temperature Sensor 10k,Electronics,6,yes
+BS-9704-09,C040,Silicone Thermal Pad 40x40mm,Thermal,6,yes
+BS-9745-20,C035,Pan Head Machine Screw M5x12,Hardware,6,yes
+BS-9763-01,U013,Master Controller Battery Management System,Electronics,1,no
+MX107200,C032,Precision Shunt Resistor 500A,Electronics,2,no
+MX131972,C025,20 Pin Ribbon Cable 300mm,Cable,6,yes
+MX139702,C026,Power 3 Pin Connector 50A,Cable,4,no
+MX161439,C039,Nylon Cable Tie 150mm,Hardware,6,yes
+MX175454,C033,Bleeder Resistor 10k 10W,Electronics,5,yes
+MX192310,C039,Nylon Cable Tie 150mm,Hardware,6,yes
+MX207571,C031,Copper Busbar 200A,Electrical,3,no
+MX212277,C018,DC Contactor 150A,Electrical,2,no
+MX214878,C014,Half Bridge IGBT Module 1200V 100A,Electronics,3,no
+MX227621,C034,Pan Head Machine Screw M4x10,Hardware,6,yes
+MX230756,C036,Zinc Hex Nut M5,Hardware,6,yes
+MX256813,C003,Auxiliary Power Supply 24V 60W,Electronics,6,yes
+MX289544,C035,Pan Head Machine Screw M5x12,Hardware,6,yes
+MX308247,C021,2 Pole Circuit Breaker 63A,Electrical,4,no
+MX333043,C037,Split Lock Washer M4,Hardware,6,yes
+MX336730,C007,RS485 Modbus Communication Card,Electronics,6,yes
+MX352609,C001,DSP Control Board Rev C,Electronics,6,yes
+MX366455,C035,Pan Head Machine Screw M5x12,Hardware,6,yes
+MX387968,C027,Signal 8 Pin Connector,Cable,6,yes
+MX388497,C034,Pan Head Machine Screw M4x10,Hardware,6,yes
+MX404162,C023,Output Filter Inductor 0.5mH 60A,Magnetics,3,no
+MX441834,C012,Film Capacitor 20uF 800V,Electronics,4,no
+MX461930,C040,Silicone Thermal Pad 40x40mm,Thermal,6,yes
+MX474000,C008,LCD Display Module 4.3in,Electronics,5,yes
+MX504459,U006,Hot Swap Power Module Sled 20kW,Mechanical,1,no
+MX534102,C038,Hex Brass Standoff M3x10,Hardware,6,yes
+MX535861,U007,Modular Bus Backplane,Electronics,1,no
+MX560096,C036,Zinc Hex Nut M5,Hardware,6,yes
+MX613443,U005,Modular 42U Cabinet Frame,Mechanical,1,no
+MX618969,C011,Electrolytic DC Link Capacitor 470uF 450V,Electronics,5,yes
+MX647383,C028,SNMP Ethernet Network Card,Electronics,3,no
+MX667426,C044,Rubber Grommet 20mm,Hardware,4,no
+MX729199,C043,Wire Fan Guard 120mm,Thermal,6,yes
+MX739609,C005,Axial Fan 120mm 24VDC,Thermal,6,yes
+MX744933,C009,Hall Effect Current Sensor 100A,Electronics,5,yes
+MX769189,C042,Copper Grounding Lug 35mm2,Electrical,6,yes
+MX812812,C006,6 Pole Terminal Block 30A,Electrical,6,yes
+MX818370,C037,Split Lock Washer M4,Hardware,6,yes
+MX858877,C024,Auxiliary Isolation Transformer 100VA,Magnetics,3,no
+MX876039,C002,Isolated Gate Driver Board 6 Channel,Electronics,6,yes
+MX876233,C016,Three Phase EMI Filter 50A,Electrical,3,no
+MX913750,C004,Extruded Aluminum Heatsink 200mm,Thermal,6,yes
+MX939791,C010,NTC Temperature Sensor 10k,Electronics,6,yes
+MX954276,C038,Hex Brass Standoff M3x10,Hardware,6,yes
+MX974058,C040,Silicone Thermal Pad 40x40mm,Thermal,6,yes
+SL10-1462D,C011,Electrolytic DC Link Capacitor 470uF 450V,Electronics,5,yes
+SL10-1644A,C019,Fast Acting Fuse 30A,Electrical,4,no
+SL10-1808C,C039,Nylon Cable Tie 150mm,Hardware,6,yes
+SL10-1858B,C043,Wire Fan Guard 120mm,Thermal,6,yes
+SL10-1911C,U010,Die Cast IP65 Enclosure 10kW,Mechanical,1,no
+SL10-2070C,C037,Split Lock Washer M4,Hardware,6,yes
+SL10-2180D,C035,Pan Head Machine Screw M5x12,Hardware,6,yes
+SL10-2450C,C045,EPDM Strip Gasket 10mm 1m,Hardware,3,no
+SL10-2810A,C034,Pan Head Machine Screw M4x10,Hardware,6,yes
+SL10-3406A,C035,Pan Head Machine Screw M5x12,Hardware,6,yes
+SL10-3680B,C023,Output Filter Inductor 0.5mH 60A,Magnetics,3,no
+SL10-3766C,C016,Three Phase EMI Filter 50A,Electrical,3,no
+SL10-3828B,C031,Copper Busbar 200A,Electrical,3,no
+SL10-4006A,C005,Axial Fan 120mm 24VDC,Thermal,6,yes
+SL10-4215B,C040,Silicone Thermal Pad 40x40mm,Thermal,6,yes
+SL10-4352C,C025,20 Pin Ribbon Cable 300mm,Cable,6,yes
+SL10-4872C,C041,Nylon Cable Gland M20,Hardware,3,no
+SL10-4939D,C036,Zinc Hex Nut M5,Hardware,6,yes
+SL10-4980D,C010,NTC Temperature Sensor 10k,Electronics,6,yes
+SL10-5218D,C039,Nylon Cable Tie 150mm,Hardware,6,yes
+SL10-5614B,C006,6 Pole Terminal Block 30A,Electrical,6,yes
+SL10-5720A,C044,Rubber Grommet 20mm,Hardware,4,no
+SL10-5792A,C020,Panel Mount Fuse Holder 30A,Electrical,4,no
+SL10-5812C,C017,Power Relay 30A 24VDC Coil,Electrical,4,no
+SL10-6670C,C036,Zinc Hex Nut M5,Hardware,6,yes
+SL10-6852B,C004,Extruded Aluminum Heatsink 200mm,Thermal,6,yes
+SL10-6910A,C033,Bleeder Resistor 10k 10W,Electronics,5,yes
+SL10-6968C,C021,2 Pole Circuit Breaker 63A,Electrical,4,no
+SL10-7639B,C014,Half Bridge IGBT Module 1200V 100A,Electronics,3,no
+SL10-7650D,C027,Signal 8 Pin Connector,Cable,6,yes
+SL10-7812C,C042,Copper Grounding Lug 35mm2,Electrical,6,yes
+SL10-7892D,C002,Isolated Gate Driver Board 6 Channel,Electronics,6,yes
+SL10-7940D,C030,Surge MOV Varistor 275V,Electrical,4,no
+SL10-7958B,C012,Film Capacitor 20uF 800V,Electronics,4,no
+SL10-8039D,C038,Hex Brass Standoff M3x10,Hardware,6,yes
+SL10-8112C,C038,Hex Brass Standoff M3x10,Hardware,6,yes
+SL10-8433D,U011,Triple Input MPPT Board,Electronics,1,no
+SL10-8717D,C034,Pan Head Machine Screw M4x10,Hardware,6,yes
+SL10-9548B,C037,Split Lock Washer M4,Hardware,6,yes
+SL10-9627B,C009,Hall Effect Current Sensor 100A,Electronics,5,yes
+SL10-9635D,C040,Silicone Thermal Pad 40x40mm,Thermal,6,yes
+SL5-1119C,C022,PFC Inductor 1mH 30A,Magnetics,3,no
+SL5-1250A,C040,Silicone Thermal Pad 40x40mm,Thermal,6,yes
+SL5-1323C,C025,20 Pin Ribbon Cable 300mm,Cable,6,yes
+SL5-1920A,C017,Power Relay 30A 24VDC Coil,Electrical,4,no
+SL5-1999B,C042,Copper Grounding Lug 35mm2,Electrical,6,yes
+SL5-2214B,C005,Axial Fan 120mm 24VDC,Thermal,6,yes
+SL5-2297D,C036,Zinc Hex Nut M5,Hardware,6,yes
+SL5-2308A,C035,Pan Head Machine Screw M5x12,Hardware,6,yes
+SL5-2611D,C036,Zinc Hex Nut M5,Hardware,6,yes
+SL5-3020D,C010,NTC Temperature Sensor 10k,Electronics,6,yes
+SL5-3046B,C004,Extruded Aluminum Heatsink 200mm,Thermal,6,yes
+SL5-3295D,C006,6 Pole Terminal Block 30A,Electrical,6,yes
+SL5-3311B,U008,Die Cast IP65 Enclosure 5kW,Mechanical,1,no
+SL5-3322C,C019,Fast Acting Fuse 30A,Electrical,4,no
+SL5-3400B,C015,Single Phase EMI Filter 30A,Electrical,3,no
+SL5-3511D,C038,Hex Brass Standoff M3x10,Hardware,6,yes
+SL5-3519A,C002,Isolated Gate Driver Board 6 Channel,Electronics,6,yes
+SL5-3737A,C038,Hex Brass Standoff M3x10,Hardware,6,yes
+SL5-3772D,C030,Surge MOV Varistor 275V,Electrical,4,no
+SL5-3795A,C040,Silicone Thermal Pad 40x40mm,Thermal,6,yes
+SL5-3821A,C013,Half Bridge IGBT Module 600V 50A,Electronics,3,no
+SL5-3947A,C007,RS485 Modbus Communication Card,Electronics,6,yes
+SL5-4128D,C012,Film Capacitor 20uF 800V,Electronics,4,no
+SL5-4706A,C037,Split Lock Washer M4,Hardware,6,yes
+SL5-4739A,C035,Pan Head Machine Screw M5x12,Hardware,6,yes
+SL5-4797A,C045,EPDM Strip Gasket 10mm 1m,Hardware,3,no
+SL5-5038D,C039,Nylon Cable Tie 150mm,Hardware,6,yes
+SL5-5288B,C034,Pan Head Machine Screw M4x10,Hardware,6,yes
+SL5-5769B,C044,Rubber Grommet 20mm,Hardware,4,no
+SL5-5906C,C027,Signal 8 Pin Connector,Cable,6,yes
+SL5-6009D,C020,Panel Mount Fuse Holder 30A,Electrical,4,no
+SL5-6561B,C033,Bleeder Resistor 10k 10W,Electronics,5,yes
+SL5-6791C,C009,Hall Effect Current Sensor 100A,Electronics,5,yes
+SL5-6799C,C043,Wire Fan Guard 120mm,Thermal,6,yes
+SL5-7042C,U009,Dual Input MPPT Board,Electronics,1,no
+SL5-7333A,C034,Pan Head Machine Screw M4x10,Hardware,6,yes
+SL5-7374D,C037,Split Lock Washer M4,Hardware,6,yes
+SL5-7400B,C008,LCD Display Module 4.3in,Electronics,5,yes
+SL5-7568B,C039,Nylon Cable Tie 150mm,Hardware,6,yes
+SL5-8451B,C011,Electrolytic DC Link Capacitor 470uF 450V,Electronics,5,yes
+SL5-8935B,C001,DSP Control Board Rev C,Electronics,6,yes
+SL5-8949A,C041,Nylon Cable Gland M20,Hardware,3,no
+SL5-9231D,C029,WiFi Monitoring Module,Electronics,2,no
+SL5-9563B,C003,Auxiliary Power Supply 24V 60W,Electronics,6,yes
