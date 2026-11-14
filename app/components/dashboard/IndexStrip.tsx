@@ -1,11 +1,7 @@
 import Badge from "@/components/ui/Badge";
 import { VoltaraData } from "@/lib/voltaraData";
 
-const STEPS = [
-  "Cut cost on today's products",
-  "Consolidate duplicate parts",
-  "Common core plus modules",
-];
+const STEPS = ["Cut cost today", "Consolidate duplicates", "Common core, modules"];
 
 /**
  * The score is the product, so it leads the page: one slim row carrying the

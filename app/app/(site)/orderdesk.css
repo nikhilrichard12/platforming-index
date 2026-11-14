@@ -1,0 +1,182 @@
+/*
+ * OrderDesk's own stylesheet. Plain, light, enterprise. Deliberately nothing
+ * to do with the Platforming Index design system: this is the host page.
+ */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: #f1f2f4;
+  color: #202124;
+  color-scheme: light;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+.od-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Sidebar */
+.od-side {
+  width: 196px;
+  flex-shrink: 0;
+  background: #e8eaed;
+  border-right: 1px solid #d3d6da;
+  padding: 16px 0;
+}
+.od-side-label {
+  padding: 0 16px 8px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #6b7076;
+}
+.od-side a {
+  display: block;
+  padding: 8px 16px;
+  color: #33373c;
+  text-decoration: none;
+  border-left: 3px solid transparent;
+}
+.od-side a.on {
+  background: #dcdfe3;
+  border-left-color: #4a6fa5;
+  font-weight: 500;
+}
+
+/* Header and main */
+.od-main {
+  flex: 1;
+  min-width: 0;
+}
+.od-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 24px;
+  background: #ffffff;
+  border-bottom: 1px solid #d3d6da;
+}
+.od-brand {
+  font-size: 17px;
+  font-weight: 600;
+  color: #2d4f7c;
+  letter-spacing: -0.01em;
+}
+.od-user {
+  font-size: 13px;
+  color: #6b7076;
+}
+.od-body {
+  padding: 24px;
+}
+
+.od-crumb {
+  font-size: 12px;
+  color: #6b7076;
+  margin: 0 0 6px;
+}
+.od-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 2px;
+}
+.od-sub {
+  font-size: 13px;
+  color: #6b7076;
+  margin: 0 0 20px;
+}
+
+/* Form card */
+.od-card {
+  background: #ffffff;
+  border: 1px solid #d3d6da;
+  border-radius: 3px;
+  max-width: 720px;
+}
+.od-card h2 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+  padding: 12px 20px;
+  border-bottom: 1px solid #e3e5e8;
+  background: #fafbfc;
+}
+.od-form {
+  padding: 20px;
+  display: grid;
+  gap: 16px;
+}
+.od-row {
+  display: grid;
+  grid-template-columns: 190px 1fr;
+  align-items: center;
+  gap: 16px;
+}
+.od-row > label {
+  font-size: 13px;
+  color: #43474c;
+}
+.od-req::after {
+  content: " *";
+  color: #b3261e;
+}
+.od-form input[type="text"],
+.od-form input[type="number"],
+.od-form select {
+  width: 100%;
+  padding: 7px 9px;
+  font: inherit;
+  font-size: 13px;
+  color: #202124;
+  background: #ffffff;
+  border: 1px solid #a9adb3;
+  border-radius: 2px;
+}
+.od-form input:focus,
+.od-form select:focus {
+  outline: 2px solid #4a6fa5;
+  outline-offset: -1px;
+}
+.od-hint {
+  margin: -8px 0 0 206px; /* clears the 190px label column plus its 16px gap */
+  font-size: 12px;
+  color: #6b7076;
+}
+.od-actions {
+  display: flex;
+  gap: 10px;
+  padding: 14px 20px;
+  border-top: 1px solid #e3e5e8;
+  background: #fafbfc;
+}
+.od-btn {
+  padding: 7px 16px;
+  font: inherit;
+  font-size: 13px;
+  border-radius: 2px;
+  cursor: pointer;
+}
+.od-btn.primary {
+  background: #2d4f7c;
+  border: 1px solid #2d4f7c;
+  color: #ffffff;
+}
+.od-btn.secondary {
+  background: #ffffff;
+  border: 1px solid #a9adb3;
+  color: #33373c;
+}
+.od-foot {
+  margin: 20px 0 0;
+  font-size: 12px;
+  color: #8b9097;
+}

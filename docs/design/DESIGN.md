@@ -68,6 +68,7 @@ Shared components live in `app/components/ui/`.
 - **KPI tile** (dashboard): label top-left at 14px/600, value bottom-right at 30px/300, source tag under the value in text-3 at 12px. Values over 10 characters drop to 24px so they stay on one line. The whole tile is a button that sends its question to the assistant.
 - **GapChart**: plain SVG, no library. Thin bars in `warn` with the largest in `accent`, five `line` gridlines, dollar axis on the left, three-line part labels below. Hover dims the other bars and draws a readout in chart space; click asks the assistant.
 - **SourcePopover**: centered dialog over a 60% black scrim, `panel` fill, one label/value row per field with `line` rules. Opens from a [POxxxxxx] tag and closes on Escape or an outside click.
+- **Extension card** (`extension/content.js`): the design system on someone else's page. 380px, fixed to the right of the viewport below the host's header, drawn in a Shadow DOM so neither stylesheet can reach the other. Black header with the wordmark, a `positive` badge, three `panel-2` tiles, the chamfered accent primary and an outline pill. The CSS is hand-written there rather than Tailwind because the extension ships no build step; keep the hex values in step with the token table above.
 - **IndexStrip**: one slim full-width row above the two-column split. Score at 56px/300 with "of 100" and a Provisional badge, the one-line read and four inline dimension bars, then the three steps with the current one picked out by a white top rule. About 165px tall.
 - **StepStrip**: five columns of orange line icon, 20px/800 title, 15px text-2 body, with a thin text-2 arrow between columns. Icons are 56px with 2.6px strokes. Stacks to one column under `md`.
 - Sidebar (when used): black, small text-3 group labels, 14px nav items, active item gets a surface-colored row.
@@ -88,5 +89,7 @@ Shared components live in `app/components/ui/`.
 - No em dashes in UI copy. This covers prompt text rendered on screen, so `lib/agent/buildSystemPrompt.ts` carries none either.
 - Every number on screen reads from `data/derived/*.json` through `lib/voltaraData.server.ts`. No figure is typed into a component, including the counts in filter labels and the evidence lines on the alignment view.
 - The index score leads the dashboard. It sits above the fold at 1440x900, with the KPI tiles and the top of the chart.
+- `/mock-procurement` is deliberately outside this design system. It is a stand-in for the customer's own software, so it has its own root layout and its own light stylesheet, and nothing in `components/ui/` may leak into it.
+- Evidence tags read as words on screen (Survey, Kearney survey 2026, Product master). Only purchase order tags stay in their raw form, because that is what the buyer searches for.
 - A scroll container clips anything left of its padding edge. A left rule on a
   child inside one needs the container pulled left and padded back (`-ml-5 pl-5`).

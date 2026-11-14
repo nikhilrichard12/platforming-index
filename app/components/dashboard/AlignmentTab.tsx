@@ -55,8 +55,8 @@ export default function AlignmentTab({
       <>
         {"Nobody reports a target. "}
         {survey.benchmark.text}{" "}
-        <span className="font-mono text-[11px] text-text-3">
-          [{survey.benchmark.source}]
+        <span className="whitespace-nowrap rounded-field bg-panel-2 px-[6px] py-px text-[11px] text-text-3">
+          Kearney survey, 2026
         </span>
       </>
     ),

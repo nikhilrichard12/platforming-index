@@ -17,9 +17,30 @@ import GapChart from "./GapChart";
 import IndexStrip from "./IndexStrip";
 import PartsTab from "./PartsTab";
 import AlignmentTab from "./AlignmentTab";
+import CheckTab from "./CheckTab";
 import SourcePopover, { SourceHit } from "./SourcePopover";
 
-type TabId = "summary" | "parts" | "alignment";
+type TabId = "summary" | "parts" | "alignment" | "check";
+
+/** The three prompts under the assistant's first message, per tab. */
+const TAB_QUESTIONS: Record<TabId, string[] | null> = {
+  summary: null, // the role's own suggested questions
+  parts: [
+    "Which part should we consolidate first?",
+    "Why do names differ across products?",
+    "What needs engineering review?",
+  ],
+  alignment: [
+    "Where do we disagree most?",
+    "Who should own part decisions?",
+    "What does the data say about variants?",
+  ],
+  check: [
+    "What does a new part number cost us?",
+    "How often does the team check first?",
+    "Which parts already cover this need?",
+  ],
+};
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -27,6 +48,13 @@ interface ChatMessage {
 }
 
 const TAG = /\[(PO\d{6}|product_master|survey|kearney_survey)\]/g;
+
+/** What each non-PO evidence tag reads as on screen. */
+const TAG_LABEL: Record<string, string> = {
+  product_master: "Product master",
+  survey: "Survey",
+  kearney_survey: "Kearney survey, 2026",
+};
 
 /** Renders an assistant reply: paragraphs, bullets, and clickable evidence tags. */
 function Reply({
@@ -60,9 +88,9 @@ function Reply({
         ) : (
           <span
             key={`${tag}-${m.index}`}
-            className="mx-[2px] font-mono text-[11px] text-text-3"
+            className="mx-[3px] whitespace-nowrap rounded-field bg-panel px-[6px] py-px text-[11px] text-text-3"
           >
-            {tag}
+            {TAG_LABEL[tag] ?? tag}
           </span>
         )
       );
@@ -188,6 +216,7 @@ export default function DashboardClient({
             { id: "summary", label: "Summary" },
             { id: "parts", label: "Parts" },
             { id: "alignment", label: "Alignment" },
+            { id: "check", label: "New part check" },
           ]}
         />
 
@@ -268,6 +297,10 @@ export default function DashboardClient({
               />
             )}
 
+            {tab === "check" && (
+              <CheckTab onTag={(po) => setSource(data.rowsByPo[po] ?? null)} />
+            )}
+
             {tab === "alignment" && (
               <AlignmentTab
                 data={data}
@@ -324,7 +357,7 @@ export default function DashboardClient({
                       )}
                       {i === 0 && messages.length === 1 && (
                         <div className="mt-4 space-y-2">
-                          {view.suggested.map((q) => (
+                          {(TAB_QUESTIONS[tab] ?? view.suggested).map((q) => (
                             <button
                               key={q}
                               type="button"
