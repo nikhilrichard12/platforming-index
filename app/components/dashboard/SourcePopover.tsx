@@ -1,78 +1,89 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef } from "react";
+import { Part, PartRow, px } from "@/lib/voltaraData";
 
-interface Props {
-  label: string;
-  source: string;
-  assumption?: boolean;
+export interface SourceHit {
+  part: Part;
+  row: PartRow;
 }
 
-export default function SourcePopover({ label, source, assumption }: Props) {
-  const [open, setOpen] = useState(false);
+/** One source row, opened from a [POxxxxxx] tag in an assistant reply. */
+export default function SourcePopover({
+  hit,
+  onClose,
+}: {
+  hit: SourceHit;
+  onClose: () => void;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    function onClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+    }
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("mousedown", onClick);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("mousedown", onClick);
+    };
+  }, [onClose]);
+
+  const { part, row } = hit;
+  const fields: [string, string][] = [
+    ["Part", part.name],
+    ["Part number", row.pn],
+    ["Named in this product as", row.desc],
+    ["Product", row.products.join(", ")],
+    ["Supplier", row.supplier],
+    ["Average unit price", px(row.price)],
+    ["File", "voltara_spend_cube.csv"],
+  ];
 
   return (
-    <span style={{ position: "relative", display: "inline-block" }}>
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        title={source}
-        style={{
-          fontSize: 10,
-          fontWeight: 600,
-          letterSpacing: "0.05em",
-          color: assumption ? "#d97706" : "#7823DC",
-          border: `1px solid ${assumption ? "#d97706" : "#7823DC"}`,
-          background: "transparent",
-          padding: "2px 7px",
-          cursor: "pointer",
-          marginLeft: 6,
-          verticalAlign: "middle",
-          fontFamily: "inherit",
-        }}
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-6">
+      <div
+        ref={ref}
+        role="dialog"
+        aria-label={`Source row ${row.po}`}
+        className="w-full max-w-[460px] bg-panel p-6"
       >
-        {label}
-      </button>
-      {open && (
-        <div
-          style={{
-            position: "absolute",
-            bottom: "calc(100% + 6px)",
-            left: 0,
-            background: "#1E1E1E",
-            color: "#FFFFFF",
-            padding: "10px 14px",
-            fontSize: 11,
-            lineHeight: 1.5,
-            width: 260,
-            border: "1px solid #CCCCCC",
-            zIndex: 100,
-            whiteSpace: "pre-wrap",
-          }}
-        >
-          <span style={{ color: assumption ? "#fbbf24" : "#c084fc", fontWeight: 600 }}>
-            {assumption ? "Assumption" : "Source"}
-          </span>
-          <br />
-          {source}
+        <div className="flex items-baseline justify-between gap-4">
+          <h2 className="text-[15px] font-semibold text-text">Source row</h2>
           <button
             type="button"
-            onClick={() => setOpen(false)}
-            style={{
-              position: "absolute",
-              top: 6,
-              right: 8,
-              background: "none",
-              border: "none",
-              color: "#999",
-              cursor: "pointer",
-              fontSize: 12,
-            }}
+            onClick={onClose}
+            className="text-[13px] text-text-3 transition-colors hover:text-text"
           >
-            ✕
+            Close
           </button>
         </div>
-      )}
-    </span>
+        <p className="mt-1 font-mono text-[13px] text-text-2">{row.po}</p>
+
+        <dl className="mt-5 border-t border-line">
+          {fields.map(([label, value]) => (
+            <div key={label} className="flex gap-6 border-b border-line py-3">
+              <dt className="w-[180px] shrink-0 text-[13px] text-text-3">{label}</dt>
+              <dd
+                className={`text-[13px] text-text ${
+                  label === "Part number" || label === "File" ? "font-mono" : ""
+                }`}
+              >
+                {value}
+              </dd>
+            </div>
+          ))}
+        </dl>
+
+        <p className="mt-4 text-[12px] leading-relaxed text-text-3">
+          A match is a suggestion. Engineering approves before one part replaces
+          another. Sample data.
+        </p>
+      </div>
+    </div>
   );
 }

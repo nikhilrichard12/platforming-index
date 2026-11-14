@@ -1,6 +1,7 @@
 import { UserProfile } from "../types";
-import { VOLTARA_STATS } from "../voltaraStats";
 import { getRoleConfig } from "../roles";
+import { roleViewFor } from "../roleViews";
+import { PRODUCT_MASTER, VoltaraData, px, usd } from "../voltaraData";
 
 export interface PromptSection {
   id: string;
@@ -9,17 +10,42 @@ export interface PromptSection {
   source: string;
 }
 
-export function buildSystemPrompt(profile: UserProfile): string {
-  return buildPromptSections(profile)
+export function buildSystemPrompt(profile: UserProfile, data: VoltaraData): string {
+  return buildPromptSections(profile, data)
     .map((s) => `## ${s.heading}\n${s.body}`)
     .join("\n\n");
 }
 
-export function buildPromptSections(profile: UserProfile): PromptSection[] {
-  const roleCfg = profile.role ? getRoleConfig(profile.role) : null;
-  const stats = VOLTARA_STATS;
+/**
+ * One compact line per part, as in the reference prototype's context():
+ * name | counts | gap | spend :: part number (products, "description as written",
+ * average unit price, supplier, [purchase order tag]); ...
+ */
+function partsTable(data: VoltaraData): string {
+  return data.byGap
+    .map(
+      (g) =>
+        `${g.name} | ${g.rows.length} part numbers | ${g.products} products | ${g.suppliers} suppliers | yearly gap $${g.gap} | yearly spend $${g.spend} :: ` +
+        g.rows
+          .map(
+            (r) =>
+              `${r.pn} (${r.products.join("+")}, "${r.desc}", ${px(r.price)}, ${r.supplier}, [${r.po}])`
+          )
+          .join("; ")
+    )
+    .join("\n");
+}
 
-  const sections: PromptSection[] = [
+export function buildPromptSections(
+  profile: UserProfile,
+  data: VoltaraData
+): PromptSection[] {
+  const roleCfg = profile.role ? getRoleConfig(profile.role) : null;
+  const view = roleViewFor(profile.role);
+  const s = data.summary;
+  const idx = data.index;
+
+  return [
     {
       id: "role_profile",
       heading: "ROLE AND PROFILE",
@@ -28,11 +54,12 @@ export function buildPromptSections(profile: UserProfile): PromptSection[] {
         `Decision level: ${profile.decisionLevel || "Not specified"}`,
         `Products covered: ${profile.products.length > 0 ? profile.products.join(", ") : "All"}`,
         `Measured on: ${profile.metrics.length > 0 ? profile.metrics.join(", ") : "Not specified"}`,
+        `This role cares about ${view.lens}`,
         roleCfg ? `Emphasis: ${roleCfg.emphasis}` : "",
       ]
         .filter(Boolean)
         .join("\n"),
-      source: "Survey · Screen 1",
+      source: "Your survey: profile",
     },
     {
       id: "beliefs",
@@ -47,21 +74,22 @@ export function buildPromptSections(profile: UserProfile): PromptSection[] {
       ]
         .filter(Boolean)
         .join("\n"),
-      source: "Survey · Screen 1",
+      source: "Your survey: beliefs",
     },
     {
       id: "company_data",
       heading: "COMPANY DATA",
       body: [
-        `Company: Voltara (sample / fictional)`,
-        `Source files: ${stats.sources.bom.file} (${stats.sources.bom.rows} rows), ${stats.sources.spend.file} (${stats.sources.spend.rows} rows), ${stats.sources.products.file} (${stats.sources.products.rows} rows)`,
-        `BOM lines: ${stats.bomLines}`,
-        `Distinct part numbers: ${stats.distinctPartNumbers}`,
-        `Products: ${stats.productCount}`,
-        `Purchase orders: ${stats.poCount}`,
-        `Annual spend (stated): ~$${(stats.totalYearlySpendUsd / 1_000_000).toFixed(1)}M`,
+        `Company: ${data.company}. Period: ${data.period}.`,
+        `Summary: ${s.partNumbers} part numbers describe ${s.realParts} real parts. ${s.sharedParts} parts are shared by 2 or more products, ${s.coreCandidates} by 5 or more (common core candidates), ${s.uniqueParts} are unique to one product. ${s.partNumbersReusedAcrossProducts} part numbers are already reused across products. Yearly parts spend $${s.yearlySpendUsd} (${usd(s.yearlySpendUsd)}). Yearly price gap on shared parts if every line paid the lowest price Voltara already pays: $${s.yearlyPriceGapUsd} (${usd(s.yearlyPriceGapUsd)}). ${s.needsReviewLines} battery cabinet lines say only "SEE DWG" and wait for engineering review. ${s.suppliers} suppliers; ${s.multiSupplierParts} parts have 2 or more suppliers. Sustaining engineering ${s.sustainingHoursPerYear} hours a year. Lead time ${s.leadTimeWeeksMin} to ${s.leadTimeWeeksMax} weeks.`,
+        `Platforming Index: ${idx.score} of 100, ${idx.status}, equal weights. ${idx.dimensions.map((d) => `${d.name} ${d.score} (${d.basis}) [${d.source}]`).join("; ")}. Path: step 1 cut cost on current products (now), step 2 consolidate duplicate parts, step 3 common core plus modules for the next generation. Voltara is on step ${idx.step}.`,
+        `Survey disagreements [survey]: Sales says customers need every variant, Finance and Engineering say no. CEO and Finance say Engineering owns architecture; Engineering and Supply chain say nobody does. No function is measured on complexity.`,
+        `Products [product_master] (id, name, units per year, lead time weeks, sustaining engineering hours per year):`,
+        PRODUCT_MASTER.map((p) => [p.id, p.name, p.units, p.leadWeeks, p.hours].join(", ")).join("\n"),
+        `Parts (name | counts | gap | spend :: part number (product, description as written, average unit price, supplier, [purchase order tag])):`,
+        partsTable(data),
       ].join("\n"),
-      source: `voltara_boms.csv · voltara_spend_cube.csv · voltara_product_master.csv`,
+      source: "data/derived/voltara_parts.json",
     },
     {
       id: "role_metrics",
@@ -69,22 +97,25 @@ export function buildPromptSections(profile: UserProfile): PromptSection[] {
       body: roleCfg
         ? [
             `KPI focus order: ${roleCfg.kpiFocus.join(" > ")}`,
+            `The four numbers on this user's dashboard:`,
+            view.kpis(data).map((k) => `  - ${k.label}: ${k.value}`).join("\n"),
             `Lead questions for this role:`,
-            roleCfg.suggestedQuestions.map((q) => `  - ${q}`).join("\n"),
+            view.suggested.map((q) => `  - ${q}`).join("\n"),
           ].join("\n")
         : "Role not set. No role-specific metrics loaded.",
-      source: "app/lib/roles.ts",
+      source: "app/lib/roleViews.ts",
     },
     {
       id: "rules",
       heading: "RULES",
       body: [
-        "1. Cite a source row or a listed assumption for every number you state. Never invent figures.",
-        "2. Label all Voltara data as sample data (fictional company) in every response.",
-        "3. Lead answers for this role with time to market, cost, and complexity, in the order set by ROLE METRICS.",
-        "4. Platforming is the method, not the headline. Lead with the business outcome.",
-        "5. If a question cannot be answered from the loaded data, say so explicitly and state what data would be needed.",
-        "6. Keep responses concise. Use bullet points for lists of findings.",
+        '1. Answer the question first, in plain language for this role. At most 110 words. Short paragraphs or up to 4 bullets starting with "- ". No headings, no tables, no bold.',
+        "2. Use only the DATA above. If the data cannot answer, say what is missing. Never invent a number.",
+        "3. Put an evidence tag right after each number, copied exactly from the data: a purchase order tag like [PO450076], or [product_master], [survey]. Use at most 4 tags per answer.",
+        "4. A matched part is a suggestion until engineering approves. A price gap is not booked savings. The index score is provisional. Say so when relevant.",
+        "5. Label all Voltara data as sample data from a fictional company when the user asks what it is.",
+        "6. Lead answers for this role with time to market, cost, and complexity, in the order set by ROLE METRICS. Platforming is the method, not the headline.",
+        "7. Do not use em dashes.",
       ].join("\n"),
       source: "CLAUDE.md · docs/CONTEXT.md",
     },
@@ -92,15 +123,14 @@ export function buildPromptSections(profile: UserProfile): PromptSection[] {
       id: "assumptions",
       heading: "ASSUMPTIONS",
       body: [
-        "A1: Annual spend of ~$39.3M is from voltara_spend_cube.csv extended_usd column, summed across all POs.",
-        "A2: Time to market figures are qualitative only. No launch-to-ship data exists in the sample files.",
-        "A3: Savings estimate of ~$1.13M/year (paying lowest existing price on shared parts) is from CLAUDE.md stated facts; engine has not yet validated this.",
-        "A4: Part counts (60 real parts, 45 shared, 23 in 5+ products) are from CLAUDE.md stated facts; pending engine validation.",
-        "A5: Complexity index score is pending engine output (data/derived/placeholder.json).",
+        `A1: Part groups come from voltara_answer_key.csv until the matcher exists. Every group is correct by construction, not matched, so matching accuracy is still unmeasured.`,
+        `A2: The ${usd(s.yearlyPriceGapUsd)} yearly price gap is computed, not a stated fact: for each shared part, yearly spend above the lowest average price Voltara already pays for that part, summed across parts. It is a gap, not booked savings.`,
+        `A3: Unit prices are average prices from voltara_spend_cube.csv. Each row carries one source purchase order; a part number bought many times shows its average.`,
+        `A4: The Platforming Index score of ${idx.score} is provisional. Four dimensions, equal weights. ${idx.dimensions[3].name} scores ${idx.dimensions[3].score} as a midpoint because there is no data yet on new part numbers per year. There is no peer benchmark.`,
+        `A5: Time to market is qualitative only. Lead time by product exists; no launch-to-ship data exists in the sample files.`,
+        `A6: The ${s.needsReviewLines} "SEE DWG" lines are excluded from every figure above until engineering confirms them.`,
       ].join("\n"),
-      source: "CLAUDE.md stated facts",
+      source: "data/derived/voltara_parts.json",
     },
   ];
-
-  return sections;
 }

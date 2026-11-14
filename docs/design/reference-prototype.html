@@ -1,0 +1,451 @@
+<title>Platforming Index</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: navy client bar, tabbed workspace on the left, assistant docked on the right. One light look by choice. */
+:root{
+  color-scheme:light;
+  --navy:#0A2540; --blue:#1F5FBF; --blue-soft:#EAF1FB; --ink:#16202E; --muted:#5C6B7F; --line:#DDE3EA; --subtle:#F5F7FA; --white:#FFFFFF;
+  --amber:#8A5300; --amber-soft:#FFF3D9; --green:#0B6B50; --green-soft:#E3F4EE;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{background:var(--white)}
+body{color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.45}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.wrap{max-width:1360px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.bar{background:var(--navy);color:#fff}
+.bar .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:8px 28px;padding-block:12px}
+.bar b{font-size:16px;font-weight:600;letter-spacing:.01em}
+.bar .client{padding-left:16px;border-left:1px solid rgba(255,255,255,.3);font-weight:500}
+.bar .meta{display:flex;flex-wrap:wrap;gap:6px 24px;margin-left:auto;font-size:12.5px;color:#D5DEEA;align-items:center}
+.bar .meta span b{font-size:12.5px;color:#fff;font-weight:500}
+.bar select{background:#12365C;color:#fff;border:1px solid rgba(255,255,255,.35);border-radius:4px;min-height:32px;padding:0 8px}
+.tabs{border-bottom:1px solid var(--line)}
+.tabs .wrap{display:flex;gap:4px;overflow-x:auto}
+.tabs a{padding:13px 14px;color:var(--muted);text-decoration:none;font-weight:500;border-bottom:2px solid transparent;white-space:nowrap}
+.tabs a[aria-current="page"]{color:var(--navy);border-bottom-color:var(--blue)}
+.work{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:24px;padding-block:22px;align-items:start}
+main{display:flex;flex-direction:column;gap:18px;min-width:0}
+h1{font-size:20px;font-weight:600;margin:0}
+.sub{color:var(--muted);margin:2px 0 0}
+.panel{border:1px solid var(--line);border-radius:4px;background:var(--white);min-width:0}
+.panel>header{padding:10px 14px;border-bottom:1px solid var(--line);background:var(--subtle);display:flex;justify-content:space-between;align-items:center;gap:12px}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.pad{padding:14px}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border:1px solid var(--line);border-radius:4px}
+.kpi{padding:14px 16px;border-left:1px solid var(--line);display:flex;flex-direction:column;gap:4px;text-align:left;background:none;border-top:0;border-right:0;border-bottom:0;cursor:pointer;min-width:0}
+.kpi:first-child{border-left:0}
+.kpi:hover{background:var(--subtle)}
+.kpi .v{font-size:26px;font-weight:600;line-height:1.15;font-variant-numeric:tabular-nums;color:var(--navy)}
+.kpi .l{color:var(--muted);font-size:12.5px}
+.kpi .ask,.link{color:var(--blue);font-size:12px;font-weight:500;background:none;border:0;padding:0;cursor:pointer;text-align:left}
+.two{display:grid;grid-template-columns:minmax(0,4fr) minmax(0,8fr);gap:18px;align-items:stretch}
+.gauge{display:flex;flex-direction:column;align-items:center;gap:2px}
+.gauge .n{font-size:40px;font-weight:600;color:var(--navy);margin-top:-46px;line-height:1}
+.gauge .c{font-size:12px;color:var(--muted)}
+.path{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;margin-top:14px;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.path div{padding:9px 10px;font-size:12px;border-left:1px solid var(--line);color:var(--muted)}
+.path div:first-child{border-left:0}
+.path .on{background:var(--blue-soft);color:var(--navy);font-weight:500}
+.path small{display:block;font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+th{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:left;padding:9px 14px;background:var(--subtle);border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:9px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child>td{border-bottom:0}
+.num{text-align:right}
+.mono{font-family:var(--mono);font-size:12.5px}
+.track{height:6px;background:var(--line);border-radius:3px;min-width:70px}
+.track i{display:block;height:100%;background:var(--blue);border-radius:3px}
+.badge{display:inline-block;font-size:11px;font-weight:600;padding:2px 7px;border-radius:3px;background:var(--amber-soft);color:var(--amber);white-space:nowrap}
+.badge.g{background:var(--green-soft);color:var(--green)}
+.badge.b{background:var(--blue-soft);color:var(--blue)}
+.cite{font-family:var(--mono);font-size:11.5px;font-weight:500;color:var(--blue);background:var(--blue-soft);border:0;border-radius:3px;padding:1px 6px;cursor:pointer;white-space:nowrap}
+.src{font-family:var(--mono);font-size:11.5px;color:var(--muted);background:var(--subtle);border-radius:3px;padding:1px 6px;white-space:nowrap}
+.btn{min-height:36px;padding:0 14px;border-radius:4px;border:1px solid var(--line);background:var(--white);cursor:pointer;font-weight:500}
+.btn.p{background:var(--blue);border-color:var(--blue);color:#fff}
+.btn:disabled{opacity:.5;cursor:default}
+.field{min-height:36px;padding:0 10px;border-radius:4px;border:1px solid var(--line);background:var(--white);width:100%}
+textarea.field{padding:8px 10px;min-height:64px}
+label{font-size:12.5px;font-weight:500;display:flex;flex-direction:column;gap:5px;color:var(--muted)}
+.tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.seg{display:flex;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.seg button{border:0;border-left:1px solid var(--line);background:var(--white);padding:0 12px;min-height:36px;cursor:pointer;font-size:13px;white-space:nowrap}
+.seg button:first-child{border-left:0}
+.seg button[aria-pressed="true"]{background:var(--navy);color:#fff}
+.rowbtn{background:none;border:0;padding:0;cursor:pointer;font-weight:500;text-align:left;color:var(--ink)}
+.rowbtn:hover{color:var(--blue)}
+.sub-table td,.sub-table th{font-size:12.5px;padding:7px 12px}
+.inset{background:var(--subtle);padding:10px 14px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;border:1px solid var(--line);border-radius:4px}
+.grid3>div{padding:12px 14px;border-left:1px solid var(--line)}
+.grid3>div:first-child{border-left:0}
+.grid3 .v{font-size:22px;font-weight:600;color:var(--navy);font-variant-numeric:tabular-nums}
+.form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.form .full{grid-column:1/-1}
+.note{font-size:12.5px;color:var(--muted)}
+/* assistant */
+.asst{position:sticky;top:16px;display:flex;flex-direction:column;max-height:calc(100vh - 32px);min-height:420px}
+.asst>header{flex:none}
+.thread{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;min-height:180px}
+.msg{padding:9px 12px;border-radius:4px;max-width:94%;overflow-wrap:anywhere}
+.msg.a{background:var(--subtle);border:1px solid var(--line);align-self:flex-start}
+.msg.u{background:var(--navy);color:#fff;align-self:flex-end}
+.msg p{margin:0 0 7px}.msg p:last-child{margin:0}
+.msg ul{margin:0 0 7px;padding-left:18px}.msg li{margin-bottom:3px}
+.sugg{padding:0 14px 10px;display:flex;flex-direction:column;gap:5px;flex:none}
+.askrow{display:flex;gap:8px;padding:12px 14px;border-top:1px solid var(--line);flex:none}
+.askrow .field{flex:1;min-width:0}
+.status{padding:8px 14px;border-top:1px solid var(--line);font-size:11.5px;color:var(--muted);background:var(--subtle);flex:none}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);margin-right:6px}
+.dot.off{background:var(--amber)}
+dialog{border:1px solid var(--line);border-radius:4px;background:var(--white);color:var(--ink);padding:0;max-width:min(500px,92vw);width:100%}
+dialog::backdrop{background:rgba(10,37,64,.45)}
+dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:7px 16px;margin:0;padding:14px}
+dt{color:var(--muted)}dd{margin:0;font-weight:500;overflow-wrap:anywhere}
+@media (max-width:1020px){
+  .work{grid-template-columns:minmax(0,1fr)}
+  .asst{position:static;max-height:none}
+  .thread{max-height:420px}
+}
+@media (max-width:700px){
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kpi:nth-child(3){border-left:0}
+  .kpi:nth-child(n+3){border-top:1px solid var(--line)}
+  .two,.form{grid-template-columns:minmax(0,1fr)}
+  .grid3{grid-template-columns:minmax(0,1fr)}
+  .grid3>div{border-left:0;border-top:1px solid var(--line)}
+  .grid3>div:first-child{border-top:0}
+  .bar .meta{margin-left:0}
+}
+</style>
+
+<div class="bar"><div class="wrap">
+  <b>Platforming Index</b><span class="client">Voltara Power Systems</span>
+  <div class="meta">
+    <span>Scope <b>6 products, 4 families</b></span>
+    <span>Data <b>Nov 2025 to Oct 2026</b></span>
+    <span>Evidence <b id="evStatus"></b></span>
+    <label style="flex-direction:row;align-items:center;gap:8px;color:#D5DEEA;font-weight:400">Viewing as
+      <select id="roleSel" aria-label="Viewing as"></select></label>
+  </div>
+</div></div>
+<nav class="tabs" aria-label="Sections"><div class="wrap">
+  <a href="#dashboard">Dashboard</a><a href="#parts">Parts</a><a href="#alignment">Alignment</a><a href="#new-part">New part check</a>
+</div></nav>
+<div class="wrap work">
+  <main id="main"></main>
+  <aside class="panel asst" aria-label="Assistant">
+    <header><span class="eyebrow">Assistant</span><span class="badge b" id="asstRole"></span></header>
+    <div class="thread" id="thread"></div>
+    <div class="sugg" id="sugg"></div>
+    <form class="askrow" id="askForm"><input class="field" id="askInput" type="text" placeholder="Ask about any number" aria-label="Ask the assistant" autocomplete="off"><button class="btn p" id="askBtn" type="submit">Ask</button><button class="btn" id="stopBtn" type="button" hidden>Stop</button></form>
+    <div class="status" id="status"></div>
+  </aside>
+</div>
+<dialog id="ev"><div class="panel" style="border:0"><header><span class="eyebrow">Source row</span><button class="link" id="evClose" type="button">Close</button></header><div id="evBody"></div></div></dialog>
+
+<script>
+const G = [{"id":"C034","name":"Pan Head Machine Screw M4x10","cat":"Hardware","products":6,"min":0.0299,"max":0.0392,"spend":40661,"gap":2857,"suppliers":3,"rows":[{"pn":"10-23053","desc":"M4x10 Machine Screw (Pan Head)","products":["VRK-1000"],"price":0.0299,"supplier":"Pinecrest Metalworks","po":"PO450529"},{"pn":"10-39389","desc":"Pan Head Machine Screw M4x10","products":["VRK-1000"],"price":0.03,"supplier":"Pinecrest Metalworks","po":"PO450497"},{"pn":"SL5-7333A","desc":"Pan Head Machine Screw M4x10","products":["VSI-5"],"price":0.0308,"supplier":"Pinecrest Metalworks","po":"PO453454"},{"pn":"SL5-5288B","desc":"mach scr pan head m4x10","products":["VSI-5"],"price":0.0309,"supplier":"Pinecrest Metalworks","po":"PO453437"},{"pn":"30-38135","desc":"mach scr pan head m4x10","products":["VRK-3000"],"price":0.0323,"supplier":"Pinecrest Metalworks","po":"PO451573"},{"pn":"30-26374","desc":"MACHINE SCREW, PAN HEAD, M4X10","products":["VRK-3000"],"price":0.0324,"supplier":"Pinecrest Metalworks","po":"PO451549"},{"pn":"SL10-2810A","desc":"mach scr pan head m4x10","products":["VSI-10"],"price":0.0336,"supplier":"Pinecrest Metalworks","po":"PO454441"},{"pn":"SL10-8717D","desc":"M4x10 Machine Screw (Pan Head)","products":["VSI-10"],"price":0.0337,"supplier":"Pinecrest Metalworks","po":"PO454423"},{"pn":"MX227621","desc":"PAN_HEAD_MACHINE_SCREW_M4X10","products":["VMX-20"],"price":0.0364,"supplier":"Norwick Components","po":"PO452470"},{"pn":"MX388497","desc":"mach scr pan head m4x10","products":["VMX-20"],"price":0.0367,"supplier":"Norwick Components","po":"PO452497"},{"pn":"BS-5302-11","desc":"Pan Head Machine Screw M4x10","products":["VBS-50"],"price":0.0391,"supplier":"Tarn Valley Fasteners","po":"PO455264"},{"pn":"BS-2111-15","desc":"M4x10 Machine Screw (Pan Head)","products":["VBS-50"],"price":0.0392,"supplier":"Tarn Valley Fasteners","po":"PO455283"}]},{"id":"C036","name":"Zinc Hex Nut M5","cat":"Hardware","products":6,"min":0.0198,"max":0.026,"spend":12132,"gap":996,"suppliers":2,"rows":[{"pn":"10-26200","desc":"ZINC_HEX_NUT_M5","products":["VRK-1000"],"price":0.0198,"supplier":"Pinecrest Metalworks","po":"PO450607"},{"pn":"10-46954","desc":"Zinc Hex Nut M5","products":["VRK-1000"],"price":0.0199,"supplier":"Pinecrest Metalworks","po":"PO450574"},{"pn":"SL5-2297D","desc":"M5 Hex Nut (Zinc)","products":["VSI-5"],"price":0.0204,"supplier":"Norwick Components","po":"PO453538"},{"pn":"SL5-2611D","desc":"hex nut zinc m5","products":["VSI-5"],"price":0.0207,"supplier":"Norwick Components","po":"PO453513"},{"pn":"30-42684","desc":"HEX NUT, ZINC, M5","products":["VRK-3000"],"price":0.0215,"supplier":"Pinecrest Metalworks","po":"PO451630"},{"pn":"30-50105","desc":"Zinc Hex Nut M5","products":["VRK-3000"],"price":0.0216,"supplier":"Pinecrest Metalworks","po":"PO451650"},{"pn":"SL10-6670C","desc":"M5 Hex Nut (Zinc)","products":["VSI-10"],"price":0.0225,"supplier":"Norwick Components","po":"PO454499"},{"pn":"SL10-4939D","desc":"ZINC_HEX_NUT_M5","products":["VSI-10"],"price":0.0225,"supplier":"Norwick Components","po":"PO454524"},{"pn":"MX560096","desc":"ZINC_HEX_NUT_M5","products":["VMX-20"],"price":0.0243,"supplier":"Pinecrest Metalworks","po":"PO452550"},{"pn":"MX230756","desc":"M5 Hex Nut (Zinc)","products":["VMX-20"],"price":0.0244,"supplier":"Pinecrest Metalworks","po":"PO452564"},{"pn":"BS-6758-20","desc":"Zinc Hex Nut M5","products":["VBS-50"],"price":0.026,"supplier":"Pinecrest Metalworks","po":"PO455335"},{"pn":"BS-3995-18","desc":"hex nut zinc m5","products":["VBS-50"],"price":0.026,"supplier":"Pinecrest Metalworks","po":"PO455362"}]},{"id":"C035","name":"Pan Head Machine Screw M5x12","cat":"Hardware","products":6,"min":0.0496,"max":0.0649,"spend":29151,"gap":2516,"suppliers":2,"rows":[{"pn":"10-48955","desc":"Pan Head Machine Screw M5x12","products":["VRK-1000"],"price":0.0496,"supplier":"Pinecrest Metalworks","po":"PO450553"},{"pn":"10-90422","desc":"M5x12 Machine Screw (Pan Head)","products":["VRK-1000"],"price":0.05,"supplier":"Pinecrest Metalworks","po":"PO450567"},{"pn":"SL5-2308A","desc":"MACHINE SCREW, PAN HEAD, M5X12","products":["VSI-5"],"price":0.0511,"supplier":"Tarn Valley Fasteners","po":"PO453502"},{"pn":"SL5-4739A","desc":"mach scr pan head m5x12","products":["VSI-5"],"price":0.0512,"supplier":"Tarn Valley Fasteners","po":"PO453468"},{"pn":"30-70429","desc":"PAN_HEAD_MACHINE_SCREW_M5X12","products":["VRK-3000"],"price":0.0541,"supplier":"Pinecrest Metalworks","po":"PO451615"},{"pn":"30-81215","desc":"MACHINE SCREW, PAN HEAD, M5X12","products":["VRK-3000"],"price":0.0544,"supplier":"Pinecrest Metalworks","po":"PO451592"},{"pn":"SL10-2180D","desc":"M5x12 Machine Screw (Pan Head)","products":["VSI-10"],"price":0.0559,"supplier":"Tarn Valley Fasteners","po":"PO454467"},{"pn":"SL10-3406A","desc":"PAN_HEAD_MACHINE_SCREW_M5X12","products":["VSI-10"],"price":0.0562,"supplier":"Tarn Valley Fasteners","po":"PO454487"},{"pn":"MX366455","desc":"Pan Head Machine Screw M5x12","products":["VMX-20"],"price":0.0609,"supplier":"Tarn Valley Fasteners","po":"PO452539"},{"pn":"MX289544","desc":"PAN_HEAD_MACHINE_SCREW_M5X12","products":["VMX-20"],"price":0.0612,"supplier":"Tarn Valley Fasteners","po":"PO452519"},{"pn":"BS-7677-11","desc":"MACHINE SCREW - SEE DWG","products":["VBS-50"],"price":0.0646,"supplier":"Tarn Valley Fasteners","po":"PO455302"},{"pn":"BS-9745-20","desc":"M5x12 Machine Screw (Pan Head)","products":["VBS-50"],"price":0.0649,"supplier":"Tarn Valley Fasteners","po":"PO455319"}]},{"id":"U001","name":"Sheet Metal 2U Chassis 1kVA","cat":"Mechanical","products":1,"min":21.95,"max":21.95,"spend":395475,"gap":0,"suppliers":1,"rows":[{"pn":"10-55950","desc":"Sheet Metal 2U Chassis 1kVA","products":["VRK-1000"],"price":21.95,"supplier":"Sable Enclosures","po":"PO450853"}]},{"id":"C037","name":"Split Lock Washer M4","cat":"Hardware","products":6,"min":0.01,"max":0.013,"spend":14097,"gap":927,"suppliers":3,"rows":[{"pn":"10-68063","desc":"Split Lock Washer M4","products":["VRK-1000"],"price":0.01,"supplier":"Pinecrest Metalworks","po":"PO450626"},{"pn":"10-54889","desc":"M4 Lock Washer (Split)","products":["VRK-1000"],"price":0.01,"supplier":"Pinecrest Metalworks","po":"PO450647"},{"pn":"SL5-7374D","desc":"lock wshr split m4","products":["VSI-5"],"price":0.0103,"supplier":"Norwick Components","po":"PO453557"},{"pn":"SL5-4706A","desc":"Split Lock Washer M4","products":["VSI-5"],"price":0.0104,"supplier":"Norwick Components","po":"PO453571"},{"pn":"30-47624","desc":"LOCK WASHER, SPLIT, M4","products":["VRK-3000"],"price":0.0108,"supplier":"Pinecrest Metalworks","po":"PO451670"},{"pn":"30-92462","desc":"lock wshr split m4","products":["VRK-3000"],"price":0.0108,"supplier":"Pinecrest Metalworks","po":"PO451699"},{"pn":"SL10-9548B","desc":"M4 Lock Washer (Split)","products":["VSI-10"],"price":0.0112,"supplier":"Norwick Components","po":"PO454553"},{"pn":"SL10-2070C","desc":"lock wshr split m4","products":["VSI-10"],"price":0.0113,"supplier":"Norwick Components","po":"PO454568"},{"pn":"MX818370","desc":"lock wshr split m4","products":["VMX-20"],"price":0.0121,"supplier":"Pinecrest Metalworks","po":"PO452613"},{"pn":"MX333043","desc":"SPLIT_LOCK_WASHER_M4","products":["VMX-20"],"price":0.0123,"supplier":"Pinecrest Metalworks","po":"PO452591"},{"pn":"BS-2441-02","desc":"lock wshr split m4","products":["VBS-50"],"price":0.0129,"supplier":"Tarn Valley Fasteners","po":"PO455382"},{"pn":"BS-7510-08","desc":"LOCK WASHER - SEE DWG","products":["VBS-50"],"price":0.013,"supplier":"Tarn Valley Fasteners","po":"PO455375"}]},{"id":"C039","name":"Nylon Cable Tie 150mm","cat":"Hardware","products":6,"min":0.0199,"max":0.0261,"spend":13978,"gap":1021,"suppliers":2,"rows":[{"pn":"10-65130","desc":"CABLE TIE, NYLON, 150MM","products":["VRK-1000"],"price":0.0199,"supplier":"Pinecrest Metalworks","po":"PO450746"},{"pn":"10-86992","desc":"Nylon Cable Tie 150mm","products":["VRK-1000"],"price":0.0202,"supplier":"Pinecrest Metalworks","po":"PO450722"},{"pn":"SL5-7568B","desc":"cable tie nylon 150mm","products":["VSI-5"],"price":0.0205,"supplier":"Pinecrest Metalworks","po":"PO453621"},{"pn":"SL5-5038D","desc":"150mm Cable Tie (Nylon)","products":["VSI-5"],"price":0.0205,"supplier":"Pinecrest Metalworks","po":"PO453642"},{"pn":"30-24380","desc":"CABLE TIE, NYLON, 150MM","products":["VRK-3000"],"price":0.0216,"supplier":"Pinecrest Metalworks","po":"PO451758"},{"pn":"30-92686","desc":"NYLON_CABLE_TIE_150MM","products":["VRK-3000"],"price":0.0216,"supplier":"Pinecrest Metalworks","po":"PO451787"},{"pn":"SL10-1808C","desc":"150mm Cable Tie (Nylon)","products":["VSI-10"],"price":0.0222,"supplier":"Pinecrest Metalworks","po":"PO454634"},{"pn":"SL10-5218D","desc":"NYLON_CABLE_TIE_150MM","products":["VSI-10"],"price":0.0224,"supplier":"Pinecrest Metalworks","po":"PO454650"},{"pn":"MX192310","desc":"150mm Cable Tie (Nylon)","products":["VMX-20"],"price":0.0243,"supplier":"Norwick Components","po":"PO452691"},{"pn":"MX161439","desc":"NYLON_CABLE_TIE_150MM","products":["VMX-20"],"price":0.0244,"supplier":"Norwick Components","po":"PO452682"},{"pn":"BS-5235-12","desc":"Nylon Cable Tie 150mm","products":["VBS-50"],"price":0.026,"supplier":"Pinecrest Metalworks","po":"PO455443"},{"pn":"BS-7164-17","desc":"150mm Cable Tie (Nylon)","products":["VBS-50"],"price":0.0261,"supplier":"Pinecrest Metalworks","po":"PO455463"}]},{"id":"C001","name":"DSP Control Board Rev C","cat":"Electronics","products":6,"min":86.5125,"max":112.1725,"spend":4400507,"gap":121358,"suppliers":2,"rows":[{"pn":"10-18398","desc":"DSP Control Board Rev C","products":["VRK-1000","VRK-3000"],"price":86.5125,"supplier":"Kestrel Device Distribution","po":"PO450008"},{"pn":"SL5-8935B","desc":"brd dsp ctrl rev c","products":["VSI-5","VSI-10"],"price":89.1887,"supplier":"Lumen Board Assembly","po":"PO452889"},{"pn":"MX352609","desc":"DSP_CONTROL_BOARD_REV_C","products":["VMX-20"],"price":104.725,"supplier":"Kestrel Device Distribution","po":"PO451942"},{"pn":"BS-9145-01","desc":"DSP Control Board Rev C","products":["VBS-50"],"price":112.1725,"supplier":"Kestrel Device Distribution","po":"PO454888"}]},{"id":"C025","name":"20 Pin Ribbon Cable 300mm","cat":"Cable","products":6,"min":1.3067,"max":1.69,"spend":137097,"gap":5421,"suppliers":2,"rows":[{"pn":"10-24818","desc":"20 Pin Ribbon Cable 300mm","products":["VRK-1000"],"price":1.3067,"supplier":"Dunmore Cable and Harness","po":"PO450393"},{"pn":"SL5-1323C","desc":"ribbon cable 20 pin 300mm","products":["VSI-5"],"price":1.334,"supplier":"Norwick Components","po":"PO453313"},{"pn":"30-62858","desc":"RIBBON CABLE, 20 PIN, 300MM","products":["VRK-3000"],"price":1.4067,"supplier":"Dunmore Cable and Harness","po":"PO451379"},{"pn":"SL10-4352C","desc":"300mm Ribbon Cable (20 Pin)","products":["VSI-10"],"price":1.456,"supplier":"Norwick Components","po":"PO454290"},{"pn":"MX131972","desc":"20_PIN_RIBBON_CABLE_300MM","products":["VMX-20"],"price":1.5867,"supplier":"Norwick Components","po":"PO452339"},{"pn":"BS-1563-09","desc":"20 Pin Ribbon Cable 300mm","products":["VBS-50"],"price":1.69,"supplier":"Norwick Components","po":"PO455150"}]},{"id":"C007","name":"RS485 Modbus Communication Card","cat":"Electronics","products":6,"min":21.1271,"max":27.385,"spend":1042225,"gap":28987,"suppliers":2,"rows":[{"pn":"10-29438","desc":"RS485 Modbus Communication Card","products":["VRK-1000","VRK-3000"],"price":21.1271,"supplier":"Calder Power Devices","po":"PO451050"},{"pn":"SL5-3947A","desc":"comm card rs485 modbus","products":["VSI-5","VSI-10"],"price":21.9014,"supplier":"Lumen Board Assembly","po":"PO454014"},{"pn":"MX336730","desc":"RS485_MODBUS_COMMUNICATION_CARD","products":["VMX-20"],"price":25.47,"supplier":"Lumen Board Assembly","po":"PO452081"},{"pn":"BS-3463-14","desc":"RS485 Modbus Communication Card","products":["VBS-50"],"price":27.385,"supplier":"Calder Power Devices","po":"PO454995"}]},{"id":"C024","name":"Auxiliary Isolation Transformer 100VA","cat":"Magnetics","products":3,"min":16.002,"max":19.492,"spend":509435,"gap":19630,"suppliers":1,"rows":[{"pn":"10-43759","desc":"Auxiliary Isolation Transformer 100VA","products":["VRK-1000"],"price":16.002,"supplier":"Helix Electro Supply","po":"PO450357"},{"pn":"30-40927","desc":"TRANSFORMER, AUXILIARY ISOLATION, 100VA","products":["VRK-3000"],"price":17.185,"supplier":"Helix Electro Supply","po":"PO451364"},{"pn":"MX858877","desc":"AUXILIARY_ISOLATION_TRANSFORMER_100VA","products":["VMX-20"],"price":19.492,"supplier":"Helix Electro Supply","po":"PO452315"}]},{"id":"C038","name":"Hex Brass Standoff M3x10","cat":"Hardware","products":6,"min":0.1193,"max":0.1554,"spend":53804,"gap":3295,"suppliers":2,"rows":[{"pn":"10-49481","desc":"HEX_BRASS_STANDOFF_M3X10","products":["VRK-1000"],"price":0.1193,"supplier":"Pinecrest Metalworks","po":"PO450693"},{"pn":"10-58462","desc":"Hex Brass Standoff M3x10","products":["VRK-1000"],"price":0.1202,"supplier":"Pinecrest Metalworks","po":"PO450681"},{"pn":"SL5-3737A","desc":"stdoff hex brass m3x10","products":["VSI-5"],"price":0.124,"supplier":"Norwick Components","po":"PO453593"},{"pn":"SL5-3511D","desc":"STANDOFF, HEX BRASS, M3X10","products":["VSI-5"],"price":0.1243,"supplier":"Norwick Components","po":"PO453607"},{"pn":"30-98163","desc":"stdoff hex brass m3x10","products":["VRK-3000"],"price":0.1298,"supplier":"Pinecrest Metalworks","po":"PO451742"},{"pn":"30-36309","desc":"STANDOFF, HEX BRASS, M3X10","products":["VRK-3000"],"price":0.13,"supplier":"Pinecrest Metalworks","po":"PO451720"},{"pn":"SL10-8112C","desc":"M3x10 Standoff (Hex Brass)","products":["VSI-10"],"price":0.133,"supplier":"Norwick Components","po":"PO454586"},{"pn":"SL10-8039D","desc":"HEX_BRASS_STANDOFF_M3X10","products":["VSI-10"],"price":0.1339,"supplier":"Norwick Components","po":"PO454608"},{"pn":"MX954276","desc":"HEX_BRASS_STANDOFF_M3X10","products":["VMX-20"],"price":0.1462,"supplier":"Norwick Components","po":"PO452627"},{"pn":"MX534102","desc":"Hex Brass Standoff M3x10","products":["VMX-20"],"price":0.1477,"supplier":"Norwick Components","po":"PO452658"},{"pn":"BS-2880-07","desc":"HEX_BRASS_STANDOFF_M3X10","products":["VBS-50"],"price":0.1549,"supplier":"Pinecrest Metalworks","po":"PO455422"},{"pn":"BS-1821-15","desc":"STANDOFF - SEE DWG","products":["VBS-50"],"price":0.1554,"supplier":"Pinecrest Metalworks","po":"PO455404"}]},{"id":"C027","name":"Signal 8 Pin Connector","cat":"Cable","products":6,"min":0.9586,"max":1.248,"spend":167105,"gap":8995,"suppliers":2,"rows":[{"pn":"10-58600","desc":"Signal 8 Pin Connector","products":["VRK-1000"],"price":0.9586,"supplier":"Dunmore Cable and Harness","po":"PO450422"},{"pn":"SL5-5906C","desc":"conn signal 8 pin","products":["VSI-5"],"price":0.976,"supplier":"Dunmore Cable and Harness","po":"PO453341"},{"pn":"30-63838","desc":"CONNECTOR, SIGNAL 8 PIN","products":["VRK-3000"],"price":1.028,"supplier":"Dunmore Cable and Harness","po":"PO451435"},{"pn":"SL10-7650D","desc":"Connector (Signal 8 Pin)","products":["VSI-10"],"price":1.068,"supplier":"Dunmore Cable and Harness","po":"PO454316"},{"pn":"MX387968","desc":"SIGNAL_8_PIN_CONNECTOR","products":["VMX-20"],"price":1.1633,"supplier":"Norwick Components","po":"PO452371"},{"pn":"BS-7112-06","desc":"Signal 8 Pin Connector","products":["VBS-50"],"price":1.248,"supplier":"Norwick Components","po":"PO455194"}]},{"id":"C008","name":"LCD Display Module 4.3in","cat":"Electronics","products":5,"min":27.245,"max":32.8133,"spend":1332045,"gap":23080,"suppliers":3,"rows":[{"pn":"10-65662","desc":"LCD Display Module 4.3in","products":["VRK-1000","VRK-3000"],"price":27.245,"supplier":"Calder Power Devices","po":"PO450143"},{"pn":"SL5-7400B","desc":"disp mod lcd 4.3in","products":["VSI-5","VSI-10"],"price":27.9462,"supplier":"Kestrel Device Distribution","po":"PO453043"},{"pn":"MX474000","desc":"LCD_DISPLAY_MODULE_4P3IN","products":["VMX-20"],"price":32.8133,"supplier":"Lumen Board Assembly","po":"PO452112"}]},{"id":"C003","name":"Auxiliary Power Supply 24V 60W","cat":"Electronics","products":6,"min":18.6062,"max":24.165,"spend":945252,"gap":25840,"suppliers":2,"rows":[{"pn":"10-69648","desc":"Auxiliary Power Supply 24V 60W","products":["VRK-1000","VRK-3000"],"price":18.6062,"supplier":"Calder Power Devices","po":"PO450960"},{"pn":"SL5-9563B","desc":"pwr sply aux 24v 60w","products":["VSI-5","VSI-10"],"price":19.2378,"supplier":"Lumen Board Assembly","po":"PO453925"},{"pn":"MX256813","desc":"AUXILIARY_POWER_SUPPLY_24V_60W","products":["VMX-20"],"price":22.64,"supplier":"Calder Power Devices","po":"PO451988"},{"pn":"BS-7019-07","desc":"Auxiliary Power Supply 24V 60W","products":["VBS-50"],"price":24.165,"supplier":"Lumen Board Assembly","po":"PO454925"}]},{"id":"C028","name":"SNMP Ethernet Network Card","cat":"Electronics","products":3,"min":34.3325,"max":41.498,"spend":992555,"gap":14096,"suppliers":2,"rows":[{"pn":"10-73260","desc":"SNMP Ethernet Network Card","products":["VRK-1000","VRK-3000"],"price":34.3325,"supplier":"Calder Power Devices","po":"PO451470"},{"pn":"MX647383","desc":"SNMP_ETHERNET_NETWORK_CARD","products":["VMX-20"],"price":41.498,"supplier":"Kestrel Device Distribution","po":"PO452386"}]},{"id":"U002","name":"VRLA Battery Pack 36V 9Ah","cat":"Energy storage","products":1,"min":58.138,"max":58.138,"spend":1173007,"gap":0,"suppliers":1,"rows":[{"pn":"10-41548","desc":"VRLA Battery Pack 36V 9Ah","products":["VRK-1000"],"price":58.138,"supplier":"Arden Battery Systems","po":"PO450888"}]},{"id":"C019","name":"Fast Acting Fuse 30A","cat":"Electrical","products":4,"min":1.0975,"max":1.2333,"spend":138522,"gap":6131,"suppliers":1,"rows":[{"pn":"10-17542","desc":"Fast Acting Fuse 30A","products":["VRK-1000"],"price":1.0975,"supplier":"Helix Electro Supply","po":"PO450288"},{"pn":"SL5-3322C","desc":"fuse fast acting 30a","products":["VSI-5"],"price":1.135,"supplier":"Helix Electro Supply","po":"PO453242"},{"pn":"30-96174","desc":"FUSE, FAST ACTING, 30A","products":["VRK-3000"],"price":1.18,"supplier":"Helix Electro Supply","po":"PO451253"},{"pn":"SL10-1644A","desc":"30A Fuse (Fast Acting)","products":["VSI-10"],"price":1.2333,"supplier":"Helix Electro Supply","po":"PO454201"}]},{"id":"C015","name":"Single Phase EMI Filter 30A","cat":"Electrical","products":3,"min":12.41,"max":13.514,"spend":518366,"gap":17721,"suppliers":1,"rows":[{"pn":"10-40886","desc":"Single Phase EMI Filter 30A","products":["VRK-1000"],"price":12.41,"supplier":"Norwick Components","po":"PO450242"},{"pn":"SL5-3400B","desc":"emi fltr 1 ph 30a","products":["VSI-5"],"price":12.91,"supplier":"Norwick Components","po":"PO453182"},{"pn":"30-67700","desc":"EMI FILTER, SINGLE PHASE, 30A","products":["VRK-3000"],"price":13.514,"supplier":"Norwick Components","po":"PO451204"}]},{"id":"C030","name":"Surge MOV Varistor 275V","cat":"Electrical","products":4,"min":0.9,"max":1.008,"spend":166024,"gap":7523,"suppliers":1,"rows":[{"pn":"10-61585","desc":"Surge MOV Varistor 275V","products":["VRK-1000"],"price":0.9,"supplier":"Norwick Components","po":"PO450448"},{"pn":"SL5-3772D","desc":"mov surge mov 275v","products":["VSI-5"],"price":0.928,"supplier":"Norwick Components","po":"PO453384"},{"pn":"30-84946","desc":"VARISTOR, SURGE MOV, 275V","products":["VRK-3000"],"price":0.9722,"supplier":"Norwick Components","po":"PO451497"},{"pn":"SL10-7940D","desc":"275V Varistor (Surge MOV)","products":["VSI-10"],"price":1.008,"supplier":"Norwick Components","po":"PO454365"}]},{"id":"C020","name":"Panel Mount Fuse Holder 30A","cat":"Electrical","products":4,"min":1.7375,"max":1.9467,"spend":199034,"gap":9259,"suppliers":2,"rows":[{"pn":"10-73889","desc":"Panel Mount Fuse Holder 30A","products":["VRK-1000"],"price":1.7375,"supplier":"Helix Electro Supply","po":"PO450313"},{"pn":"SL5-6009D","desc":"fuse holder panel mount 30a","products":["VSI-5"],"price":1.795,"supplier":"Calder Power Devices","po":"PO453270"},{"pn":"30-69337","desc":"FUSE HOLDER, PANEL MOUNT, 30A","products":["VRK-3000"],"price":1.8925,"supplier":"Helix Electro Supply","po":"PO451302"},{"pn":"SL10-5792A","desc":"30A Fuse Holder (Panel Mount)","products":["VSI-10"],"price":1.9467,"supplier":"Calder Power Devices","po":"PO454232"}]},{"id":"C042","name":"Copper Grounding Lug 35mm2","cat":"Electrical","products":6,"min":0.7478,"max":0.9675,"spend":48134,"gap":3378,"suppliers":2,"rows":[{"pn":"10-79127","desc":"Copper Grounding Lug 35mm2","products":["VRK-1000"],"price":0.7478,"supplier":"Helix Electro Supply","po":"PO450814"},{"pn":"SL5-1999B","desc":"gnd lug copper 35mm2","products":["VSI-5"],"price":0.7744,"supplier":"Calder Power Devices","po":"PO453744"},{"pn":"30-40679","desc":"GROUNDING LUG, COPPER, 35MM2","products":["VRK-3000"],"price":0.8079,"supplier":"Helix Electro Supply","po":"PO451860"},{"pn":"SL10-7812C","desc":"35mm2 Grounding Lug (Copper)","products":["VSI-10"],"price":0.8495,"supplier":"Calder Power Devices","po":"PO454752"},{"pn":"MX769189","desc":"COPPER_GROUNDING_LUG_35MM2","products":["VMX-20"],"price":0.9141,"supplier":"Calder Power Devices","po":"PO452755"},{"pn":"BS-2068-17","desc":"Copper Grounding Lug 35mm2","products":["VBS-50"],"price":0.9675,"supplier":"Helix Electro Supply","po":"PO455561"}]},{"id":"C026","name":"Power 3 Pin Connector 50A","cat":"Cable","products":4,"min":3.18,"max":4.2,"spend":242637,"gap":15283,"suppliers":2,"rows":[{"pn":"10-79364","desc":"Power 3 Pin Connector 50A","products":["VRK-1000"],"price":3.18,"supplier":"Norwick Components","po":"PO450407"},{"pn":"30-97440","desc":"CONNECTOR, POWER 3 PIN, 50A","products":["VRK-3000"],"price":3.468,"supplier":"Norwick Components","po":"PO451400"},{"pn":"MX139702","desc":"POWER_3_PIN_CONNECTOR_50A","products":["VMX-20"],"price":3.9175,"supplier":"Dunmore Cable and Harness","po":"PO452353"},{"pn":"BS-3771-19","desc":"CONNECTOR - SEE DWG","products":["VBS-50"],"price":4.2,"supplier":"Dunmore Cable and Harness","po":"PO455174"}]},{"id":"C006","name":"6 Pole Terminal Block 30A","cat":"Electrical","products":6,"min":2.3925,"max":3.0925,"spend":297742,"gap":17071,"suppliers":3,"rows":[{"pn":"10-93822","desc":"6 Pole Terminal Block 30A","products":["VRK-1000"],"price":2.3925,"supplier":"Helix Electro Supply","po":"PO450115"},{"pn":"SL5-3295D","desc":"term blk 6 pole 30a","products":["VSI-5"],"price":2.4925,"supplier":"Norwick Components","po":"PO453001"},{"pn":"30-53784","desc":"TERMINAL BLOCK, 6 POLE, 30A","products":["VRK-3000"],"price":2.58,"supplier":"Helix Electro Supply","po":"PO451018"},{"pn":"SL10-5614B","desc":"30A Terminal Block (6 Pole)","products":["VSI-10"],"price":2.67,"supplier":"Norwick Components","po":"PO453987"},{"pn":"MX812812","desc":"6_POLE_TERMINAL_BLOCK_30A","products":["VMX-20"],"price":2.916,"supplier":"Helix Electro Supply","po":"PO452056"},{"pn":"BS-3443-13","desc":"6 Pole Terminal Block 30A","products":["VBS-50"],"price":3.0925,"supplier":"Calder Power Devices","po":"PO454983"}]},{"id":"C017","name":"Power Relay 30A 24VDC Coil","cat":"Electrical","products":4,"min":3.9,"max":4.3733,"spend":491229,"gap":23155,"suppliers":1,"rows":[{"pn":"10-19560","desc":"Power Relay 30A 24VDC Coil","products":["VRK-1000"],"price":3.9,"supplier":"Helix Electro Supply","po":"PO450268"},{"pn":"SL5-1920A","desc":"relay pwr 30a 24vdc coil","products":["VSI-5"],"price":4.015,"supplier":"Helix Electro Supply","po":"PO453204"},{"pn":"30-94044","desc":"RELAY, POWER, 30A, 24VDC COIL","products":["VRK-3000"],"price":4.235,"supplier":"Helix Electro Supply","po":"PO451232"},{"pn":"SL10-5812C","desc":"30A 24VDC Coil Relay (Power)","products":["VSI-10"],"price":4.3733,"supplier":"Helix Electro Supply","po":"PO454177"}]},{"id":"C033","name":"Bleeder Resistor 10k 10W","cat":"Electronics","products":5,"min":0.6006,"max":0.726,"spend":104476,"gap":6561,"suppliers":2,"rows":[{"pn":"10-40120","desc":"Bleeder Resistor 10k 10W","products":["VRK-1000"],"price":0.6006,"supplier":"Lumen Board Assembly","po":"PO450471"},{"pn":"SL5-6561B","desc":"res bleeder 10k 10w","products":["VSI-5"],"price":0.6159,"supplier":"Kestrel Device Distribution","po":"PO453411"},{"pn":"30-71265","desc":"RESISTOR, BLEEDER, 10K, 10W","products":["VRK-3000"],"price":0.6482,"supplier":"Lumen Board Assembly","po":"PO451508"},{"pn":"SL10-6910A","desc":"10k 10W Resistor (Bleeder)","products":["VSI-10"],"price":0.6708,"supplier":"Kestrel Device Distribution","po":"PO454400"},{"pn":"MX175454","desc":"BLEEDER_RESISTOR_10K_10W","products":["VMX-20"],"price":0.726,"supplier":"Kestrel Device Distribution","po":"PO452446"}]},{"id":"C002","name":"Isolated Gate Driver Board 6 Channel","cat":"Electronics","products":6,"min":23.886,"max":31.315,"spend":1513171,"gap":97114,"suppliers":2,"rows":[{"pn":"10-40983","desc":"Isolated Gate Driver Board 6 Channel","products":["VRK-1000"],"price":23.886,"supplier":"Kestrel Device Distribution","po":"PO450033"},{"pn":"SL5-3519A","desc":"brd iso gate drv 6 ch","products":["VSI-5"],"price":24.63,"supplier":"Calder Power Devices","po":"PO452917"},{"pn":"30-66344","desc":"BOARD, ISOLATED GATE DRIVER, 6 CHANNEL","products":["VRK-3000"],"price":26.01,"supplier":"Kestrel Device Distribution","po":"PO450941"},{"pn":"SL10-7892D","desc":"6 Channel Board (Isolated Gate Driver)","products":["VSI-10"],"price":26.6675,"supplier":"Calder Power Devices","po":"PO453904"},{"pn":"MX876039","desc":"ISOLATED_GATE_DRIVER_BOARD_6_CHANNEL","products":["VMX-20"],"price":29.0033,"supplier":"Calder Power Devices","po":"PO451964"},{"pn":"BS-7505-09","desc":"Isolated Gate Driver Board 6 Channel","products":["VBS-50"],"price":31.315,"supplier":"Calder Power Devices","po":"PO454901"}]},{"id":"C040","name":"Silicone Thermal Pad 40x40mm","cat":"Thermal","products":6,"min":0.4482,"max":0.5867,"spend":70207,"gap":4033,"suppliers":2,"rows":[{"pn":"10-43892","desc":"40x40mm Thermal Pad (Silicone)","products":["VRK-1000"],"price":0.4482,"supplier":"Ostrava Thermal","po":"PO450785"},{"pn":"10-31108","desc":"Silicone Thermal Pad 40x40mm","products":["VRK-1000"],"price":0.4514,"supplier":"Ostrava Thermal","po":"PO450767"},{"pn":"SL5-1250A","desc":"thrm pad silicone 40x40mm","products":["VSI-5"],"price":0.4615,"supplier":"Ostrava Thermal","po":"PO453663"},{"pn":"SL5-3795A","desc":"THERMAL PAD, SILICONE, 40X40MM","products":["VSI-5"],"price":0.4616,"supplier":"Ostrava Thermal","po":"PO453691"},{"pn":"30-31826","desc":"THERMAL PAD, SILICONE, 40X40MM","products":["VRK-3000"],"price":0.4841,"supplier":"Ostrava Thermal","po":"PO451812"},{"pn":"30-72717","desc":"Silicone Thermal Pad 40x40mm","products":["VRK-3000"],"price":0.487,"supplier":"Ostrava Thermal","po":"PO451840"},{"pn":"SL10-9635D","desc":"40x40mm Thermal Pad (Silicone)","products":["VSI-10"],"price":0.5026,"supplier":"Ostrava Thermal","po":"PO454674"},{"pn":"SL10-4215B","desc":"SILICONE_THERMAL_PAD_40X40MM","products":["VSI-10"],"price":0.509,"supplier":"Ostrava Thermal","po":"PO454691"},{"pn":"MX974058","desc":"SILICONE_THERMAL_PAD_40X40MM","products":["VMX-20"],"price":0.5481,"supplier":"Ostrava Thermal","po":"PO452717"},{"pn":"MX461930","desc":"Silicone Thermal Pad 40x40mm","products":["VMX-20"],"price":0.5511,"supplier":"Ostrava Thermal","po":"PO452742"},{"pn":"BS-9103-10","desc":"Silicone Thermal Pad 40x40mm","products":["VBS-50"],"price":0.5824,"supplier":"Norwick Components","po":"PO455485"},{"pn":"BS-9704-09","desc":"SILICONE_THERMAL_PAD_40X40MM","products":["VBS-50"],"price":0.5867,"supplier":"Norwick Components","po":"PO455503"}]},{"id":"C013","name":"Half Bridge IGBT Module 600V 50A","cat":"Electronics","products":3,"min":30.8667,"max":33.632,"spend":3838086,"gap":153377,"suppliers":1,"rows":[{"pn":"10-55941","desc":"Half Bridge IGBT Module 600V 50A","products":["VRK-1000"],"price":30.8667,"supplier":"Kestrel Device Distribution","po":"PO450226"},{"pn":"SL5-3821A","desc":"igbt mod half bridge 600v 50a","products":["VSI-5"],"price":31.945,"supplier":"Kestrel Device Distribution","po":"PO453153"},{"pn":"30-58688","desc":"IGBT MODULE, HALF BRIDGE, 600V, 50A","products":["VRK-3000"],"price":33.632,"supplier":"Kestrel Device Distribution","po":"PO451179"}]},{"id":"C011","name":"Electrolytic DC Link Capacitor 470uF 450V","cat":"Electronics","products":5,"min":3.9525,"max":5.332,"spend":1504812,"gap":136539,"suppliers":3,"rows":[{"pn":"10-89633","desc":"Electrolytic DC Link Capacitor 470uF 450V","products":["VRK-1000"],"price":3.9525,"supplier":"Calder Power Devices","po":"PO450194"},{"pn":"30-84239","desc":"CAPACITOR, ELECTROLYTIC DC LINK, 470UF, 450V","products":["VRK-3000"],"price":3.962,"supplier":"Calder Power Devices","po":"PO451146"},{"pn":"SL10-1462D","desc":"470uF 450V Capacitor (Electrolytic DC Link)","products":["VSI-10"],"price":4.6,"supplier":"Kestrel Device Distribution","po":"PO454078"},{"pn":"SL5-8451B","desc":"cap elec dc link 470uf 450v","products":["VSI-5"],"price":4.6233,"supplier":"Kestrel Device Distribution","po":"PO453113"},{"pn":"MX618969","desc":"ELECTROLYTIC_DC_LINK_CAPACITOR_470UF_450V","products":["VMX-20"],"price":5.332,"supplier":"Lumen Board Assembly","po":"PO452198"}]},{"id":"C022","name":"PFC Inductor 1mH 30A","cat":"Magnetics","products":3,"min":11.025,"max":11.9233,"spend":731184,"gap":24371,"suppliers":1,"rows":[{"pn":"10-97248","desc":"PFC Inductor 1mH 30A","products":["VRK-1000"],"price":11.025,"supplier":"Helix Electro Supply","po":"PO450333"},{"pn":"SL5-1119C","desc":"ind pfc 1mh 30a","products":["VSI-5"],"price":11.3067,"supplier":"Helix Electro Supply","po":"PO453296"},{"pn":"30-82977","desc":"INDUCTOR, PFC, 1MH, 30A","products":["VRK-3000"],"price":11.9233,"supplier":"Helix Electro Supply","po":"PO451341"}]},{"id":"C010","name":"NTC Temperature Sensor 10k","cat":"Electronics","products":6,"min":0.8457,"max":1.1075,"spend":105263,"gap":6841,"suppliers":3,"rows":[{"pn":"10-52145","desc":"NTC Temperature Sensor 10k","products":["VRK-1000"],"price":0.8457,"supplier":"Lumen Board Assembly","po":"PO450162"},{"pn":"SL5-3020D","desc":"temp sens ntc 10k","products":["VSI-5"],"price":0.874,"supplier":"Kestrel Device Distribution","po":"PO453089"},{"pn":"30-74595","desc":"TEMPERATURE SENSOR, NTC, 10K","products":["VRK-3000"],"price":0.9141,"supplier":"Lumen Board Assembly","po":"PO451120"},{"pn":"SL10-4980D","desc":"10k Temperature Sensor (NTC)","products":["VSI-10"],"price":0.9496,"supplier":"Kestrel Device Distribution","po":"PO454053"},{"pn":"MX939791","desc":"NTC_TEMPERATURE_SENSOR_10K","products":["VMX-20"],"price":1.036,"supplier":"Calder Power Devices","po":"PO452168"},{"pn":"BS-9493-12","desc":"NTC Temperature Sensor 10k","products":["VBS-50"],"price":1.1075,"supplier":"Lumen Board Assembly","po":"PO455015"}]},{"id":"C043","name":"Wire Fan Guard 120mm","cat":"Thermal","products":6,"min":0.8015,"max":1.0375,"spend":89827,"gap":5267,"suppliers":2,"rows":[{"pn":"10-55970","desc":"Wire Fan Guard 120mm","products":["VRK-1000"],"price":0.8015,"supplier":"Ostrava Thermal","po":"PO450829"},{"pn":"SL5-6799C","desc":"fan guard wire 120mm","products":["VSI-5"],"price":0.8266,"supplier":"Norwick Components","po":"PO453770"},{"pn":"30-79443","desc":"FAN GUARD, WIRE, 120MM","products":["VRK-3000"],"price":0.864,"supplier":"Ostrava Thermal","po":"PO451866"},{"pn":"SL10-1858B","desc":"120mm Fan Guard (Wire)","products":["VSI-10"],"price":0.8923,"supplier":"Norwick Components","po":"PO454774"},{"pn":"MX729199","desc":"WIRE_FAN_GUARD_120MM","products":["VMX-20"],"price":0.9735,"supplier":"Norwick Components","po":"PO452779"},{"pn":"BS-8555-04","desc":"FAN GUARD - SEE DWG","products":["VBS-50"],"price":1.0375,"supplier":"Norwick Components","po":"PO455577"}]},{"id":"C004","name":"Extruded Aluminum Heatsink 200mm","cat":"Thermal","products":6,"min":14.075,"max":18.3125,"spend":971088,"gap":55227,"suppliers":2,"rows":[{"pn":"10-73029","desc":"Extruded Aluminum Heatsink 200mm","products":["VRK-1000"],"price":14.075,"supplier":"Norwick Components","po":"PO450056"},{"pn":"SL5-3046B","desc":"hs extr al 200mm","products":["VSI-5"],"price":14.2875,"supplier":"Norwick Components","po":"PO452953"},{"pn":"30-48149","desc":"HEATSINK, EXTRUDED ALUMINUM, 200MM","products":["VRK-3000"],"price":15.13,"supplier":"Norwick Components","po":"PO450982"},{"pn":"SL10-6852B","desc":"200mm Heatsink (Extruded Aluminum)","products":["VSI-10"],"price":15.7025,"supplier":"Norwick Components","po":"PO453942"},{"pn":"MX913750","desc":"EXTRUDED_ALUMINUM_HEATSINK_200MM","products":["VMX-20"],"price":17.04,"supplier":"Norwick Components","po":"PO452007"},{"pn":"BS-8493-14","desc":"Extruded Aluminum Heatsink 200mm","products":["VBS-50"],"price":18.3125,"supplier":"Ostrava Thermal","po":"PO454947"}]},{"id":"C005","name":"Axial Fan 120mm 24VDC","cat":"Thermal","products":6,"min":9.772,"max":12.73,"spend":1088961,"gap":67491,"suppliers":2,"rows":[{"pn":"10-92550","desc":"Axial Fan 120mm 24VDC","products":["VRK-1000"],"price":9.772,"supplier":"Norwick Components","po":"PO450076"},{"pn":"SL5-2214B","desc":"fan axial 120mm 24vdc","products":["VSI-5"],"price":10.1125,"supplier":"Norwick Components","po":"PO452967"},{"pn":"30-28492","desc":"FAN, AXIAL, 120MM, 24VDC","products":["VRK-3000"],"price":10.5775,"supplier":"Norwick Components","po":"PO451002"},{"pn":"SL10-4006A","desc":"120mm 24VDC Fan (Axial)","products":["VSI-10"],"price":10.9725,"supplier":"Norwick Components","po":"PO453968"},{"pn":"MX739609","desc":"AXIAL_FAN_120MM_24VDC","products":["VMX-20"],"price":11.9267,"supplier":"Norwick Components","po":"PO452029"},{"pn":"BS-6955-17","desc":"FAN - SEE DWG","products":["VBS-50"],"price":12.73,"supplier":"Ostrava Thermal","po":"PO454965"}]},{"id":"U003","name":"Sheet Metal 2U Chassis 3kVA","cat":"Mechanical","products":1,"min":28.9867,"max":28.9867,"spend":306852,"gap":0,"suppliers":1,"rows":[{"pn":"30-31446","desc":"CHASSIS, SHEET METAL 2U, 3KVA","products":["VRK-3000"],"price":28.9867,"supplier":"Pinecrest Metalworks","po":"PO451894"}]},{"id":"U004","name":"VRLA Battery Pack 72V 9Ah","cat":"Energy storage","products":1,"min":111.83,"max":111.83,"spend":1092553,"gap":0,"suppliers":1,"rows":[{"pn":"30-55641","desc":"BATTERY PACK, VRLA, 72V, 9AH","products":["VRK-3000"],"price":111.83,"supplier":"Arden Battery Systems","po":"PO451914"}]},{"id":"C021","name":"2 Pole Circuit Breaker 63A","cat":"Electrical","products":4,"min":16.77,"max":20.25,"spend":359383,"gap":15934,"suppliers":2,"rows":[{"pn":"30-66755","desc":"CIRCUIT BREAKER, 2 POLE, 63A","products":["VRK-3000"],"price":16.77,"supplier":"Norwick Components","po":"PO451317"},{"pn":"SL10-6968C","desc":"63A Circuit Breaker (2 Pole)","products":["VSI-10"],"price":17.31,"supplier":"Calder Power Devices","po":"PO454243"},{"pn":"MX308247","desc":"2_POLE_CIRCUIT_BREAKER_63A","products":["VMX-20"],"price":18.9325,"supplier":"Norwick Components","po":"PO452284"},{"pn":"BS-7123-02","desc":"2 Pole Circuit Breaker 63A","products":["VBS-50"],"price":20.25,"supplier":"Calder Power Devices","po":"PO455111"}]},{"id":"C009","name":"Hall Effect Current Sensor 100A","cat":"Electronics","products":5,"min":7.89,"max":9.96,"spend":599822,"gap":29556,"suppliers":1,"rows":[{"pn":"SL5-6791C","desc":"curr sens hall effect 100a","products":["VSI-5"],"price":7.89,"supplier":"Lumen Board Assembly","po":"PO453075"},{"pn":"30-53594","desc":"CURRENT SENSOR, HALL EFFECT, 100A","products":["VRK-3000"],"price":8.16,"supplier":"Lumen Board Assembly","po":"PO451100"},{"pn":"SL10-9627B","desc":"100A Current Sensor (Hall Effect)","products":["VSI-10"],"price":8.5567,"supplier":"Lumen Board Assembly","po":"PO454047"},{"pn":"MX744933","desc":"HALL_EFFECT_CURRENT_SENSOR_100A","products":["VMX-20"],"price":9.332,"supplier":"Lumen Board Assembly","po":"PO452136"},{"pn":"BS-8979-16","desc":"Hall Effect Current Sensor 100A","products":["VBS-50"],"price":9.96,"supplier":"Lumen Board Assembly","po":"PO455008"}]},{"id":"U005","name":"Modular 42U Cabinet Frame","cat":"Mechanical","products":1,"min":406.8575,"max":406.8575,"spend":501621,"gap":0,"suppliers":1,"rows":[{"pn":"MX613443","desc":"MODULAR_42U_CABINET_FRAME","products":["VMX-20"],"price":406.8575,"supplier":"Pinecrest Metalworks","po":"PO452827"}]},{"id":"C044","name":"Rubber Grommet 20mm","cat":"Hardware","products":4,"min":0.0722,"max":0.0909,"spend":8933,"gap":547,"suppliers":2,"rows":[{"pn":"SL5-5769B","desc":"grommet rubber 20mm","products":["VSI-5"],"price":0.0722,"supplier":"Tarn Valley Fasteners","po":"PO453799"},{"pn":"SL10-5720A","desc":"20mm Grommet (Rubber)","products":["VSI-10"],"price":0.0781,"supplier":"Tarn Valley Fasteners","po":"PO454799"},{"pn":"MX667426","desc":"RUBBER_GROMMET_20MM","products":["VMX-20"],"price":0.0858,"supplier":"Tarn Valley Fasteners","po":"PO452803"},{"pn":"BS-3273-20","desc":"Rubber Grommet 20mm","products":["VBS-50"],"price":0.0909,"supplier":"Norwick Components","po":"PO455607"}]},{"id":"U007","name":"Modular Bus Backplane","cat":"Electronics","products":1,"min":139.856,"max":139.856,"spend":155566,"gap":0,"suppliers":1,"rows":[{"pn":"MX535861","desc":"MODULAR_BUS_BACKPLANE","products":["VMX-20"],"price":139.856,"supplier":"Lumen Board Assembly","po":"PO452862"}]},{"id":"C016","name":"Three Phase EMI Filter 50A","cat":"Electrical","products":3,"min":31.2425,"max":36.328,"spend":297192,"gap":9667,"suppliers":2,"rows":[{"pn":"SL10-3766C","desc":"50A EMI Filter (Three Phase)","products":["VSI-10"],"price":31.2425,"supplier":"Norwick Components","po":"PO454154"},{"pn":"MX876233","desc":"THREE_PHASE_EMI_FILTER_50A","products":["VMX-20"],"price":34.4333,"supplier":"Norwick Components","po":"PO452259"},{"pn":"BS-5453-15","desc":"Three Phase EMI Filter 50A","products":["VBS-50"],"price":36.328,"supplier":"Calder Power Devices","po":"PO455066"}]},{"id":"C032","name":"Precision Shunt Resistor 500A","cat":"Electronics","products":2,"min":9.7175,"max":10.4425,"spend":32956,"gap":626,"suppliers":2,"rows":[{"pn":"MX107200","desc":"PRECISION_SHUNT_RESISTOR_500A","products":["VMX-20"],"price":9.7175,"supplier":"Kestrel Device Distribution","po":"PO452427"},{"pn":"BS-1746-19","desc":"SHUNT RESISTOR - SEE DWG","products":["VBS-50"],"price":10.4425,"supplier":"Calder Power Devices","po":"PO455244"}]},{"id":"C031","name":"Copper Busbar 200A","cat":"Electrical","products":3,"min":10.715,"max":12.3125,"spend":249079,"gap":11645,"suppliers":2,"rows":[{"pn":"SL10-3828B","desc":"200A Busbar (Copper)","products":["VSI-10"],"price":10.715,"supplier":"Norwick Components","po":"PO454386"},{"pn":"MX207571","desc":"COPPER_BUSBAR_200A","products":["VMX-20"],"price":11.5775,"supplier":"Calder Power Devices","po":"PO452411"},{"pn":"BS-3612-15","desc":"Copper Busbar 200A","products":["VBS-50"],"price":12.3125,"supplier":"Norwick Components","po":"PO455220"}]},{"id":"C018","name":"DC Contactor 150A","cat":"Electrical","products":2,"min":56.0633,"max":60.36,"spend":189229,"gap":4051,"suppliers":2,"rows":[{"pn":"MX212277","desc":"DC_CONTACTOR_150A","products":["VMX-20"],"price":56.0633,"supplier":"Norwick Components","po":"PO452273"},{"pn":"BS-8270-11","desc":"DC Contactor 150A","products":["VBS-50"],"price":60.36,"supplier":"Calder Power Devices","po":"PO455091"}]},{"id":"C014","name":"Half Bridge IGBT Module 1200V 100A","cat":"Electronics","products":3,"min":81.9433,"max":95.7425,"spend":2333686,"gap":75656,"suppliers":2,"rows":[{"pn":"SL10-7639B","desc":"1200V 100A IGBT Module (Half Bridge)","products":["VSI-10"],"price":81.9433,"supplier":"Calder Power Devices","po":"PO454135"},{"pn":"MX214878","desc":"HALF_BRIDGE_IGBT_MODULE_1200V_100A","products":["VMX-20"],"price":90.042,"supplier":"Kestrel Device Distribution","po":"PO452235"},{"pn":"BS-8190-14","desc":"IGBT MODULE - SEE DWG","products":["VBS-50"],"price":95.7425,"supplier":"Calder Power Devices","po":"PO455049"}]},{"id":"C023","name":"Output Filter Inductor 0.5mH 60A","cat":"Magnetics","products":3,"min":37.118,"max":42.895,"spend":814754,"gap":16606,"suppliers":2,"rows":[{"pn":"SL10-3680B","desc":"0.5mH 60A Inductor (Output Filter)","products":["VSI-10"],"price":37.118,"supplier":"Brightwater Magnetics","po":"PO454265"},{"pn":"MX404162","desc":"OUTPUT_FILTER_INDUCTOR_0P5MH_60A","products":["VMX-20"],"price":40.3975,"supplier":"Helix Electro Supply","po":"PO452295"},{"pn":"BS-3891-13","desc":"Output Filter Inductor 0.5mH 60A","products":["VBS-50"],"price":42.895,"supplier":"Brightwater Magnetics","po":"PO455123"}]},{"id":"C012","name":"Film Capacitor 20uF 800V","cat":"Electronics","products":4,"min":7.065,"max":9.05,"spend":545440,"gap":43302,"suppliers":2,"rows":[{"pn":"SL5-4128D","desc":"cap film 20uf 800v","products":["VSI-5"],"price":7.065,"supplier":"Kestrel Device Distribution","po":"PO453127"},{"pn":"SL10-7958B","desc":"20uF 800V Capacitor (Film)","products":["VSI-10"],"price":7.78,"supplier":"Kestrel Device Distribution","po":"PO454109"},{"pn":"MX441834","desc":"FILM_CAPACITOR_20UF_800V","products":["VMX-20"],"price":8.4767,"supplier":"Calder Power Devices","po":"PO452223"},{"pn":"BS-9197-09","desc":"Film Capacitor 20uF 800V","products":["VBS-50"],"price":9.05,"supplier":"Calder Power Devices","po":"PO455037"}]},{"id":"U006","name":"Hot Swap Power Module Sled 20kW","cat":"Mechanical","products":1,"min":95.0433,"max":95.0433,"spend":112039,"gap":0,"suppliers":1,"rows":[{"pn":"MX504459","desc":"HOT_SWAP_POWER_MODULE_SLED_20KW","products":["VMX-20"],"price":95.0433,"supplier":"Sable Enclosures","po":"PO452845"}]},{"id":"U008","name":"Die Cast IP65 Enclosure 5kW","cat":"Mechanical","products":1,"min":47.7633,"max":47.7633,"spend":682487,"gap":0,"suppliers":1,"rows":[{"pn":"SL5-3311B","desc":"encl die cast ip65 5kw","products":["VSI-5"],"price":47.7633,"supplier":"Pinecrest Metalworks","po":"PO453846"}]},{"id":"C045","name":"EPDM Strip Gasket 10mm 1m","cat":"Hardware","products":3,"min":1.2333,"max":1.55,"spend":63720,"gap":3430,"suppliers":2,"rows":[{"pn":"SL5-4797A","desc":"gasket epdm strip 10mm 1m","products":["VSI-5"],"price":1.2333,"supplier":"Pinecrest Metalworks","po":"PO453828"},{"pn":"SL10-2450C","desc":"10mm 1m Gasket (EPDM Strip)","products":["VSI-10"],"price":1.3425,"supplier":"Pinecrest Metalworks","po":"PO454827"},{"pn":"BS-9055-05","desc":"EPDM Strip Gasket 10mm 1m","products":["VBS-50"],"price":1.55,"supplier":"Tarn Valley Fasteners","po":"PO455620"}]},{"id":"C029","name":"WiFi Monitoring Module","cat":"Electronics","products":2,"min":12.3822,"max":12.3822,"spend":262927,"gap":756,"suppliers":1,"rows":[{"pn":"SL5-9231D","desc":"mon mod wifi","products":["VSI-5","VSI-10"],"price":12.3822,"supplier":"Lumen Board Assembly","po":"PO453361"}]},{"id":"C041","name":"Nylon Cable Gland M20","cat":"Hardware","products":3,"min":0.9268,"max":1.17,"spend":94049,"gap":3818,"suppliers":2,"rows":[{"pn":"SL5-8949A","desc":"cable gland nylon m20","products":["VSI-5"],"price":0.9268,"supplier":"Pinecrest Metalworks","po":"PO453721"},{"pn":"SL10-4872C","desc":"M20 Cable Gland (Nylon)","products":["VSI-10"],"price":1.002,"supplier":"Pinecrest Metalworks","po":"PO454731"},{"pn":"BS-7341-07","desc":"CABLE GLAND - SEE DWG","products":["VBS-50"],"price":1.17,"supplier":"Norwick Components","po":"PO455539"}]},{"id":"U009","name":"Dual Input MPPT Board","cat":"Electronics","products":1,"min":39.455,"max":39.455,"spend":560275,"gap":0,"suppliers":1,"rows":[{"pn":"SL5-7042C","desc":"mppt brd dual input","products":["VSI-5"],"price":39.455,"supplier":"Kestrel Device Distribution","po":"PO453858"}]},{"id":"U010","name":"Die Cast IP65 Enclosure 10kW","cat":"Mechanical","products":1,"min":66.2775,"max":66.2775,"spend":406536,"gap":0,"suppliers":1,"rows":[{"pn":"SL10-1911C","desc":"10kW Enclosure (Die Cast IP65)","products":["VSI-10"],"price":66.2775,"supplier":"Sable Enclosures","po":"PO454845"}]},{"id":"U011","name":"Triple Input MPPT Board","cat":"Electronics","products":1,"min":51.96,"max":51.96,"spend":297088,"gap":0,"suppliers":1,"rows":[{"pn":"SL10-8433D","desc":"MPPT Board (Triple Input)","products":["VSI-10"],"price":51.96,"supplier":"Lumen Board Assembly","po":"PO454874"}]},{"id":"U012","name":"Outdoor Steel Cabinet 50kWh","cat":"Mechanical","products":1,"min":781.8925,"max":781.8925,"spend":340598,"gap":0,"suppliers":1,"rows":[{"pn":"BS-8175-10","desc":"Outdoor Steel Cabinet 50kWh","products":["VBS-50"],"price":781.8925,"supplier":"Pinecrest Metalworks","po":"PO455632"}]},{"id":"U013","name":"Master Controller Battery Management System","cat":"Electronics","products":1,"min":165.3825,"max":165.3825,"spend":77715,"gap":0,"suppliers":1,"rows":[{"pn":"BS-9763-01","desc":"Master Controller Battery Management System","products":["VBS-50"],"price":165.3825,"supplier":"Calder Power Devices","po":"PO455650"}]},{"id":"U014","name":"LFP Battery Module 5kWh","cat":"Energy storage","products":1,"min":1355.254,"max":1355.254,"spend":5355843,"gap":0,"suppliers":1,"rows":[{"pn":"BS-8486-08","desc":"LFP Battery Module 5kWh","products":["VBS-50"],"price":1355.254,"supplier":"Arden Battery Systems","po":"PO455680"}]},{"id":"U015","name":"Cabinet Mount HVAC Unit 1kW","cat":"Thermal","products":1,"min":418.8867,"max":418.8867,"spend":209722,"gap":0,"suppliers":1,"rows":[{"pn":"BS-7724-15","desc":"Cabinet Mount HVAC Unit 1kW","products":["VBS-50"],"price":418.8867,"supplier":"Ostrava Thermal","po":"PO455709"}]}];
+const PM = [
+  ["VRK-1000","RackLine 1 kVA Rack UPS",18000,3,1800],["VRK-3000","RackLine 3 kVA Rack UPS",9500,4,2100],["VMX-20","ModuLine 20 kW Modular UPS",1200,10,3400],
+  ["VSI-5","SunLine 5 kW Solar Inverter",14000,3,1600],["VSI-10","SunLine 10 kW Solar Inverter",6000,4,1900],["VBS-50","StorLine 50 kWh Battery Cabinet",450,14,2900]];
+const $ = (s, r=document) => r.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const usd = n => n >= 1e6 ? "$" + (n/1e6).toFixed(2) + "M" : n >= 1e4 ? "$" + Math.round(n/1e3) + "K" : "$" + Math.round(n).toLocaleString("en-US");
+const px = n => "$" + (n < 1 ? n.toFixed(3) : n.toFixed(2));
+const PNS = G.reduce((a,g)=>a+g.rows.length,0), PARTS = G.length;
+const SHARED = G.filter(g=>g.products>=2), CORE = G.filter(g=>g.products>=5);
+const GAP = SHARED.reduce((a,g)=>a+g.gap,0), SPEND = G.reduce((a,g)=>a+g.spend,0);
+const isRev = r => /SEE DWG/.test(r.desc);
+const REVIEW = G.flatMap(g=>g.rows.filter(isRev).map(r=>({g,r})));
+const REUSED = G.reduce((a,g)=>a+g.rows.filter(r=>r.products.length>1).length,0);
+const MULTI = G.filter(g=>g.suppliers>=2).length;
+const SUPPLIERS = new Set(G.flatMap(g=>g.rows.map(r=>r.supplier))).size;
+const HOURS = PM.reduce((a,p)=>a+p[4],0);
+const find = s => G.find(g=>g.name.toLowerCase().includes(s));
+const cite = r => `<button type="button" class="cite" data-po="${r.po}">${r.po}</button>`;
+const byGap = [...SHARED].sort((a,b)=>b.gap-a.gap), top3 = byGap.slice(0,3);
+const fan = find("axial fan"), cap = find("dc link capacitor");
+const state = { view:"dashboard", role:"cfo", filter:"all", q:"", open:null, check:null, exception:false, chat:[], turns:[], busy:false };
+let sample = null, live = false, ctl = null;
+
+/* ---------- roles ---------- */
+const ROLES = {
+  cfo:{ name:"CFO", lens:"cash, spend, margin and payback. Speak in dollars per year.",
+    beliefs:"Customers do not need every variant. Engineering owns architecture decisions. Nobody is measured on complexity.",
+    sugg:["Where is the biggest price gap?","What would it take to capture the price gap?","Which of these numbers are still assumptions?"],
+    kpis:[
+      { v:usd(GAP), l:"Yearly price gap on shared parts", q:"Why is the yearly price gap on shared parts "+usd(GAP)+"?", why:()=>`<p>Voltara buys the same part at different prices depending on which product line orders it. If every line paid the lowest price Voltara already gets, spend drops by ${usd(GAP)} a year, ${(GAP/SPEND*100).toFixed(1)}% of ${usd(SPEND)}.</p><p>Largest gaps: ${top3.map(g=>`${esc(g.name)} (${usd(g.gap)})`).join(", ")}. ${cite(top3[0].rows[0])} ${cite(top3[0].rows[top3[0].rows.length-1])}</p><p>This is a gap, not booked savings. Capturing it needs supplier negotiation and engineering sign-off.</p>` },
+      { v:String(PNS-PARTS), l:"Duplicate part numbers carried", q:"Why do we carry "+(PNS-PARTS)+" duplicate part numbers, and what do they cost?", why:()=>`<p>${PNS} part numbers describe ${PARTS} real parts, so ${PNS-PARTS} are duplicates. Each one has its own stock, orders, and records.</p><p>The yearly cost per duplicate depends on your carrying cost. That stays an assumption until finance sets it.</p><p>Example: one fan has ${fan.rows.length} part numbers. ${fan.rows.slice(0,3).map(cite).join(" ")}</p>` },
+      { v:px(cap.min)+" to "+px(cap.max), l:"One capacitor, three suppliers", q:"Why do we pay three different prices for the DC link capacitor?", why:()=>`<p>The ${esc(cap.name)} comes from ${cap.suppliers} suppliers. ${cap.rows.map(r=>`${r.products.join(" and ")} pays ${px(r.price)} at ${esc(r.supplier)}`).join("; ")}.</p><p>Moving all volume to the lowest price closes a ${usd(cap.gap)} yearly gap on this one part. ${cap.rows.map(cite).join(" ")}</p>` },
+      { v:usd(SPEND), l:"Yearly parts spend in scope", q:"What makes up the "+usd(SPEND)+" yearly parts spend?", why:()=>`<p>${usd(SPEND)} covers every purchase order for the six products from Nov 2025 to Oct 2026, including spare and warranty buys.</p><p>${SHARED.length} of ${PARTS} parts are shared across products. Those carry the ${usd(GAP)} price gap.</p><p>Source: <span class="src">voltara_spend_cube.csv</span></p>` }
+    ]},
+  eng:{ name:"Engineering", lens:"engineering hours, part count, validation effort and design reuse.",
+    beliefs:"Customers do not need every variant. Nobody owns architecture decisions. Nobody is measured on complexity.",
+    sugg:["Which parts fit a common core?","What do I need to review?","Why does one fan have six part numbers?"],
+    kpis:[
+      { v:HOURS.toLocaleString("en-US")+" hrs", l:"Sustaining hours per year", q:"Where do the "+HOURS.toLocaleString("en-US")+" sustaining hours a year go?", why:()=>`<p>The six products log ${HOURS.toLocaleString("en-US")} sustaining hours a year. The modular UPS takes the most at 3,400. <span class="src">product_master</span></p><p>Every duplicate part number adds drawings, qualifications, and change orders. The data does not split hours by cause, so the share tied to duplicates is unknown.</p>` },
+      { v:PNS+" → "+PARTS, l:"Part numbers versus real parts", q:"Why do "+PNS+" part numbers map to only "+PARTS+" real parts?", why:()=>`<p>Each product team numbered and named parts its own way. ${PNS} part numbers describe ${PARTS} real parts.</p><p>Example: ${esc(fan.name)} appears under ${fan.rows.length} part numbers. ${fan.rows.slice(0,3).map(cite).join(" ")}</p>` },
+      { v:String(CORE.length), l:"Parts that fit a common core", q:"Which "+CORE.length+" parts fit a common core, and why?", why:()=>`<p>${CORE.length} parts appear in five or six of the six products, including the control board, gate driver, auxiliary power supply, heatsink, and fan.</p><p>Those are the first candidates for a shared core on the next generation. Each needs an engineering check that one spec covers every product. ${fan.rows.slice(0,2).map(cite).join(" ")}</p>` },
+      { v:String(REVIEW.length), l:"Lines waiting for your review", q:"Which "+REVIEW.length+" lines need engineering review, and why?", why:()=>`<p>${REVIEW.length} parts list lines on the battery cabinet say only "SEE DWG". Text matching cannot confirm those, so a person checks the drawing.</p><p>Until you approve them they stay out of every savings figure. ${REVIEW.slice(0,3).map(x=>cite(x.r)).join(" ")}</p>` }
+    ]},
+  supply:{ name:"Supply chain", lens:"suppliers, pooled volume, unit price and negotiation leverage.",
+    beliefs:"Customers do not need every variant. Nobody owns architecture decisions. Nobody is measured on complexity.",
+    sugg:["Where should I negotiate first?","Why does the battery cabinet pay more?","Which parts have the most suppliers?"],
+    kpis:[
+      { v:usd(GAP), l:"Yearly price gap to negotiate", q:"Where does the "+usd(GAP)+" price gap come from, and where should I negotiate first?", why:()=>ROLES.cfo.kpis[0].why() },
+      { v:Math.round((fan.max/fan.min-1)*100)+"%", l:"Premium paid by the smallest line", q:"Why does the smallest product line pay "+Math.round((fan.max/fan.min-1)*100)+"% more for the same fan?", why:()=>`<p>The battery cabinet buys the ${esc(fan.name)} at ${px(fan.max)}. The 1 kVA rack UPS buys the same fan at ${px(fan.min)}. ${cite(fan.rows[0])} ${cite(fan.rows[fan.rows.length-1])}</p><p>The cabinet orders small volumes under its own part number, so it never gets the pooled price.</p>` },
+      { v:MULTI+" of "+PARTS, l:"Parts with two or more suppliers", q:"Why are "+MULTI+" of "+PARTS+" parts bought from more than one supplier?", why:()=>`<p>${MULTI} of the ${PARTS} real parts come from more than one supplier, mostly because each product team sourced separately.</p><p>Pooling volume under one part number gives one negotiation per part. ${cap.rows.slice(0,3).map(cite).join(" ")}</p>` },
+      { v:String(SUPPLIERS), l:"Suppliers in scope", q:"Which suppliers carry the most spend?", why:()=>`<p>${SUPPLIERS} suppliers serve the six products. <span class="src">voltara_spend_cube.csv</span></p><p>Consolidating duplicate part numbers concentrates volume with fewer of them, part by part.</p>` }
+    ]},
+  sales:{ name:"Sales", lens:"lead time, product variety and what customers will notice.",
+    beliefs:"Customers need every variant. Product management owns architecture decisions. Nobody is measured on complexity.",
+    sugg:["Will any product or option go away?","How does this affect lead time?","What stays unique to each product?"],
+    kpis:[
+      { v:String(PARTS-SHARED.length), l:"Parts unique to one product", q:"Which parts stay unique to one product, and does consolidation touch them?", why:()=>`<p>${PARTS-SHARED.length} of ${PARTS} parts belong to a single product: enclosures, battery packs, MPPT boards. Those carry the differences customers see.</p><p>Consolidation targets the other ${SHARED.length}, such as screws, fans, and control boards.</p>` },
+      { v:String(SHARED.length), l:"Shared parts customers never see", q:"What are the "+SHARED.length+" shared parts, and would a customer notice a change?", why:()=>`<p>${SHARED.length} parts appear in two or more products. They are internal components such as fans, fuses, terminal blocks, and hardware.</p><p>Changing their part numbers or supplier does not change what you sell. ${fan.rows.slice(0,2).map(cite).join(" ")}</p>` },
+      { v:"3 to 14 wks", l:"Lead time across the line", q:"Why does lead time run from 3 to 14 weeks across the line?", why:()=>`<p>Lead time runs from 3 weeks on the rack UPS to 14 weeks on the battery cabinet. <span class="src">product_master</span></p><p>The cabinet waits on parts it orders in small lots under its own numbers. Pooled stock shortens that wait. The size of the improvement is not in the data yet.</p>` },
+      { v:"6 of 6", l:"Products kept in the plan", q:"Does this plan remove any product or option?", why:()=>`<p>The plan keeps all six products. Step 1 changes what Voltara pays. Step 2 changes part numbers. Neither changes what you sell.</p><p>Step 3 applies to the next generation, where new variants start from a shared core.</p>` }
+    ]}
+};
+
+/* ---------- dashboard ---------- */
+function gauge(v){
+  const a = Math.PI*(1-v/100), x = 90+70*Math.cos(a), y = 90-70*Math.sin(a);
+  return `<svg viewBox="0 0 180 100" width="200" role="img" aria-label="Index score ${v} of 100"><path d="M20 90 A70 70 0 0 1 160 90" fill="none" stroke="#DDE3EA" stroke-width="14" stroke-linecap="round"/><path d="M20 90 A70 70 0 0 1 ${x.toFixed(1)} ${y.toFixed(1)}" fill="none" stroke="#1F5FBF" stroke-width="14" stroke-linecap="round"/></svg>`;
+}
+function vDash(){
+  const R = ROLES[state.role], mx = byGap[0].gap;
+  const dims = [
+    ["Shared architecture", 18, `${REUSED} of ${PNS} part numbers reused across products`, "Parts data"],
+    ["Decision ownership", 40, "Functions name different owners", "Survey"],
+    ["Incentives", 28, "No function reports a complexity target", "Survey"],
+    ["Complexity control", 50, "No data yet on new part numbers per year", "Midpoint"]
+  ];
+  return `
+  <div><h1>${R.name} dashboard</h1><p class="sub">Click any number to ask the assistant why.</p></div>
+  <div class="kpis">${R.kpis.map((k,i)=>`<button type="button" class="kpi" data-kpi="${i}"><span class="l">${k.l}</span><span class="v">${k.v}</span><span class="ask">Ask why</span></button>`).join("")}</div>
+  <div class="two">
+    <section class="panel"><header><span class="eyebrow">Platforming Index</span><span class="badge">Provisional</span></header>
+      <div class="pad"><div class="gauge">${gauge(34)}<div class="n">34</div><div class="c">of 100. Sharing parts, not yet a platform.</div></div>
+        <div class="path"><div class="on"><small>Step 1 · now</small>Cut cost on today's products</div><div><small>Step 2</small>Consolidate duplicate parts</div><div><small>Step 3</small>Common core plus modules</div></div></div>
+    </section>
+    <section class="panel"><header><span class="eyebrow">Score by dimension</span><span class="note">Equal weights</span></header>
+      <div class="scroll"><table><thead><tr><th>Dimension</th><th class="num">Score</th><th style="width:90px"></th><th>Basis</th><th>Source</th></tr></thead><tbody>
+      ${dims.map(d=>`<tr><td style="white-space:nowrap"><b style="font-weight:500">${d[0]}</b></td><td class="num">${d[1]}</td><td><div class="track"><i style="width:${d[1]}%"></i></div></td><td>${d[2]}</td><td><span class="src">${d[3]}</span></td></tr>`).join("")}
+      </tbody></table></div>
+    </section>
+  </div>
+  <section class="panel"><header><span class="eyebrow">Largest price gaps on shared parts</span><a class="link" href="#parts" style="text-decoration:none">All ${PARTS} parts</a></header>
+    <div class="scroll"><table><thead><tr><th>Part</th><th class="num">Part numbers</th><th class="num">Products</th><th class="num">Suppliers</th><th>Unit price paid</th><th class="num">Yearly gap</th><th style="width:14%"></th><th></th></tr></thead><tbody>
+    ${byGap.slice(0,8).map(g=>`<tr><td><b style="font-weight:500">${esc(g.name)}</b></td><td class="num">${g.rows.length}</td><td class="num">${g.products}</td><td class="num">${g.suppliers}</td><td>${px(g.min)} to ${px(g.max)}</td><td class="num">${usd(g.gap)}</td><td><div class="track"><i style="width:${Math.round(g.gap/mx*100)}%"></i></div></td><td><button type="button" class="link" data-askpart="${g.id}">Ask why</button></td></tr>`).join("")}
+    </tbody></table></div>
+  </section>
+  <p class="note">Sample company and sample data. Score method and peer benchmark are provisional. A price gap is not booked savings.</p>`;
+}
+
+/* ---------- parts ---------- */
+function partRows(g){
+  return `<tr><td colspan="6" style="padding:0"><div class="inset"><div class="scroll"><table class="sub-table"><thead><tr><th>Part number</th><th>Named in this product as</th><th>Product</th><th>Supplier</th><th class="num">Avg unit price</th><th>Source</th></tr></thead><tbody>
+  ${g.rows.map(r=>`<tr><td class="mono">${esc(r.pn)}</td><td>${esc(r.desc)} ${isRev(r)?'<span class="badge">Needs review</span>':''}</td><td>${r.products.join(", ")}</td><td>${esc(r.supplier)}</td><td class="num">${px(r.price)}</td><td>${cite(r)}</td></tr>`).join("")}
+  </tbody></table></div><p class="note" style="margin:8px 0 0">A match is a suggestion. Engineering approves before one part replaces another.</p></div></td></tr>`;
+}
+function vParts(){
+  const f = state.filter, q = state.q.trim().toLowerCase();
+  let list = [...G].sort((a,b)=>b.gap-a.gap);
+  if (f==="shared") list = list.filter(g=>g.products>=2);
+  if (f==="core") list = list.filter(g=>g.products>=5);
+  if (f==="review") list = list.filter(g=>g.rows.some(isRev));
+  if (q) list = list.filter(g=>g.name.toLowerCase().includes(q) || g.rows.some(r=>r.pn.toLowerCase().includes(q)||r.desc.toLowerCase().includes(q)));
+  const seg = (id,t) => `<button type="button" data-filter="${id}" aria-pressed="${f===id}">${t}</button>`;
+  return `
+  <div><h1>${PNS} part numbers, ${PARTS} real parts</h1><p class="sub">Each product team named and numbered the same part its own way. Open a part to see every version and what each product pays.</p></div>
+  <div class="tools"><input class="field" style="flex:1 1 240px;width:auto" id="partSearch" type="search" placeholder="Search part, part number, or description" value="${esc(state.q)}" aria-label="Search parts">
+    <div class="seg" role="group" aria-label="Filter">${seg("all","All "+PARTS)}${seg("shared","Shared "+SHARED.length)}${seg("core","Core candidates "+CORE.length)}${seg("review","Needs review "+REVIEW.length)}</div></div>
+  <section class="panel"><div class="scroll"><table><thead><tr><th>Part</th><th>Category</th><th class="num">Part numbers</th><th class="num">Products</th><th>Unit price paid</th><th class="num">Yearly gap</th></tr></thead><tbody>
+    ${list.length ? list.map(g=>`<tr><td><button type="button" class="rowbtn" data-open="${g.id}" aria-expanded="${state.open===g.id}">${state.open===g.id?"▾":"▸"} ${esc(g.name)}</button></td><td>${esc(g.cat)}</td><td class="num">${g.rows.length}</td><td class="num">${g.products}</td><td>${g.min===g.max?px(g.min):px(g.min)+" to "+px(g.max)}</td><td class="num">${g.gap>0?usd(g.gap):""}</td></tr>${state.open===g.id?partRows(g):""}`).join("") : `<tr><td colspan="6">No parts match that search.</td></tr>`}
+  </tbody></table></div></section>`;
+}
+
+/* ---------- alignment ---------- */
+function vAlign(){
+  const cols = ["CEO","CFO","Engineering","Sales","Supply chain"];
+  const T = [
+    { q:"Do customers need every variant we sell?", a:["Mostly","No","No","Yes","No"], split:true,
+      d:`${PARTS-SHARED.length} of ${PARTS} parts are unique to one product. The other ${SHARED.length} are shared parts customers never see.`, n:"Agree which differences customers pay for." },
+    { q:"Who owns product architecture decisions?", a:["Engineering","Engineering","Nobody","Product mgmt","Nobody"], split:true,
+      d:`Six products use six part-numbering schemes. One fan carries ${fan.rows.length} part numbers. ${fan.rows.slice(0,2).map(cite).join(" ")}`, n:"Name one owner for cross-product part decisions." },
+    { q:"Is anyone measured on product complexity?", a:["No","No","No","No","No"], split:false,
+      d:`Nobody reports a target. Kearney's 2026 survey found the same at 52% of companies that platform at scale.`, n:"Add one complexity measure to one team's goals." }
+  ];
+  return `
+  <div><h1>Where the functions disagree</h1><p class="sub">Survey answers side by side with what the data shows. Built for running the client meeting.</p></div>
+  <section class="panel"><header><span class="eyebrow">Survey answers by function</span><span class="note">Sample responses</span></header>
+    <div class="scroll"><table><thead><tr><th>Question</th>${cols.map(c=>`<th>${c}</th>`).join("")}<th>Status</th></tr></thead><tbody>
+    ${T.map(t=>`<tr><td><b style="font-weight:500">${t.q}</b></td>${t.a.map(x=>`<td>${x}</td>`).join("")}<td>${t.split?'<span class="badge">Split</span>':'<span class="badge g">Agreed gap</span>'}</td></tr>`).join("")}
+    </tbody></table></div></section>
+  <section class="panel"><header><span class="eyebrow">Evidence and decisions</span></header>
+    <div class="scroll"><table><thead><tr><th>Question</th><th>What the data shows</th><th>Decision to make</th></tr></thead><tbody>
+    ${T.map(t=>`<tr><td style="width:26%">${t.q}</td><td>${t.d}</td><td style="width:26%"><b style="font-weight:500">${t.n}</b></td></tr>`).join("")}
+    </tbody></table></div></section>`;
+}
+
+/* ---------- new part check ---------- */
+const AB = {scr:"screw",mach:"machine",cap:"capacitor",res:"resistor",conn:"connector",brd:"board",ctrl:"control",hs:"heatsink",xfmr:"transformer",ind:"inductor",term:"terminal",blk:"block",sens:"sensor",temp:"temperature",elec:"electrolytic",pwr:"power"};
+const toks = s => s.toLowerCase().replace(/[_,()\-]/g," ").replace(/(\d)\s+(mm|v|vdc|a|uf|w|k)\b/g,"$1$2").split(/\s+/).filter(Boolean).map(w=>AB[w]||w).map(w=>w.replace(/^24v$/,"24vdc"));
+function match(q){
+  const a = toks(q); let best=null, score=0;
+  for (const g of G){ const b = toks(g.name); const s = a.filter(w=>b.includes(w)).length + (a.some(w=>b.includes(w)&&/\d/.test(w))?0.5:0); if (s>score){score=s;best=g;} }
+  return score>=2 ? best : null;
+}
+function vNew(){
+  const c = state.check; let out = "";
+  if (c){
+    const g = c.g;
+    if (!g) out = `<section class="panel"><header><span class="eyebrow">Platforming Index check</span><span class="badge g">No match</span></header><div class="pad">Nothing in the parts lists looks like this request. The new part goes to normal approval.</div></section>`;
+    else { const b = g.rows[0], save = Math.max(0,(g.max-g.min)*c.vol);
+      out = `<section class="panel" style="border-color:var(--blue)"><header style="background:var(--blue-soft)"><span class="eyebrow" style="color:var(--blue)">Platforming Index check</span><span class="badge b">Voltara already buys this part</span></header>
+        <div class="pad" style="display:flex;flex-direction:column;gap:12px">
+          <div><b style="font-size:15px;font-weight:600">${esc(g.name)}</b></div>
+          <div class="grid3"><div><div class="v">${g.rows.length}</div><div class="note">existing part numbers</div></div><div><div class="v">${px(g.min)}</div><div class="note">best price, ${esc(b.supplier)}</div></div><div><div class="v">${usd(save)}</div><div class="note">per year versus the highest price paid</div></div></div>
+          <div>Reuse <span class="mono">${esc(b.pn)}</span> from ${b.products.join(", ")}. ${cite(b)} A new number makes ${g.rows.length+1} part numbers for one part and lowers the Complexity control score. Engineering confirms fit before any swap.</div>
+          ${state.exception ? `<label>Why does this product need its own part?<textarea class="field" id="exReason" placeholder="Technical reason"></textarea></label><div class="tools"><button type="button" class="btn p" data-act="sendEx">Send for approval</button></div>`
+            : `<div class="tools"><button type="button" class="btn p" data-act="reuse">Reuse existing part</button><button type="button" class="btn" data-act="ex">Request an exception</button></div>`}
+          ${c.done?`<div><span class="badge g" style="font-size:12.5px;padding:5px 9px">${c.done}</span></div>`:""}
+        </div></section>`; }
+  }
+  return `
+  <div><h1>New part check</h1><p class="sub">This check appears inside the procurement system when an engineer requests a new part. Shown here on a mock requisition.</p></div>
+  <section class="panel"><header><span class="eyebrow">Procurement system · Requisition REQ-2026-1184</span><span class="note">Mock screen</span></header>
+    <form class="pad form" id="reqForm">
+      <label class="full">Part description<input class="field" id="reqDesc" type="text" value="${esc(c?c.q:"Fan, axial, 120 mm, 24 VDC")}"></label>
+      <label>Product<select class="field" id="reqProd"><option>VBS-50 StorLine Battery Cabinet</option><option>VMX-20 ModuLine Modular UPS</option><option>VSI-10 SunLine Solar Inverter</option></select></label>
+      <label>Units per year<input class="field" id="reqVol" type="number" min="1" value="${c?c.vol:1800}"></label>
+      <div class="full"><button class="btn p" type="submit">Create part number</button></div>
+    </form></section>
+  ${out}`;
+}
+
+/* ---------- assistant ---------- */
+function context(){
+  const R = ROLES[state.role];
+  const parts = G.map(g=>`${g.name} | ${g.rows.length} part numbers | ${g.products} products | ${g.suppliers} suppliers | yearly gap $${g.gap} | yearly spend $${g.spend} :: `+g.rows.map(r=>`${r.pn} (${r.products.join("+")}, "${r.desc}", ${px(r.price)}, ${r.supplier}, [${r.po}])`).join("; ")).join("\n");
+  return `You are the assistant inside Platforming Index, a tool a consulting team gives a manufacturer to cut product complexity. You answer one signed-in user.
+
+USER PROFILE
+Role: ${R.name}. This role cares about ${R.lens}
+Their survey answers (sample): ${R.beliefs}
+
+RULES
+- Answer the question first, in plain language for this role. At most 110 words. Short paragraphs or up to 4 bullets starting with "- ". No headings, no tables, no bold.
+- Use only the DATA below. If the data cannot answer, say what is missing. Never invent a number.
+- Put an evidence tag right after each number, copied exactly from the DATA: a purchase order tag like [PO450076], or [product_master], [survey], [kearney_survey]. Use at most 4 tags per answer.
+- A matched part is a suggestion until engineering approves. A price gap is not booked savings. The index score is provisional. Say so when relevant.
+- Do not use em dashes.
+
+DATA
+Company: Voltara Power Systems (fictional sample). Period: Nov 2025 to Oct 2026.
+Summary: ${PNS} part numbers describe ${PARTS} real parts. ${SHARED.length} parts are shared by 2+ products, ${CORE.length} by 5+ (common core candidates), ${PARTS-SHARED.length} are unique to one product. ${REUSED} part numbers are already reused across products. Yearly parts spend $${SPEND}. Yearly price gap on shared parts if every line paid the lowest price Voltara already pays: $${GAP}. ${REVIEW.length} battery cabinet lines say only "SEE DWG" and wait for engineering review. ${SUPPLIERS} suppliers; ${MULTI} parts have 2+ suppliers.
+Platforming Index: 34 of 100, provisional, equal weights. Shared architecture 18, Decision ownership 40 [survey], Incentives 28 [survey], Complexity control 50 (midpoint, no data). Path: step 1 cut cost on current products (now), step 2 consolidate duplicate parts, step 3 common core plus modules for the next generation.
+Kearney 2026 survey of 100 manufacturers [kearney_survey]: engineering effort is the top platforming challenge for 43%; 52% of companies platforming at scale have no complexity targets.
+Survey disagreements [survey]: Sales says customers need every variant, CFO and Engineering say no. CEO and CFO say Engineering owns architecture; Engineering and Supply chain say nobody does. No function is measured on complexity.
+Products [product_master] (id, name, units per year, lead time weeks, sustaining engineering hours per year):
+${PM.map(p=>p.join(", ")).join("\n")}
+Parts (name | counts | gap | spend :: part number (product, description as written, average unit price, supplier, [purchase order tag])):
+${parts}`;
+}
+function fmt(text){
+  const lines = esc(text).replace(/\*\*/g,"").split(/\n+/).map(l=>l.trim()).filter(Boolean);
+  let html = "", inList = false;
+  for (const l of lines){
+    const li = /^[-•]\s+/.test(l);
+    if (li && !inList){ html += "<ul>"; inList = true; }
+    if (!li && inList){ html += "</ul>"; inList = false; }
+    html += li ? "<li>"+l.replace(/^[-•]\s+/,"")+"</li>" : "<p>"+l+"</p>";
+  }
+  if (inList) html += "</ul>";
+  return html.replace(/\[(PO\d{6})\]/g,(m,po)=>`<button type="button" class="cite" data-po="${po}">${po}</button>`).replace(/\[(product_master|survey|kearney_survey)\]/g,'<span class="src">$1</span>');
+}
+function drawChat(){
+  const R = ROLES[state.role];
+  $("#asstRole").textContent = "Answering for " + R.name;
+  $("#thread").innerHTML = state.chat.map(m=>`<div class="msg ${m.a?"a":"u"}">${m.h}</div>`).join("");
+  $("#sugg").innerHTML = state.chat.length>1 ? "" : R.sugg.map(s=>`<button type="button" class="link" data-sugg="${esc(s)}">${esc(s)}</button>`).join("");
+  $("#status").innerHTML = live ? `<span class="dot"></span>Live. Claude writes each answer from the Voltara data and cites its rows.` : `<span class="dot off"></span>Offline mode. Answers come from a fixed set.`;
+  $("#askBtn").hidden = state.busy; $("#stopBtn").hidden = !state.busy; $("#askInput").disabled = state.busy;
+  const th = $("#thread"); th.scrollTop = th.scrollHeight;
+}
+function resetChat(){ state.chat = [{ a:1, h:`<p>You are viewing as ${ROLES[state.role].name}. Click a number on the dashboard or ask a question.</p>` }]; state.turns = []; }
+function canned(text){
+  const t = text.toLowerCase(), C = ROLES.cfo.kpis, E = ROLES.eng.kpis, S = ROLES.sales.kpis, U = ROLES.supply.kpis;
+  const k = /capacitor/.test(t) ? C[2] : /fan|premium|cabinet pay/.test(t) ? U[1] : /price|gap|sav|cost|spend|money|pay|negotiat/.test(t) ? C[0]
+    : /duplicate|part number|same part/.test(t) ? C[1] : /core|platform|module/.test(t) ? E[2] : /lead|time|week/.test(t) ? S[2]
+    : /supplier|vendor/.test(t) ? U[2] : /review|dwg|confiden/.test(t) ? E[3] : /variant|customer|option|remove|unique|go away/.test(t) ? S[0] : /hour|sustain/.test(t) ? E[0] : null;
+  return k ? k.why() : `<p>Offline mode answers a fixed set. Try a number on the dashboard, or ask about price gaps, duplicates, the common core, suppliers, or lead time.</p>`;
+}
+const COPY = { rate_limited:"The assistant is busy. Try again in a moment.", session_expired:"Sign in again to use the live assistant.", refused:"The assistant declined that question. Try rephrasing it.", empty_completion:"No answer came back. Try a simpler question." };
+async function ask(text, fallback){
+  if (state.busy || !text.trim()) return;
+  state.chat.push({ h:esc(text) });
+  if (!live){ state.chat.push({ a:1, h: fallback ? fallback() : canned(text) }); drawChat(); return; }
+  const bubble = { a:1, h:"<p>Thinking...</p>" }; state.chat.push(bubble); state.busy = true; drawChat();
+  state.turns.push({ role:"user", content:text });
+  ctl = new AbortController();
+  try {
+    const res = await sample([{ role:"user", content:context() }, ...state.turns.slice(-8)], { cache:false, modelTier:"quick", signal:ctl.signal, onText:({text:t})=>{ bubble.h = fmt(t); drawChat(); } });
+    bubble.h = fmt(res.text); state.turns.push({ role:"assistant", content:res.text });
+  } catch (e) {
+    state.turns.pop();
+    if (["not_granted","sampling_disabled","not_declared","capability_disabled","capability_removed"].includes(e.code)){ live = false; bubble.h = fallback ? fallback() : canned(text); }
+    else if (e.code === "cancelled"){ bubble.h = e.text ? fmt(e.text) + "<p>Stopped.</p>" : "<p>Stopped.</p>"; }
+    else { bubble.h = (e.text ? fmt(e.text) : "") + "<p>" + (COPY[e.code] || "The answer was interrupted. Ask again.") + "</p>"; }
+  }
+  state.busy = false; drawChat(); $("#askInput").focus();
+}
+
+/* ---------- shell ---------- */
+const VIEWS = { "dashboard":vDash, "parts":vParts, "alignment":vAlign, "new-part":vNew };
+function render(){
+  $("#main").innerHTML = VIEWS[state.view]();
+  document.querySelectorAll(".tabs a").forEach(a=>{ if (a.getAttribute("href")==="#"+state.view) a.setAttribute("aria-current","page"); else a.removeAttribute("aria-current"); });
+}
+function route(){ const h = location.hash.slice(1); state.view = VIEWS[h] ? h : "dashboard"; render(); }
+function evidence(po){
+  for (const g of G) for (const r of g.rows) if (r.po===po){
+    $("#evBody").innerHTML = `<dl><dt>Part</dt><dd>${esc(g.name)}</dd><dt>Part number</dt><dd class="mono">${esc(r.pn)}</dd><dt>Written as</dt><dd>${esc(r.desc)}</dd><dt>Product</dt><dd>${r.products.join(", ")}</dd><dt>Supplier</dt><dd>${esc(r.supplier)}</dd><dt>Avg unit price</dt><dd>${px(r.price)}</dd><dt>File</dt><dd class="mono">voltara_spend_cube.csv · ${po}</dd></dl>`;
+    $("#ev").showModal(); return;
+  }
+}
+document.addEventListener("click", e=>{
+  const t = e.target.closest("[data-po],[data-filter],[data-open],[data-kpi],[data-askpart],[data-sugg],[data-act]"); if (!t) return;
+  if (t.dataset.po) return evidence(t.dataset.po);
+  if (t.dataset.kpi){ const k = ROLES[state.role].kpis[+t.dataset.kpi]; return ask(k.q, k.why); }
+  if (t.dataset.askpart){ const g = G.find(x=>x.id===t.dataset.askpart); return ask(`Why is there a ${usd(g.gap)} yearly price gap on the ${g.name}?`, ()=>`<p>${esc(g.name)} has ${g.rows.length} part numbers across ${g.products} products, priced from ${px(g.min)} to ${px(g.max)}. Paying the lowest price on every line closes a ${usd(g.gap)} yearly gap. ${g.rows.slice(0,3).map(cite).join(" ")}</p>`); }
+  if (t.dataset.sugg) return ask(t.dataset.sugg);
+  if (t.dataset.filter){ state.filter = t.dataset.filter; state.open=null; }
+  else if (t.dataset.open){ state.open = state.open===t.dataset.open ? null : t.dataset.open; }
+  else if (t.dataset.act==="ex"){ state.exception=true; }
+  else if (t.dataset.act==="reuse"){ state.check.done="Requisition updated to reuse "+state.check.g.rows[0].pn+". No new part number created."; }
+  else if (t.dataset.act==="sendEx"){ state.exception=false; state.check.done="Exception sent to the architecture owner for approval."; }
+  render();
+});
+document.addEventListener("submit", e=>{
+  e.preventDefault();
+  if (e.target.id==="askForm"){ const el=$("#askInput"), v=el.value.trim(); el.value=""; ask(v); }
+  if (e.target.id==="reqForm"){ const q=$("#reqDesc").value, vol=Math.max(1,+$("#reqVol").value||1); state.check={q,vol,g:match(q)}; state.exception=false; render(); }
+});
+document.addEventListener("input", e=>{
+  if (e.target.id==="partSearch"){ state.q = e.target.value; state.open=null; const pos=e.target.selectionStart; render(); const el=$("#partSearch"); el.focus(); el.setSelectionRange(pos,pos); }
+});
+$("#roleSel").innerHTML = Object.entries(ROLES).map(([k,r])=>`<option value="${k}">${r.name}</option>`).join("");
+$("#roleSel").addEventListener("change", e=>{ if (ctl) ctl.abort(); state.role = e.target.value; state.busy=false; resetChat(); render(); drawChat(); });
+$("#stopBtn").addEventListener("click", ()=>ctl && ctl.abort());
+$("#evClose").addEventListener("click", ()=>$("#ev").close());
+$("#evStatus").textContent = `${PNS-REVIEW.length} of ${PNS} part numbers matched, ${REVIEW.length} in review`;
+window.addEventListener("hashchange", route);
+resetChat(); route(); drawChat();
+(async()=>{ try { const s = window.claude && window.claude.use ? await window.claude.use("sample") : null; if (s){ sample = s; live = true; drawChat(); } } catch(_){} })();
+</script>
