@@ -125,15 +125,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   return true; // keep the channel open for the async reply
 });
 
-/* Clicking the toolbar icon opens the panel beside the page. */
-chrome.action.onClicked.addListener(async (tab) => {
-  if (tab?.id === undefined) return;
-  await chrome.sidePanel.setOptions({
-    tabId: tab.id,
-    path: "sidepanel.html",
-    enabled: true,
-  });
-  await chrome.sidePanel.open({ tabId: tab.id });
-});
+/* Clicking the toolbar icon opens the panel beside the page.
+   Chrome does this itself. Calling sidePanel.open() after an await loses the
+   click and Chrome refuses it, so the browser owns the click instead. */
+chrome.sidePanel
+  .setPanelBehavior({ openPanelOnActionClick: true })
+  .catch((err) => console.error(err));
 
 chrome.tabs.onRemoved.addListener((tabId) => lastContext.delete(tabId));
