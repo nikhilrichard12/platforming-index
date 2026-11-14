@@ -46,6 +46,31 @@ export interface Decision {
 
 export type ActivitySource = "agent" | "extension" | "dashboard";
 
+/**
+ * What the call actually found, kept beside the one line summary so the live
+ * stage on Connections can draw the call rather than paraphrase it. Every
+ * field comes from the matcher or the decision store, none of it is composed
+ * for the animation.
+ */
+export interface ActivityDetail {
+  description?: string;
+  level?: "match" | "possible" | "none";
+  blocked?: boolean;
+  partName?: string;
+  /** One per existing part number, with the product that carries it. */
+  partNumbers?: { pn: string; product: string }[];
+  recommendedPn?: string;
+  minPrice?: number;
+  savingUsd?: number;
+  po?: string;
+  candidates?: string[];
+  /** Set when a rule blocks the matched part for this product. */
+  ruleText?: string;
+  decision?: "reuse" | "exception";
+  reasonKind?: ReasonKind;
+  ruleId?: string;
+}
+
 export interface Activity {
   id: string;
   at: string;
@@ -54,6 +79,7 @@ export interface Activity {
   tool: string;
   summary: string;
   product?: string;
+  detail?: ActivityDetail;
 }
 
 export const ACTIVITY_LABEL: Record<ActivitySource, string> = {

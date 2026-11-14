@@ -73,6 +73,11 @@ Shared components live in `app/components/ui/`.
 - **IndexStrip**: one slim full-width row above the two-column split. Score at 56px/300 with "of 100" and a Provisional badge, the one-line read and four inline dimension bars, then the three steps with the current one picked out by a white top rule. About 165px tall.
 - **StepStrip**: four or five columns of orange line icon, 20px/800 title, 15px text-2 body, with a thin text-2 arrow between columns. Icons are 56px with 2.6px strokes. Stacks to one column under `md`. Used for the survey overview and again on Connections for the systems to agent to decisions loop.
 - **Possible match card**: the lighter sibling of the confident card, shown when the best score lands between 0.35 and 0.6. No badge, no tiles, no primary button. A text-2 "Possible match" line, up to three candidates with their part number count and best price, and "Keep typing to narrow it down." in text-3. It suggests, it does not ask for a decision.
+- **AnimationPanel**: the shell every animated panel shares. Title, optional 12px text-3 note, a control slot on the right, the stage, and a Replay pill. Same `panel` fill and square corners as every other block, so motion is the only thing that marks it out.
+- **CountUp**: a number that counts to its new value over 700ms when the value changes. Renders the figure outright on first paint, so the server HTML and a reader with reduced motion both show the real number. Used for the index score and the four dimension scores.
+- **Merge panel** (`252 become 60`, top of Parts): 252 7px squares, one per part number, blocked and tinted by product in six tints walked from text-3 to text-2. They travel to 60 clusters on a 12 by 5 grid, staggered 6ms by start position so the motion reads as a wave left to right. Cluster footprint is the number of part numbers merged. Core candidates land in accent, two-to-four in text-2, unique in text-3. About 5 seconds, once per tab open.
+- **Exploded view** (Summary): an isometric stack, one diamond slab per layer, parts drawn as small outlined diamonds on the slab surface. Stroke 1.1px on slabs, 1.5px on blocks, no fills except an 88% `surface` wash so a slab occludes what sits behind it. Accent for five or more products, text for two to four, text-3 for unique. Assembled sits centred in the same frame the exploded stack fills, so the panel never changes height.
+- **Live stage** (Connections): three outlined stations, a Rules tray under the middle one, and chips that carry one call across it. Chips are `panel-2` on a `line` border; the result keeps its badges inside the station box and its numbers as a caption below it.
 - **ActivityTable**: the standard table with a 2px left rule per row, transparent at rest and `accent` for one second on a row that arrived since the last poll. The Source column carries a `positive` badge with the agent's own name when the call came through MCP, otherwise a `neutral` badge. 20 rows on Connections, 3 on Decisions.
 - Sidebar (when used): black, small text-3 group labels, 14px nav items, active item gets a surface-colored row.
 - Chart panel: panel fill, title top-left in weight 600, segmented toggle top-right, legend centered above the plot, thin gridlines in line color.
@@ -96,6 +101,18 @@ Shared components live in `app/components/ui/`.
 - Evidence tags read as words on screen (Survey, Kearney survey 2026, Product master). Only purchase order tags stay in their raw form, because that is what the buyer searches for.
 - An exception never lowers the index score, and every surface that records one says so. Complexity a rule requires is not complexity anyone chose.
 - The check reaches engineers three ways from one endpoint: the MCP server (primary, inside the agent they already use), the Chrome extension (backup, inside procurement), and the Decisions tab (reference). All three call `/api/check-part` and render the same card, so the wording only has to be right once.
+- Motion is anime.js v4 (`animate`, `createTimeline`, `stagger`, `utils`),
+  imported from `animejs` in client components only.
+- Every animation animates real rows. The merge moves one element per part
+  number in `voltara_parts.json`, the exploded view draws one block per part
+  the product carries, and the live stage draws the part numbers the check
+  actually returned. Nothing on a stage is a placeholder.
+- Every animation has an end state that carries the whole point on its own,
+  a Replay control, and a `prefers-reduced-motion` path that jumps straight to
+  that end state. `useReducedMotion` reads the setting on the first render, not
+  in an effect, or an animation that starts with its tab would play once first.
+- Animated colour comes from the token table above and nowhere else. Accent
+  still means one thing: a part five or more products already share.
 - An alternative must be the same kind of thing as the part it replaces. The
   matcher compares head nouns, so a fan guard is never offered in place of a
   fan. With nothing in the same category the card says "No approved alternative

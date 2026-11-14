@@ -66,6 +66,14 @@ export async function POST(req: NextRequest) {
     ...caller,
     tool: "record_decision",
     product: result.decision.product || undefined,
+    detail: {
+      description: result.decision.description,
+      partName: result.decision.matchedPart,
+      recommendedPn: result.decision.suggestedPn,
+      decision: result.decision.decision,
+      reasonKind: result.decision.reasonKind,
+      ruleId: result.rule?.id,
+    },
     summary:
       result.decision.decision === "reuse"
         ? `Reused ${result.decision.suggestedPn ?? "an existing part"} for ${result.decision.product}`

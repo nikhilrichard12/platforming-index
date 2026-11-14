@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import {
   Activity,
+  ActivityDetail,
   ActivitySource,
   Decision,
   DecisionSource,
@@ -61,6 +62,7 @@ export function logActivity(entry: {
   tool: string;
   summary: string;
   product?: string;
+  detail?: ActivityDetail;
 }): Activity {
   const store = read();
   const record: Activity = {

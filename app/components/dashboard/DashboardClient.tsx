@@ -15,6 +15,7 @@ import Badge from "@/components/ui/Badge";
 import Field from "@/components/ui/Field";
 import { Button } from "@/components/ui/Button";
 import GapChart from "./GapChart";
+import ExplodedView from "./ExplodedView";
 import IndexStrip from "./IndexStrip";
 import PartsTab from "./PartsTab";
 import AlignmentTab from "./AlignmentTab";
@@ -327,6 +328,8 @@ export default function DashboardClient({
                     <GapChart parts={data.byGap.slice(0, 8)} onAsk={askAboutPart} />
                   </div>
                 </div>
+
+                <ExplodedView data={data} onAsk={ask} />
 
                 <p className="text-[12px] leading-relaxed text-text-3">
                   Sample company and sample data. The score method and the peer

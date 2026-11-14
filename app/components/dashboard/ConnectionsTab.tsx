@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Badge from "@/components/ui/Badge";
 import StepStrip, {
   IconAgent,
@@ -9,6 +9,7 @@ import StepStrip, {
   IconSystems,
 } from "@/components/ui/StepStrip";
 import ActivityTable, { useActivity } from "./ActivityTable";
+import LiveCheckStage from "./LiveCheckStage";
 
 interface DataSource {
   id: string;
@@ -56,7 +57,48 @@ export default function ConnectionsTab({ serverPath }: { serverPath: string }) {
   const [showMapping, setShowMapping] = useState(false);
   const [config, setConfig] = useState<ConfigId>("desktop");
   const [copied, setCopied] = useState(false);
+  const [score, setScore] = useState<{ score: number; complexity: number } | null>(
+    null
+  );
+  const [moved, setMoved] = useState<{
+    from: { score: number; complexity: number };
+    to: { score: number; complexity: number };
+  } | null>(null);
   const { activity, fresh } = useActivity(20, true);
+
+  /**
+   * The live score, read back from the same endpoint an agent would call, so
+   * the stage can say what a reuse just moved rather than assert it.
+   */
+  const loadIndex = useCallback(async () => {
+    try {
+      const res = await fetch("/api/index");
+      const idx = (await res.json()).index as {
+        score: number;
+        dimensions: { name: string; score: number }[];
+      };
+      const complexity =
+        idx.dimensions.find((d) => d.name === "Complexity control")?.score ?? 0;
+      setScore((prev) => {
+        if (prev && (prev.score !== idx.score || prev.complexity !== complexity)) {
+          setMoved({ from: prev, to: { score: idx.score, complexity } });
+        }
+        return { score: idx.score, complexity };
+      });
+    } catch {
+      /* the line keeps what it had */
+    }
+  }, []);
+
+  useEffect(() => {
+    loadIndex();
+  }, [loadIndex]);
+
+  const scoreLine = moved
+    ? `Complexity control ${moved.from.complexity} to ${moved.to.complexity}. Index ${moved.from.score} to ${moved.to.score}.`
+    : score
+    ? `Index ${score.score} of 100, Complexity control ${score.complexity}. Each recorded reuse adds 2.`
+    : "";
 
   async function loadSources() {
     try {
@@ -170,7 +212,14 @@ export default function ConnectionsTab({ serverPath }: { serverPath: string }) {
         </div>
       </div>
 
-      {/* 2. Sources and agents. One column: the sources table needs the width,
+      {/* 2. The calls themselves, drawn as they land */}
+      <LiveCheckStage
+        activity={activity}
+        scoreLine={scoreLine}
+        onScoreMoved={loadIndex}
+      />
+
+      {/* 3. Sources and agents. One column: the sources table needs the width,
           and the config blocks read better wide than tall. */}
       <div className="space-y-5">
         <div className="bg-panel">
@@ -308,7 +357,7 @@ export default function ConnectionsTab({ serverPath }: { serverPath: string }) {
         </div>
       </div>
 
-      {/* 3. Live activity */}
+      {/* 4. Live activity */}
       <div className="bg-panel">
         <div className="flex items-baseline justify-between gap-4 px-4 pb-3 pt-4">
           <h2 className="text-[15px] font-semibold text-text">Live activity</h2>

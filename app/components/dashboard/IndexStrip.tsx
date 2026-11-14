@@ -1,4 +1,5 @@
 import Badge from "@/components/ui/Badge";
+import CountUp from "@/components/ui/CountUp";
 import { VoltaraData } from "@/lib/voltaraData";
 
 const STEPS = ["Cut cost today", "Consolidate duplicates", "Common core, modules"];
@@ -15,9 +16,10 @@ export default function IndexStrip({ data }: { data: VoltaraData }) {
       {/* Score */}
       <div className="flex shrink-0 items-center gap-4">
         <div className="flex items-baseline gap-2">
-          <span className="text-[56px] font-light leading-none text-text">
-            {idx.score}
-          </span>
+          <CountUp
+            value={idx.score}
+            className="text-[56px] font-light leading-none text-text"
+          />
           <span className="text-[13px] text-text-3">of 100</span>
         </div>
         <Badge>Provisional</Badge>
@@ -35,9 +37,10 @@ export default function IndexStrip({ data }: { data: VoltaraData }) {
             <div key={d.name} title={`${d.basis} (${d.source})`}>
               <div className="flex items-baseline justify-between gap-2">
                 <span className="truncate text-[12px] text-text-2">{d.name}</span>
-                <span className="shrink-0 text-[12px] tabular-nums text-text-3">
-                  {d.score}
-                </span>
+                <CountUp
+                  value={d.score}
+                  className="shrink-0 text-[12px] tabular-nums text-text-3"
+                />
               </div>
               <div className="mt-1 h-[3px] w-full bg-line">
                 <div className="h-full bg-text-2" style={{ width: `${d.score}%` }} />

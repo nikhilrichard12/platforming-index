@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Field from "@/components/ui/Field";
 import Badge from "@/components/ui/Badge";
+import PartMergeAnimation from "./PartMergeAnimation";
 import {
   Part,
   VoltaraData,
@@ -57,11 +58,25 @@ export default function PartsTab({
     });
   }, [data.byGap, filter, query]);
 
+  /** The merge panel hands a part back: clear any filter hiding it, open it, scroll. */
+  function openPart(partId: string) {
+    setQuery("");
+    setFilter("all");
+    setOpen(partId);
+    requestAnimationFrame(() => {
+      document
+        .querySelector(`[data-part="${partId}"]`)
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  }
+
   return (
     <div className="space-y-5">
       <p className="text-[15px] text-text-2">
         {s.partNumbers} part numbers, {s.realParts} real parts
       </p>
+
+      <PartMergeAnimation data={data} onOpenPart={openPart} />
 
       <div className="flex flex-wrap items-end gap-4">
         <div className="min-w-[260px] flex-1">
@@ -161,6 +176,7 @@ function PartRows({
   return (
     <>
       <tr
+        data-part={part.id}
         onClick={onToggle}
         aria-expanded={open}
         className="cursor-pointer border-b border-line transition-colors hover:bg-panel-2"

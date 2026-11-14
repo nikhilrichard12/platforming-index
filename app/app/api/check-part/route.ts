@@ -89,6 +89,22 @@ export async function POST(req: NextRequest) {
     ...caller,
     tool: "check_part",
     product: product || undefined,
+    detail: {
+      description,
+      level,
+      blocked: blockedBy.length > 0,
+      partName: best && level === "match" ? best.name : undefined,
+      partNumbers:
+        best && level === "match"
+          ? best.rows.map((r) => ({ pn: r.pn, product: r.products[0] }))
+          : undefined,
+      recommendedPn: best && level === "match" ? best.bestRow.pn : undefined,
+      minPrice: best && level === "match" ? best.minPrice : undefined,
+      savingUsd: best && level === "match" ? best.yearlySavingVsHighest : undefined,
+      po: best && level === "match" ? best.bestRow.po : undefined,
+      candidates: level === "possible" ? candidates.map((c) => c.name) : undefined,
+      ruleText: blockedBy[0]?.text,
+    },
     summary:
       level === "match"
         ? blockedBy.length > 0
