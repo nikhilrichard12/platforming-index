@@ -3,13 +3,22 @@
 @tailwind utilities;
 
 :root {
-  --ink: #1e1e1e;
-  --page-bg: #f5f5f5;
-  --accent: #7823dc;
-  --navy: #000a14;
-  --muted: #495057;
-  --hairline: #cccccc;
-  --hero: #1b1330;
+  color-scheme: dark;
+
+  --chrome: #000000;
+  --surface: #191a1b;
+  --panel: #242728;
+  --panel-2: #303436;
+  --line: #2f3234;
+  --line-2: #6a7275;
+  --text: #ffffff;
+  --text-2: #b8bbbe;
+  --text-3: #818182;
+  --accent: #ec5e31;
+  --positive: #59c376;
+  --warn: #f5c042;
+  --risk: #e5484d;
+  --neutral-bar: #949b9e;
 }
 
 * {
@@ -18,9 +27,27 @@
 
 html,
 body {
-  background: var(--page-bg);
-  color: var(--ink);
+  background: var(--surface);
+  color: var(--text);
   font-family: var(--font-inter), Inter, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--accent);
+  color: #1e1e1e;
+}
+
+/* Chamfered primary action, as on the PERLab "Get Results" button. */
+.clip-chamfer {
+  clip-path: polygon(
+    14px 0,
+    calc(100% - 14px) 0,
+    100% 50%,
+    calc(100% - 14px) 100%,
+    14px 100%,
+    0 50%
+  );
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -31,22 +58,4 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-}
-
-/* Diagonal line hero motif */
-.hero-pattern {
-  background-image: repeating-linear-gradient(
-    -55deg,
-    transparent,
-    transparent 28px,
-    rgba(255, 255, 255, 0.04) 28px,
-    rgba(255, 255, 255, 0.04) 29px
-  );
-}
-
-/* Monospace typing panel */
-.mono-panel {
-  font-family: "Courier New", Courier, monospace;
-  font-size: 12px;
-  line-height: 1.6;
 }
