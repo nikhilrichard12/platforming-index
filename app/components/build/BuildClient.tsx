@@ -6,6 +6,7 @@ import { loadProfile } from "@/lib/profile";
 import { buildPromptSections, PromptSection } from "@/lib/agent/buildSystemPrompt";
 import { UserProfile, EMPTY_PROFILE } from "@/lib/types";
 import { VoltaraData } from "@/lib/voltaraData";
+import { SurveyFile } from "@/lib/survey";
 import PageHeader from "@/components/ui/PageHeader";
 import { Button, PrimaryButton } from "@/components/ui/Button";
 
@@ -83,7 +84,13 @@ function StatusMark({ state }: { state: "waiting" | "running" | "done" }) {
   return <span className="block h-4 w-4 rounded-full border border-line-2" />;
 }
 
-export default function BuildClient({ data }: { data: VoltaraData }) {
+export default function BuildClient({
+  data,
+  survey,
+}: {
+  data: VoltaraData;
+  survey: SurveyFile;
+}) {
   const router = useRouter();
   const [profile, setProfile] = useState<UserProfile>({ ...EMPTY_PROFILE });
   const [sections, setSections] = useState<PromptSection[]>([]);
@@ -99,8 +106,8 @@ export default function BuildClient({ data }: { data: VoltaraData }) {
   useEffect(() => {
     const p = loadProfile();
     setProfile(p);
-    setSections(buildPromptSections(p, data));
-  }, [data]);
+    setSections(buildPromptSections(p, data, survey));
+  }, [data, survey]);
 
   // Drive the stages on a timer.
   useEffect(() => {

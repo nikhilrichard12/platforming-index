@@ -3,7 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { UserProfile } from "@/lib/types";
 import { buildSystemPrompt } from "@/lib/agent/buildSystemPrompt";
 import { VoltaraData, usd } from "@/lib/voltaraData";
-import { loadVoltaraData } from "@/lib/voltaraData.server";
+import { loadSurvey, loadVoltaraData } from "@/lib/voltaraData.server";
 import { roleViewFor } from "@/lib/roleViews";
 
 export const runtime = "nodejs";
@@ -106,7 +106,7 @@ export async function POST(req: NextRequest) {
   if (!apiKey) return offlineResponse(body, data, "no_api_key");
 
   const client = new Anthropic({ apiKey });
-  const system = buildSystemPrompt(body.profile, data);
+  const system = buildSystemPrompt(body.profile, data, loadSurvey());
   const messages = body.messages.slice(-HISTORY).map((m) => ({
     role: m.role,
     content: m.content,

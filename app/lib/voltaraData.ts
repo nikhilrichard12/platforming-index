@@ -107,6 +107,19 @@ export function usd(n: number): string {
   return "$" + Math.round(n).toLocaleString("en-US");
 }
 
+/**
+ * Heat tint for table cells, heat-low to heat-high, as in the tariff table.
+ * t is 0 to 1 against the largest value in the column.
+ */
+const HEAT_LOW = [0x5e, 0x35, 0x36];
+const HEAT_HIGH = [0xd9, 0x59, 0x5c];
+
+export function heatColor(t: number): string {
+  const k = Math.max(0, Math.min(1, t));
+  const [r, g, b] = HEAT_LOW.map((lo, i) => Math.round(lo + (HEAT_HIGH[i] - lo) * k));
+  return `rgb(${r} ${g} ${b})`;
+}
+
 export function px(n: number): string {
   return "$" + (n < 1 ? n.toFixed(3) : n.toFixed(2));
 }

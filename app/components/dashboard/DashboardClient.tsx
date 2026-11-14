@@ -6,6 +6,7 @@ import { loadProfile } from "@/lib/profile";
 import { buildSystemPrompt } from "@/lib/agent/buildSystemPrompt";
 import { roleViewFor } from "@/lib/roleViews";
 import { Part, VoltaraData, usd } from "@/lib/voltaraData";
+import { SurveyFile } from "@/lib/survey";
 import PageHeader from "@/components/ui/PageHeader";
 import Tabs from "@/components/ui/Tabs";
 import Tile from "@/components/ui/Tile";
@@ -13,6 +14,9 @@ import Badge from "@/components/ui/Badge";
 import Field from "@/components/ui/Field";
 import { Button } from "@/components/ui/Button";
 import GapChart from "./GapChart";
+import IndexStrip from "./IndexStrip";
+import PartsTab from "./PartsTab";
+import AlignmentTab from "./AlignmentTab";
 import SourcePopover, { SourceHit } from "./SourcePopover";
 
 type TabId = "summary" | "parts" | "alignment";
@@ -22,7 +26,7 @@ interface ChatMessage {
   content: string;
 }
 
-const TAG = /\[(PO\d{6}|product_master|survey)\]/g;
+const TAG = /\[(PO\d{6}|product_master|survey|kearney_survey)\]/g;
 
 /** Renders an assistant reply: paragraphs, bullets, and clickable evidence tags. */
 function Reply({
@@ -85,7 +89,13 @@ function Reply({
   );
 }
 
-export default function DashboardClient({ data }: { data: VoltaraData }) {
+export default function DashboardClient({
+  data,
+  survey,
+}: {
+  data: VoltaraData;
+  survey: SurveyFile;
+}) {
   const [profile, setProfile] = useState<UserProfile>({ ...EMPTY_PROFILE });
   const [tab, setTab] = useState<TabId>("summary");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -103,7 +113,7 @@ export default function DashboardClient({ data }: { data: VoltaraData }) {
   const role = (profile.role || "CEO") as Role;
   const view = roleViewFor(role);
   const kpis = view.kpis(data);
-  const systemPrompt = buildSystemPrompt(profile, data);
+  const systemPrompt = buildSystemPrompt(profile, data, survey);
 
   useEffect(() => {
     setMessages([
@@ -162,13 +172,6 @@ export default function DashboardClient({ data }: { data: VoltaraData }) {
     );
   }
 
-  const idx = data.index;
-  const steps = [
-    "Cut cost on today's products",
-    "Consolidate duplicate parts",
-    "Common core plus modules",
-  ];
-
   return (
     <div className="min-h-screen bg-surface">
       <div className="mx-auto max-w-shell px-12 pb-16">
@@ -188,137 +191,92 @@ export default function DashboardClient({ data }: { data: VoltaraData }) {
           ]}
         />
 
-        {tab !== "summary" && (
-          <p className="pt-10 text-[13px] text-text-3">Coming next.</p>
+        {/* The score leads the page, full width above the split. */}
+        {tab === "summary" && (
+          <div className="pt-8">
+            <IndexStrip data={data} />
+          </div>
         )}
 
-        {tab === "summary" && (
-          <div className="grid grid-cols-1 gap-10 pt-8 lg:grid-cols-[minmax(0,62fr)_minmax(0,38fr)]">
-            {/* Main column */}
-            <div className="space-y-5">
-              <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
-                {kpis.map((k, i) => (
-                  <button
-                    key={k.label}
-                    type="button"
-                    data-kpi={i}
-                    onClick={() => ask(k.question)}
-                    className="h-full text-left transition-opacity hover:opacity-80"
-                  >
-                    <Tile className="h-full">
-                      <div className="flex h-full min-h-[118px] flex-col justify-between gap-4">
-                        <p className="text-[14px] font-semibold leading-snug text-text">
-                          {k.label}
-                        </p>
-                        <div className="text-right">
-                          <p
-                            className={`font-light leading-none text-text ${
-                              k.value.length > 10 ? "text-[24px]" : "text-[30px]"
-                            }`}
-                          >
-                            {k.value}
+        <div
+          className={`grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,62fr)_minmax(0,38fr)] ${
+            tab === "summary" ? "pt-5" : "pt-8"
+          }`}
+        >
+          {/* Main column */}
+          <div>
+            {tab === "summary" && (
+              <div className="space-y-5">
+                <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+                  {kpis.map((k, i) => (
+                    <button
+                      key={k.label}
+                      type="button"
+                      data-kpi={i}
+                      onClick={() => ask(k.question)}
+                      className="h-full text-left transition-opacity hover:opacity-80"
+                    >
+                      <Tile className="h-full">
+                        <div className="flex h-full min-h-[104px] flex-col justify-between gap-4">
+                          <p className="text-[14px] font-semibold leading-snug text-text">
+                            {k.label}
                           </p>
-                          <p className="mt-2 truncate text-[12px] text-text-3">{k.source}</p>
+                          <div className="text-right">
+                            <p
+                              className={`font-light leading-none text-text ${
+                                k.value.length > 10 ? "text-[24px]" : "text-[30px]"
+                              }`}
+                            >
+                              {k.value}
+                            </p>
+                            <p className="mt-2 truncate text-[12px] text-text-3">
+                              {k.source}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    </Tile>
-                  </button>
-                ))}
-              </div>
-
-              <div className="bg-panel p-5">
-                <div className="flex items-baseline justify-between gap-4">
-                  <h2 className="text-[15px] font-semibold text-text">
-                    Yearly price gap by part
-                  </h2>
-                  <span className="text-[12px] text-text-3">
-                    Eight largest of {data.summary.sharedParts} shared parts
-                  </span>
+                      </Tile>
+                    </button>
+                  ))}
                 </div>
-                <div className="mt-4">
-                  <GapChart parts={data.byGap.slice(0, 8)} onAsk={askAboutPart} />
-                </div>
-              </div>
 
-              <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
                 <div className="bg-panel p-5">
-                  <div className="flex items-baseline justify-between gap-3">
+                  <div className="flex items-baseline justify-between gap-4">
                     <h2 className="text-[15px] font-semibold text-text">
-                      Platforming Index
+                      Yearly price gap by part
                     </h2>
-                    <Badge>Provisional</Badge>
-                  </div>
-                  <div className="mt-4 flex items-baseline gap-3">
-                    <span className="text-[56px] font-light leading-none text-text">
-                      {idx.score}
+                    <span className="text-[12px] text-text-3">
+                      Eight largest of {data.summary.sharedParts} shared parts
                     </span>
-                    <span className="text-[13px] text-text-3">of 100</span>
                   </div>
-                  <p className="mt-3 text-[14px] text-text-2">
-                    Sharing parts, not yet a platform
-                  </p>
-                  <div className="mt-5 space-y-3">
-                    {idx.dimensions.map((d) => (
-                      <div key={d.name}>
-                        <div className="flex items-baseline justify-between gap-3">
-                          <span className="text-[13px] text-text">{d.name}</span>
-                          <span className="text-[13px] text-text-2">{d.score}</span>
-                        </div>
-                        <div className="mt-1 h-[3px] w-full bg-line">
-                          <div
-                            className="h-full bg-text-2"
-                            style={{ width: `${d.score}%` }}
-                          />
-                        </div>
-                        <p className="mt-1 text-[12px] text-text-3">{d.basis}</p>
-                      </div>
-                    ))}
+                  <div className="mt-4">
+                    <GapChart parts={data.byGap.slice(0, 8)} onAsk={askAboutPart} />
                   </div>
                 </div>
 
-                <div className="bg-panel p-5">
-                  <h2 className="text-[15px] font-semibold text-text">
-                    The three steps
-                  </h2>
-                  <p className="mt-1 text-[12px] text-text-3">
-                    Voltara is on step {idx.step}
-                  </p>
-                  <div className="mt-5 grid grid-cols-3 gap-3">
-                    {steps.map((s, i) => {
-                      const current = i + 1 === idx.step;
-                      return (
-                        <div
-                          key={s}
-                          className={`border-t pt-3 ${
-                            current ? "border-text" : "border-line"
-                          }`}
-                        >
-                          <p
-                            className={`text-[12px] ${
-                              current ? "text-text" : "text-text-3"
-                            }`}
-                          >
-                            Step {i + 1}
-                            {current ? " · now" : ""}
-                          </p>
-                          <p
-                            className={`mt-2 text-[13px] leading-snug ${
-                              current ? "text-text" : "text-text-2"
-                            }`}
-                          >
-                            {s}
-                          </p>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <p className="mt-6 text-[12px] leading-relaxed text-text-3">
-                    Sample company and sample data. The score method and the peer
-                    benchmark are provisional. A price gap is not booked savings.
-                  </p>
-                </div>
+                <p className="text-[12px] leading-relaxed text-text-3">
+                  Sample company and sample data. The score method and the peer
+                  benchmark are provisional. A price gap is not booked savings.
+                </p>
               </div>
-            </div>
+            )}
+
+            {tab === "parts" && (
+              <PartsTab
+                data={data}
+                onAsk={ask}
+                onTag={(po) => setSource(data.rowsByPo[po] ?? null)}
+              />
+            )}
+
+            {tab === "alignment" && (
+              <AlignmentTab
+                data={data}
+                survey={survey}
+                profile={{ ...profile, role }}
+                onTag={(po) => setSource(data.rowsByPo[po] ?? null)}
+              />
+            )}
+          </div>
 
             {/* Assistant */}
             <aside className="lg:sticky lg:top-[60px] lg:self-start">
@@ -420,8 +378,7 @@ export default function DashboardClient({ data }: { data: VoltaraData }) {
                 </div>
               </div>
             </aside>
-          </div>
-        )}
+        </div>
       </div>
 
       {source && <SourcePopover hit={source} onClose={() => setSource(null)} />}

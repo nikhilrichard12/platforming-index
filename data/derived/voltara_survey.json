@@ -1,0 +1,47 @@
+{
+  "company": "Voltara Power Systems (fictional sample)",
+  "note": "Sample survey responses. Five functions, three questions. The signed-in user's own function column is replaced at render time with their real answers from the survey screen.",
+  "functions": ["CEO", "CFO", "Engineering", "Sales", "Supply chain"],
+  "questions": [
+    {
+      "id": "variants",
+      "text": "Do customers need every variant we sell?",
+      "answers": {
+        "CEO": "Mostly",
+        "CFO": "No",
+        "Engineering": "No",
+        "Sales": "Yes",
+        "Supply chain": "No"
+      },
+      "decision": "Agree which differences customers pay for."
+    },
+    {
+      "id": "ownership",
+      "text": "Who owns product architecture decisions?",
+      "answers": {
+        "CEO": "Engineering",
+        "CFO": "Engineering",
+        "Engineering": "Nobody",
+        "Sales": "Product management",
+        "Supply chain": "Nobody"
+      },
+      "decision": "Name one owner for cross-product part decisions."
+    },
+    {
+      "id": "measured",
+      "text": "Is anyone measured on product complexity?",
+      "answers": {
+        "CEO": "No",
+        "CFO": "No",
+        "Engineering": "No",
+        "Sales": "No",
+        "Supply chain": "No"
+      },
+      "decision": "Add one complexity measure to one team's goals."
+    }
+  ],
+  "benchmark": {
+    "source": "kearney_survey",
+    "text": "Kearney's 2026 survey of 100 manufacturers found the same at 52% of companies that platform at scale."
+  }
+}

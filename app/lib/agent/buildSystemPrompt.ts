@@ -2,6 +2,7 @@ import { UserProfile } from "../types";
 import { getRoleConfig } from "../roles";
 import { roleViewFor } from "../roleViews";
 import { PRODUCT_MASTER, VoltaraData, px, usd } from "../voltaraData";
+import { SurveyFile, applyOwnAnswers, isSplit } from "../survey";
 
 export interface PromptSection {
   id: string;
@@ -10,8 +11,12 @@ export interface PromptSection {
   source: string;
 }
 
-export function buildSystemPrompt(profile: UserProfile, data: VoltaraData): string {
-  return buildPromptSections(profile, data)
+export function buildSystemPrompt(
+  profile: UserProfile,
+  data: VoltaraData,
+  survey: SurveyFile
+): string {
+  return buildPromptSections(profile, data, survey)
     .map((s) => `## ${s.heading}\n${s.body}`)
     .join("\n\n");
 }
@@ -36,9 +41,25 @@ function partsTable(data: VoltaraData): string {
     .join("\n");
 }
 
+/** The alignment view's own numbers, so the assistant and the screen agree. */
+function surveyLines(survey: SurveyFile, profile: UserProfile): string {
+  const { questions, you } = applyOwnAnswers(survey, profile);
+  const rows = questions.map((q) => {
+    const answers = survey.functions
+      .map((f) => `${f}${f === you ? " (this user)" : ""}: ${q.answers[f]}`)
+      .join("; ");
+    return `  - "${q.text}" ${isSplit(q, survey.functions) ? "Split" : "Agreed gap"}. ${answers}. Decision to make: ${q.decision}`;
+  });
+  return [
+    `Survey answers by function [survey] (sample responses, except this user's own function):`,
+    ...rows,
+  ].join("\n");
+}
+
 export function buildPromptSections(
   profile: UserProfile,
-  data: VoltaraData
+  data: VoltaraData,
+  survey: SurveyFile
 ): PromptSection[] {
   const roleCfg = profile.role ? getRoleConfig(profile.role) : null;
   const view = roleViewFor(profile.role);
@@ -83,7 +104,8 @@ export function buildPromptSections(
         `Company: ${data.company}. Period: ${data.period}.`,
         `Summary: ${s.partNumbers} part numbers describe ${s.realParts} real parts. ${s.sharedParts} parts are shared by 2 or more products, ${s.coreCandidates} by 5 or more (common core candidates), ${s.uniqueParts} are unique to one product. ${s.partNumbersReusedAcrossProducts} part numbers are already reused across products. Yearly parts spend $${s.yearlySpendUsd} (${usd(s.yearlySpendUsd)}). Yearly price gap on shared parts if every line paid the lowest price Voltara already pays: $${s.yearlyPriceGapUsd} (${usd(s.yearlyPriceGapUsd)}). ${s.needsReviewLines} battery cabinet lines say only "SEE DWG" and wait for engineering review. ${s.suppliers} suppliers; ${s.multiSupplierParts} parts have 2 or more suppliers. Sustaining engineering ${s.sustainingHoursPerYear} hours a year. Lead time ${s.leadTimeWeeksMin} to ${s.leadTimeWeeksMax} weeks.`,
         `Platforming Index: ${idx.score} of 100, ${idx.status}, equal weights. ${idx.dimensions.map((d) => `${d.name} ${d.score} (${d.basis}) [${d.source}]`).join("; ")}. Path: step 1 cut cost on current products (now), step 2 consolidate duplicate parts, step 3 common core plus modules for the next generation. Voltara is on step ${idx.step}.`,
-        `Survey disagreements [survey]: Sales says customers need every variant, Finance and Engineering say no. CEO and Finance say Engineering owns architecture; Engineering and Supply chain say nobody does. No function is measured on complexity.`,
+        surveyLines(survey, profile),
+        `Peer benchmark [kearney_survey]: ${survey.benchmark.text}`,
         `Products [product_master] (id, name, units per year, lead time weeks, sustaining engineering hours per year):`,
         PRODUCT_MASTER.map((p) => [p.id, p.name, p.units, p.leadWeeks, p.hours].join(", ")).join("\n"),
         `Parts (name | counts | gap | spend :: part number (product, description as written, average unit price, supplier, [purchase order tag])):`,
@@ -111,7 +133,7 @@ export function buildPromptSections(
       body: [
         '1. Answer the question first, in plain language for this role. At most 110 words. Short paragraphs or up to 4 bullets starting with "- ". No headings, no tables, no bold.',
         "2. Use only the DATA above. If the data cannot answer, say what is missing. Never invent a number.",
-        "3. Put an evidence tag right after each number, copied exactly from the data: a purchase order tag like [PO450076], or [product_master], [survey]. Use at most 4 tags per answer.",
+        "3. Put an evidence tag right after each number, copied exactly from the data: a purchase order tag like [PO450076], or [product_master], [survey], [kearney_survey]. Use at most 4 tags per answer.",
         "4. A matched part is a suggestion until engineering approves. A price gap is not booked savings. The index score is provisional. Say so when relevant.",
         "5. Label all Voltara data as sample data from a fictional company when the user asks what it is.",
         "6. Lead answers for this role with time to market, cost, and complexity, in the order set by ROLE METRICS. Platforming is the method, not the headline.",
