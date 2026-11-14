@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { loadVoltaraData } from "@/lib/voltaraData.server";
-import { matchPart } from "@/lib/matcher";
+import { headNoun, matchCandidates } from "@/lib/matcher";
 import { corsHeaders, preflight } from "@/lib/cors";
 import { Rule } from "@/lib/rules";
-import { blockingRules, listRules } from "@/lib/rules.server";
+import { blockingRules, listRules, logActivity } from "@/lib/rules.server";
+import { callerOf } from "@/lib/sources.server";
 
 export const runtime = "nodejs";
+
+/** Above this, the card stands on its own. Below the floor, say nothing. */
+const CONFIDENT = 0.6;
+const POSSIBLE = 0.35;
 
 export interface Alternative {
   name: string;
@@ -20,23 +25,22 @@ export function OPTIONS(req: NextRequest) {
 }
 
 /**
- * Other parts in the same category that no rule blocks for this product.
- * Most widely shared first, then cheapest, because an engineer picking a
- * replacement wants the one already proven across the line.
+ * Substitutes for a blocked part: same head noun, so a fan is only replaced by
+ * a fan and never by a fan guard, and not itself blocked for this product.
  */
 function alternativesFor(
   data: ReturnType<typeof loadVoltaraData>,
-  categoryOf: string,
-  excludeName: string,
+  blockedName: string,
   product: string
 ): Alternative[] {
-  const blocked = new Set(
-    listRules(product).map((r: Rule) => r.appliesToPart)
-  );
+  const noun = headNoun(blockedName);
+  if (!noun) return [];
+  const blocked = new Set(listRules(product).map((r: Rule) => r.appliesToPart));
+
   return data.parts
     .filter(
       (p) =>
-        p.cat === categoryOf && p.name !== excludeName && !blocked.has(p.name)
+        p.name !== blockedName && !blocked.has(p.name) && headNoun(p.name) === noun
     )
     .sort((a, b) => b.products - a.products || a.min - b.min)
     .slice(0, 3)
@@ -64,26 +68,43 @@ export async function POST(req: NextRequest) {
   const description = (body.description ?? "").trim();
   const product = (body.product ?? "").trim();
   const units = Number.isFinite(body.unitsPerYear) ? Number(body.unitsPerYear) : 0;
-  if (!description) return NextResponse.json({ match: null }, { headers });
-
-  const data = loadVoltaraData();
-  const match = matchPart(data, description, units);
-
-  if (!match) {
-    return NextResponse.json({ match: null, product, unitsPerYear: units }, { headers });
+  if (!description) {
+    return NextResponse.json({ match: null, level: "none", candidates: [] }, { headers });
   }
 
-  // A rule set by an earlier exception outranks the suggestion.
-  const blockedBy = blockingRules(match.name, product);
-  const part = data.parts.find((p) => p.name === match.name);
+  const data = loadVoltaraData();
+  const candidates = matchCandidates(data, description, units, 3);
+  const best = candidates[0] ?? null;
+  const confidence = best?.confidence ?? 0;
+
+  const level =
+    confidence >= CONFIDENT ? "match" : confidence >= POSSIBLE ? "possible" : "none";
+
+  const blockedBy = best && level === "match" ? blockingRules(best.name, product) : [];
   const alternatives =
-    blockedBy.length > 0 && part
-      ? alternativesFor(data, part.cat, match.name, product)
-      : [];
+    blockedBy.length > 0 && best ? alternativesFor(data, best.name, product) : [];
+
+  const caller = callerOf(req);
+  logActivity({
+    ...caller,
+    tool: "check_part",
+    product: product || undefined,
+    summary:
+      level === "match"
+        ? blockedBy.length > 0
+          ? `Checked "${description}": ${best!.name} blocked by a rule`
+          : `Checked "${description}": reuse ${best!.bestRow.pn}`
+        : level === "possible"
+        ? `Checked "${description}": ${candidates.length} possible match${candidates.length === 1 ? "" : "es"}`
+        : `Checked "${description}": no match`,
+  });
 
   return NextResponse.json(
     {
-      match,
+      match: level === "match" ? best : null,
+      level,
+      confidence,
+      candidates: level === "possible" ? candidates : [],
       blockedBy: blockedBy.length > 0 ? blockedBy : null,
       alternatives,
       product,

@@ -71,7 +71,9 @@ Shared components live in `app/components/ui/`.
 - **Blocked state**: when a rule rules a part out for a product, the badge turns `warn` and reads "Blocked by a rule for this product", the rule text and its date replace the tiles, the alternatives list replaces the reuse line, and the accent primary button is removed entirely. Same shape in the dashboard and in the extension card.
 - **Extension card** (`extension/content.js`): the design system on someone else's page. 380px, fixed to the right of the viewport below the host's header, drawn in a Shadow DOM so neither stylesheet can reach the other. Black header with the wordmark, a `positive` badge, three `panel-2` tiles, the chamfered accent primary and an outline pill. The CSS is hand-written there rather than Tailwind because the extension ships no build step; keep the hex values in step with the token table above.
 - **IndexStrip**: one slim full-width row above the two-column split. Score at 56px/300 with "of 100" and a Provisional badge, the one-line read and four inline dimension bars, then the three steps with the current one picked out by a white top rule. About 165px tall.
-- **StepStrip**: five columns of orange line icon, 20px/800 title, 15px text-2 body, with a thin text-2 arrow between columns. Icons are 56px with 2.6px strokes. Stacks to one column under `md`.
+- **StepStrip**: four or five columns of orange line icon, 20px/800 title, 15px text-2 body, with a thin text-2 arrow between columns. Icons are 56px with 2.6px strokes. Stacks to one column under `md`. Used for the survey overview and again on Connections for the systems to agent to decisions loop.
+- **Possible match card**: the lighter sibling of the confident card, shown when the best score lands between 0.35 and 0.6. No badge, no tiles, no primary button. A text-2 "Possible match" line, up to three candidates with their part number count and best price, and "Keep typing to narrow it down." in text-3. It suggests, it does not ask for a decision.
+- **ActivityTable**: the standard table with a 2px left rule per row, transparent at rest and `accent` for one second on a row that arrived since the last poll. The Source column carries a `positive` badge with the agent's own name when the call came through MCP, otherwise a `neutral` badge. 20 rows on Connections, 3 on Decisions.
 - Sidebar (when used): black, small text-3 group labels, 14px nav items, active item gets a surface-colored row.
 - Chart panel: panel fill, title top-left in weight 600, segmented toggle top-right, legend centered above the plot, thin gridlines in line color.
 - Tables: `panel` background, `line` row rules, `panel-2` header row, tabular right-aligned numbers, 8px vertical cell padding for tariff-style density. Headers and cells stay on one line; the first column takes `max-w-0 w-full truncate` so it absorbs the slack and ellipsizes rather than pushing later columns out of view. A heat column fills its cell edge to edge, as in the tariff table.
@@ -94,5 +96,19 @@ Shared components live in `app/components/ui/`.
 - Evidence tags read as words on screen (Survey, Kearney survey 2026, Product master). Only purchase order tags stay in their raw form, because that is what the buyer searches for.
 - An exception never lowers the index score, and every surface that records one says so. Complexity a rule requires is not complexity anyone chose.
 - The check reaches engineers three ways from one endpoint: the MCP server (primary, inside the agent they already use), the Chrome extension (backup, inside procurement), and the Decisions tab (reference). All three call `/api/check-part` and render the same card, so the wording only has to be right once.
+- An alternative must be the same kind of thing as the part it replaces. The
+  matcher compares head nouns, so a fan guard is never offered in place of a
+  fan. With nothing in the same category the card says "No approved alternative
+  yet. Request a new part and note the rule." in all three surfaces.
+- The index score responds to use. Complexity control starts at 50 and gains 2
+  points per recorded reuse; an exception with a reason changes nothing. The
+  strip carries that sentence under the read so a moving number is never a
+  surprise. Reset restores the starting values.
+- Connections is one column, not two. The sources table needs the full content
+  width to keep its five headers readable, and the MCP config blocks read
+  better wide than tall.
+- Nothing on Connections pretends to call a real system. "Sync now" re-reads the
+  CSV files on this machine and says so in the footnote; an unconnected source
+  shows the columns it would need and the words "connector not active".
 - A scroll container clips anything left of its padding edge. A left rule on a
   child inside one needs the container pulled left and padded back (`-ml-5 pl-5`).

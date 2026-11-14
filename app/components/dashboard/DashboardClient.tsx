@@ -7,7 +7,7 @@ import { buildSystemPrompt } from "@/lib/agent/buildSystemPrompt";
 import { roleViewFor } from "@/lib/roleViews";
 import { Part, VoltaraData, usd } from "@/lib/voltaraData";
 import { SurveyFile } from "@/lib/survey";
-import { Decision, Rule } from "@/lib/rules";
+import { Decision, Rule, liveIndex } from "@/lib/rules";
 import PageHeader from "@/components/ui/PageHeader";
 import Tabs from "@/components/ui/Tabs";
 import Tile from "@/components/ui/Tile";
@@ -19,9 +19,11 @@ import IndexStrip from "./IndexStrip";
 import PartsTab from "./PartsTab";
 import AlignmentTab from "./AlignmentTab";
 import CheckTab from "./CheckTab";
+import ConnectionsTab from "./ConnectionsTab";
 import SourcePopover, { SourceHit } from "./SourcePopover";
+import { useActivity } from "./ActivityTable";
 
-type TabId = "summary" | "parts" | "alignment" | "check";
+type TabId = "summary" | "parts" | "alignment" | "check" | "connections";
 
 /** The three prompts under the assistant's first message, per tab. */
 const TAB_QUESTIONS: Record<TabId, string[] | null> = {
@@ -35,6 +37,11 @@ const TAB_QUESTIONS: Record<TabId, string[] | null> = {
     "Where do we disagree most?",
     "Who should own part decisions?",
     "What does the data say about variants?",
+  ],
+  connections: [
+    "Which systems feed this data?",
+    "What can an agent ask for?",
+    "How does a decision change the score?",
   ],
   check: [
     "Which rules are in force right now?",
@@ -121,9 +128,11 @@ function Reply({
 export default function DashboardClient({
   data,
   survey,
+  mcpServerPath,
 }: {
   data: VoltaraData;
   survey: SurveyFile;
+  mcpServerPath: string;
 }) {
   const [profile, setProfile] = useState<UserProfile>({ ...EMPTY_PROFILE });
   const [tab, setTab] = useState<TabId>("summary");
@@ -160,10 +169,24 @@ export default function DashboardClient({
     refresh();
   }, [refresh]);
 
+  // A decision recorded by an agent or the extension lands in the activity
+  // log first. Re-read rules and decisions whenever it moves, so the score and
+  // the tables follow a call made outside this browser tab.
+  const { activity: latest } = useActivity(1, true);
+  const latestId = latest[0]?.id;
+  useEffect(() => {
+    if (latestId) refresh();
+  }, [latestId, refresh]);
+
+  // Complexity control moves with recorded reuses, so the strip and the
+  // prompt both read the computed score rather than the file's baseline.
+  const index = liveIndex(data.index, decisions);
+  const liveData = { ...data, index };
+
   const role = (profile.role || "CEO") as Role;
   const view = roleViewFor(role);
   const kpis = view.kpis(data);
-  const systemPrompt = buildSystemPrompt(profile, data, survey, rules);
+  const systemPrompt = buildSystemPrompt(profile, liveData, survey, rules);
 
   useEffect(() => {
     setMessages([
@@ -239,13 +262,14 @@ export default function DashboardClient({
             { id: "parts", label: "Parts" },
             { id: "alignment", label: "Alignment" },
             { id: "check", label: "Decisions" },
+            { id: "connections", label: "Connections" },
           ]}
         />
 
         {/* The score leads the page, full width above the split. */}
         {tab === "summary" && (
           <div className="pt-8">
-            <IndexStrip data={data} />
+            <IndexStrip data={liveData} />
           </div>
         )}
 
@@ -326,6 +350,10 @@ export default function DashboardClient({
                 onRefresh={refresh}
                 onTag={(po) => setSource(data.rowsByPo[po] ?? null)}
               />
+            )}
+
+            {tab === "connections" && (
+              <ConnectionsTab serverPath={mcpServerPath} />
             )}
 
             {tab === "alignment" && (

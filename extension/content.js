@@ -29,6 +29,7 @@ const REASON_KINDS = [
   ["other", "Other"],
 ];
 const MIN_CONFIDENCE = 0.6;
+const POSSIBLE_CONFIDENCE = 0.35;
 
 /* ---------- talking to the background worker ---------- */
 
@@ -133,6 +134,10 @@ const STYLE = `
   }
   select.reason:focus { outline: none; border-color: #B8BBBE; }
   .name { margin-top: 12px; font-size: 17px; font-weight: 300; }
+  .quiet { margin-top: 12px; font-size: 13px; color: #B8BBBE; }
+  ul.cands { margin-top: 8px; padding-left: 0; list-style: none; }
+  ul.cands li { font-size: 13px; color: #FFFFFF; margin-top: 6px; }
+  ul.cands .meta { color: #818182; }
   .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px; }
   .tile { background: #303436; padding: 12px; display: flex; flex-direction: column;
           justify-content: space-between; min-height: 92px; }
@@ -192,6 +197,31 @@ function unmount() {
   PI.root = null;
 }
 
+/** The 0.35 to 0.6 band: name the candidates, suggest nothing. */
+function possibleHtml(result) {
+  return `
+    <style>${STYLE}</style>
+    <div class="card" role="complementary" aria-label="Platforming Index possible match">
+      <div class="head">
+        <span class="brand"><b>Platforming</b> <span>Index</span></span>
+        <button class="close" type="button" aria-label="Close">&#215;</button>
+      </div>
+      <div class="body">
+        <p class="quiet">Possible match</p>
+        <ul class="cands">
+          ${result.candidates
+            .map(
+              (c) =>
+                `<li>${esc(c.name)} <span class="meta">${c.partNumberCount} part numbers, best price ${px(c.minPrice)}</span></li>`
+            )
+            .join("")}
+        </ul>
+        <p class="foot">Keep typing to narrow it down.</p>
+      </div>
+    </div>
+  `;
+}
+
 function cardHtml(result, form) {
   const match = result.match;
   const blocked = result.blockedBy && result.blockedBy[0];
@@ -207,7 +237,7 @@ function cardHtml(result, form) {
         </p>
         ${
           result.alternatives && result.alternatives.length
-            ? `<p class="read">Parts in the same category that no rule blocks:</p>
+            ? `<p class="read">Parts that no rule blocks:</p>
                <ul class="alts">${result.alternatives
                  .map(
                    (a) =>
@@ -215,7 +245,7 @@ function cardHtml(result, form) {
                         <span class="meta">at ${px(a.price)} from ${esc(a.supplier)}, already in ${a.products} products</span></li>`
                  )
                  .join("")}</ul>`
-            : `<p class="read">No unblocked alternative in the same category. A new part number is reasonable here.</p>`
+            : `<p class="read">No approved alternative yet. Request a new part and note the rule.</p>`
         }
       `
     : `
@@ -328,6 +358,15 @@ function savedProfile() {
     biggestBlocker: "Ownership",
     currentDecision: "",
   };
+}
+
+function renderPossible(result, form) {
+  mount();
+  PI.root.innerHTML = possibleHtml(result);
+  PI.root.querySelector(".close").addEventListener("click", () => {
+    PI.dismissed = form.description;
+    unmount();
+  });
 }
 
 function render(result, form) {
@@ -443,11 +482,16 @@ async function check() {
 
   const result = res.data;
   PI.match = result.match;
-  if (
-    !result.match ||
-    result.match.confidence < MIN_CONFIDENCE ||
-    form.description === PI.dismissed
-  ) {
+
+  if (form.description === PI.dismissed) {
+    unmount();
+    return;
+  }
+  if (result.level === "possible" && result.candidates && result.candidates.length) {
+    renderPossible(result, form);
+    return;
+  }
+  if (!result.match || result.match.confidence < MIN_CONFIDENCE) {
     unmount();
     return;
   }

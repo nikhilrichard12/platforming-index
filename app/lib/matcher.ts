@@ -91,6 +91,31 @@ function sumWeight(tokens: Iterable<string>): number {
   return total;
 }
 
+/**
+ * Words that trail a rating rather than naming the thing: "Isolated Gate
+ * Driver Board 6 Channel" is a board, not a channel.
+ */
+const TRAILING = new Set(["channel", "pole", "phase", "rev", "type", "series", "pack", "kit"]);
+
+/**
+ * The noun at the end of a part name, once ratings and trailing descriptors
+ * are stripped. A fan guard is a guard, not a fan, so only parts sharing a
+ * head noun are offered as substitutes for one another.
+ */
+export function headNoun(name: string): string {
+  const words = name
+    .toLowerCase()
+    .replace(/[_,()/\\.-]/g, " ")
+    .split(/\s+/)
+    .filter((w) => w && !/\d/.test(w));
+  while (words.length > 1) {
+    const last = words[words.length - 1];
+    if (TRAILING.has(last) || last.length <= 1) words.pop();
+    else break;
+  }
+  return words[words.length - 1] ?? "";
+}
+
 export interface PartMatch {
   name: string;
   partNumberCount: number;
@@ -109,16 +134,18 @@ function cheapestRow(part: Part): PartRow {
   return part.rows.reduce((lo, r) => (r.price < lo.price ? r : lo), part.rows[0]);
 }
 
-export function matchPart(
+/** Every part scoring above the floor, best first. */
+export function matchCandidates(
   data: VoltaraData,
   description: string,
-  unitsPerYear: number
-): PartMatch | null {
+  unitsPerYear: number,
+  limit = 3
+): PartMatch[] {
   const query = tokenize(description);
-  if (query.length === 0) return null;
+  if (query.length === 0) return [];
   const queryWeight = sumWeight(query);
 
-  let best: { part: Part; score: number; matched: string[] } | null = null;
+  const scored: { part: Part; score: number; matched: string[] }[] = [];
 
   for (const part of data.parts) {
     const partTokens = tokenize(part.name);
@@ -129,14 +156,29 @@ export function matchPart(
     const matchedWeight = sumWeight(matched);
     const partCoverage = matchedWeight / sumWeight(partSet);
     const queryCoverage = matchedWeight / queryWeight;
-    const score = 0.65 * partCoverage + 0.35 * queryCoverage;
-
-    if (!best || score > best.score) best = { part, score, matched };
+    scored.push({ part, score: 0.65 * partCoverage + 0.35 * queryCoverage, matched });
   }
 
-  if (!best) return null;
+  return scored
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit)
+    .map((hit) => toMatch(hit.part, hit.score, hit.matched, unitsPerYear));
+}
 
-  const { part } = best;
+export function matchPart(
+  data: VoltaraData,
+  description: string,
+  unitsPerYear: number
+): PartMatch | null {
+  return matchCandidates(data, description, unitsPerYear, 1)[0] ?? null;
+}
+
+function toMatch(
+  part: Part,
+  score: number,
+  matched: string[],
+  unitsPerYear: number
+): PartMatch {
   const row = cheapestRow(part);
   return {
     name: part.name,
@@ -152,8 +194,8 @@ export function matchPart(
     minPrice: part.min,
     maxPrice: part.max,
     yearlySavingVsHighest: Math.round((part.max - part.min) * unitsPerYear),
-    confidence: Math.round(Math.min(1, best.score) * 100) / 100,
-    matchedTokens: best.matched,
+    confidence: Math.round(Math.min(1, score) * 100) / 100,
+    matchedTokens: matched,
     rows: part.rows,
   };
 }

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { corsHeaders, preflight } from "@/lib/cors";
-import { DecisionSource, REASON_KINDS, ReasonKind } from "@/lib/rules";
-import { listDecisions, record } from "@/lib/rules.server";
+import { DecisionSource, REASON_KINDS, ReasonKind, reasonLabel } from "@/lib/rules";
+import { listDecisions, logActivity, record } from "@/lib/rules.server";
+import { callerOf } from "@/lib/sources.server";
 
 export const runtime = "nodejs";
 
@@ -12,6 +13,10 @@ export function OPTIONS(req: NextRequest) {
 export function GET(req: NextRequest) {
   const headers = corsHeaders(req.headers.get("origin"));
   return NextResponse.json({ decisions: listDecisions() }, { headers });
+}
+
+function reasonSuffix(kind?: string) {
+  return kind ? ` (${reasonLabel(kind)})` : "";
 }
 
 export async function POST(req: NextRequest) {
@@ -54,6 +59,17 @@ export async function POST(req: NextRequest) {
     reasonText: body.reasonText ? String(body.reasonText) : undefined,
     role: body.role ? String(body.role) : undefined,
     source: (body.source as DecisionSource) ?? "dashboard",
+  });
+
+  const caller = callerOf(req);
+  logActivity({
+    ...caller,
+    tool: "record_decision",
+    product: result.decision.product || undefined,
+    summary:
+      result.decision.decision === "reuse"
+        ? `Reused ${result.decision.suggestedPn ?? "an existing part"} for ${result.decision.product}`
+        : `Exception on ${result.decision.matchedPart ?? "a part"}${reasonSuffix(result.decision.reasonKind)}, rule ${result.rule?.id ?? "not created"}`,
   });
 
   return NextResponse.json(

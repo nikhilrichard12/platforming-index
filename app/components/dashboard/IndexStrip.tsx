@@ -26,7 +26,11 @@ export default function IndexStrip({ data }: { data: VoltaraData }) {
       {/* Read and dimensions */}
       <div className="min-w-0 flex-1">
         <p className="text-[15px] text-text">Sharing parts, not yet a platform</p>
-        <div className="mt-3 grid grid-cols-2 gap-x-6 gap-y-3 xl:grid-cols-4">
+        <p className="mt-1 text-[12px] text-text-3">
+          Complexity control moves as engineers reuse parts. Exceptions with a
+          reason do not lower it.
+        </p>
+        <div className="mt-2 grid grid-cols-2 gap-x-6 gap-y-3 xl:grid-cols-4">
           {idx.dimensions.map((d) => (
             <div key={d.name} title={`${d.basis} (${d.source})`}>
               <div className="flex items-baseline justify-between gap-2">

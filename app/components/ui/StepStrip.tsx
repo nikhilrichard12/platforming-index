@@ -100,6 +100,48 @@ export function IconView() {
   );
 }
 
+export function IconSystems() {
+  return (
+    <svg {...ico}>
+      <rect x="3" y="7" width="18" height="14" />
+      <rect x="27" y="7" width="18" height="14" />
+      <rect x="15" y="29" width="18" height="14" />
+      <path d="M12 21v4h24v-4M24 25v4" />
+    </svg>
+  );
+}
+
+export function IconEngine() {
+  return (
+    <svg {...ico}>
+      <rect x="5" y="5" width="38" height="38" />
+      <path d="M13 33l7-9 6 5 9-14" />
+      <path d="M13 13h8" />
+    </svg>
+  );
+}
+
+export function IconAgent() {
+  return (
+    <svg {...ico}>
+      <rect x="8" y="14" width="32" height="24" />
+      <path d="M24 6v8M16 24h4M28 24h4" />
+      <circle cx="24" cy="6" r="2.5" />
+      <path d="M18 31h12" />
+    </svg>
+  );
+}
+
+export function IconLoop() {
+  return (
+    <svg {...ico}>
+      <path d="M38 18a16 16 0 1 0 2 10" />
+      <path d="M40 10v10h-10" />
+      <path d="M18 24l5 5 9-11" />
+    </svg>
+  );
+}
+
 export function IconCheck() {
   return (
     <svg {...ico}>

@@ -1,6 +1,8 @@
 import fs from "fs";
 import path from "path";
 import {
+  Activity,
+  ActivitySource,
   Decision,
   DecisionSource,
   ReasonKind,
@@ -24,6 +26,7 @@ import {
 interface Store {
   decisions: Decision[];
   rules: Rule[];
+  activity: Activity[];
 }
 
 const FILE = path.join(process.cwd(), "..", "data", "derived", "decisions.json");
@@ -31,16 +34,44 @@ const FILE = path.join(process.cwd(), "..", "data", "derived", "decisions.json")
 function read(): Store {
   try {
     const raw = JSON.parse(fs.readFileSync(FILE, "utf8")) as Partial<Store>;
-    return { decisions: raw.decisions ?? [], rules: raw.rules ?? [] };
+    return {
+      decisions: raw.decisions ?? [],
+      rules: raw.rules ?? [],
+      activity: raw.activity ?? [],
+    };
   } catch {
     // No file yet, or it was reset. An empty store is the valid starting state.
-    return { decisions: [], rules: [] };
+    return { decisions: [], rules: [], activity: [] };
   }
 }
 
 function write(store: Store): void {
   fs.mkdirSync(path.dirname(FILE), { recursive: true });
   fs.writeFileSync(FILE, JSON.stringify(store, null, 2) + "\n", "utf8");
+}
+
+/** Newest first, capped so the file cannot grow without bound. */
+export function listActivity(limit = 50): Activity[] {
+  return [...read().activity].reverse().slice(0, limit);
+}
+
+export function logActivity(entry: {
+  source: ActivitySource;
+  agentName?: string;
+  tool: string;
+  summary: string;
+  product?: string;
+}): Activity {
+  const store = read();
+  const record: Activity = {
+    id: `A${String(store.activity.length + 1).padStart(5, "0")}`,
+    at: new Date().toISOString(),
+    ...entry,
+  };
+  store.activity.push(record);
+  if (store.activity.length > 500) store.activity.splice(0, store.activity.length - 500);
+  write(store);
+  return record;
 }
 
 export function listDecisions(): Decision[] {
@@ -118,5 +149,5 @@ export function record(input: RecordInput): RecordResult {
 }
 
 export function reset(): void {
-  write({ decisions: [], rules: [] });
+  write({ decisions: [], rules: [], activity: [] });
 }

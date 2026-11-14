@@ -6,7 +6,8 @@ import Badge from "@/components/ui/Badge";
 import Tile from "@/components/ui/Tile";
 import { Button, PrimaryButton } from "@/components/ui/Button";
 import { px, usd } from "@/lib/voltaraData";
-import { Decision, REASON_KINDS, ReasonKind, Rule, reasonLabel } from "@/lib/rules";
+import { ACTIVITY_LABEL, Decision, REASON_KINDS, ReasonKind, Rule, reasonLabel } from "@/lib/rules";
+import { useActivity } from "./ActivityTable";
 
 interface Match {
   name: string;
@@ -28,6 +29,9 @@ interface Alternative {
 
 interface CheckResult {
   match: Match | null;
+  level: "match" | "possible" | "none";
+  confidence: number;
+  candidates: Match[];
   blockedBy: Rule[] | null;
   alternatives: Alternative[];
 }
@@ -38,7 +42,6 @@ const PRODUCTS = [
   { id: "VSI-10", name: "VSI-10 SunLine Solar Inverter" },
 ];
 
-const MIN_CONFIDENCE = 0.6;
 
 const when = (iso: string) => iso.slice(0, 10) + " " + iso.slice(11, 16);
 
@@ -74,6 +77,7 @@ export default function CheckTab({
   const [reasonKind, setReasonKind] = useState<ReasonKind | "">("");
   const [reasonText, setReasonText] = useState("");
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { activity } = useActivity(3, true);
 
   // Same 500ms debounce the agent and the extension use. Re-runs when a rule
   // changes, so the card reflects a rule the moment it is created.
@@ -91,7 +95,7 @@ export default function CheckTab({
           body: JSON.stringify({ description, product, unitsPerYear: units }),
         });
         const data: CheckResult = await res.json();
-        setResult(data.match && data.match.confidence >= MIN_CONFIDENCE ? data : null);
+        setResult(data.level === "none" ? null : data);
       } catch {
         setResult(null);
       }
@@ -103,6 +107,7 @@ export default function CheckTab({
 
   const match = result?.match ?? null;
   const blocked = result?.blockedBy?.[0] ?? null;
+  const possible = result?.level === "possible" ? result.candidates : [];
 
   async function record(decision: "reuse" | "exception", extra: Record<string, unknown> = {}) {
     await fetch("/api/part-decision", {
@@ -204,6 +209,25 @@ export default function CheckTab({
           </Field>
         </div>
 
+        {possible.length > 0 && (
+          <div className="mt-4 border-t border-line pt-4">
+            <p className="text-[13px] text-text-2">Possible match</p>
+            <ul className="mt-2 space-y-1">
+              {possible.map((c) => (
+                <li key={c.name} className="text-[13px] text-text">
+                  {c.name}{" "}
+                  <span className="text-text-3">
+                    {c.partNumberCount} part numbers, best price {px(c.minPrice)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-3 text-[12px] text-text-3">
+              Keep typing to narrow it down.
+            </p>
+          </div>
+        )}
+
         {match && (
           <div className="mt-4 border-t border-line pt-4">
             {blocked ? (
@@ -238,8 +262,8 @@ export default function CheckTab({
                   </div>
                 ) : (
                   <p className="mt-3 text-[13px] text-text-3">
-                    No unblocked alternative in the same category. A new part
-                    number is reasonable here.
+                    No approved alternative yet. Request a new part and note the
+                    rule.
                   </p>
                 )}
               </>
@@ -450,6 +474,31 @@ export default function CheckTab({
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Live activity, the newest three */}
+      <div className="bg-panel px-4 py-3">
+        <div className="flex items-baseline justify-between gap-4">
+          <h2 className="text-[13px] font-semibold text-text">Live activity</h2>
+          <span className="text-[12px] text-text-3">Newest three</span>
+        </div>
+        {activity.length === 0 ? (
+          <p className="mt-2 text-[12px] text-text-3">Nothing yet.</p>
+        ) : (
+          <ul className="mt-2 space-y-1">
+            {activity.map((a) => (
+              <li key={a.id} className="flex items-baseline gap-3 text-[12px]">
+                <span className="w-[62px] shrink-0 tabular-nums text-text-3">
+                  {a.at.slice(11, 19)}
+                </span>
+                <span className="w-[96px] shrink-0 truncate text-text-2">
+                  {a.agentName ?? ACTIVITY_LABEL[a.source]}
+                </span>
+                <span className="truncate text-text">{a.summary}</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       <div className="flex flex-wrap items-center gap-4">

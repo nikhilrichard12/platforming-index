@@ -86,10 +86,23 @@ function failure(text: string) {
   return { content: [{ type: "text" as const, text }], isError: true };
 }
 
+/**
+ * The app logs who called. The client name comes from the MCP initialize
+ * handshake, so the dashboard can show "Claude Code" rather than "an agent".
+ */
+function agentName(): string {
+  return server.server.getClientVersion()?.name ?? "Agent";
+}
+
 async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(BASE + path, {
     ...init,
-    headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
+    headers: {
+      "Content-Type": "application/json",
+      "x-pi-source": "agent",
+      "x-pi-agent": agentName(),
+      ...(init?.headers ?? {}),
+    },
   });
   const body = (await res.json()) as T & { error?: string };
   if (!res.ok) throw new Error(body?.error ?? `${path} returned ${res.status}`);
@@ -127,6 +140,9 @@ interface Alternative {
 }
 interface CheckResponse {
   match: Match | null;
+  level: "match" | "possible" | "none";
+  confidence: number;
+  candidates: Match[];
   blockedBy: Rule[] | null;
   alternatives: Alternative[];
 }
@@ -161,6 +177,16 @@ server.registerTool(
     });
 
     if (!res.match) {
+      if (res.level === "possible" && res.candidates.length) {
+        const list = res.candidates
+          .map((c) => `  - ${c.name}, ${c.partNumberCount} part numbers, best price ${px(c.minPrice)}`)
+          .join("\n");
+        return reply(
+          `Not sure yet from "${description}". Possible matches:\n${list}\n\n` +
+            `Ask the engineer for the rating or the size before suggesting a reuse. ${SUGGESTION_NOTE}`,
+          res
+        );
+      }
       return reply(
         `No part in Voltara's data matches "${description}". Nothing to reuse, so a new part number is reasonable here. ${SUGGESTION_NOTE}`,
         { match: null, product: productId }
@@ -171,13 +197,14 @@ server.registerTool(
     if (res.blockedBy?.length) {
       const rule = res.blockedBy[0];
       const alts = res.alternatives.length
-        ? res.alternatives
+        ? "Alternatives that no rule blocks:\n" +
+          res.alternatives
             .map((a) => `  - ${a.name}, ${a.partNumber} at ${px(a.price)} from ${a.supplier}, already in ${a.products} products`)
             .join("\n")
-        : "  (no unblocked alternative in the same category)";
+        : "No approved alternative yet. Request a new part and note the rule.";
       return reply(
         `${m.name} is blocked for ${productId} by a rule set on ${date(rule.at)}: "${rule.text}"\n\n` +
-          `Do not suggest reusing it here. Alternatives that no rule blocks:\n${alts}\n\n` +
+          `Do not suggest reusing it here. ${alts}\n\n` +
           `${SUGGESTION_NOTE}`,
         res
       );
