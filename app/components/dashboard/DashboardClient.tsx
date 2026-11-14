@@ -141,9 +141,11 @@ function Reply({
 export default function DashboardClient({
   data,
   survey,
+  basis,
 }: {
   data: VoltaraData;
   survey: SurveyFile;
+  basis?: string;
 }) {
   const [profile, setProfile] = useState<UserProfile>({ ...EMPTY_PROFILE });
   const [tab, setTab] = useState<TabId>("summary");
@@ -281,7 +283,7 @@ export default function DashboardClient({
         {/* The score leads the page, full width above the split. */}
         {tab === "summary" && (
           <div className="pt-8">
-            <IndexStrip data={liveData} />
+            <IndexStrip data={liveData} basis={basis} />
           </div>
         )}
 

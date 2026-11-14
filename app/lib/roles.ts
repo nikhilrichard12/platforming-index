@@ -2,6 +2,8 @@ import { Role } from "./types";
 
 export interface RoleConfig {
   emphasis: string;
+  /** One sentence on why a duplicate part number matters to this role. */
+  ballparkWhy: string;
   kpiFocus: string[];
   suggestedQuestions: string[];
   agentGreeting: (name?: string) => string;
@@ -10,6 +12,8 @@ export interface RoleConfig {
 const configs: Record<Role, RoleConfig> = {
   "CEO": {
     emphasis: "Portfolio-level complexity and strategic optionality",
+    ballparkWhy:
+      "Every duplicate part number is a small tax on launch speed, and it compounds across the portfolio you are judged on.",
     kpiFocus: ["Time to market", "Cost", "Complexity"],
     suggestedQuestions: [
       "Which product families have the highest complexity risk?",
@@ -21,6 +25,8 @@ const configs: Record<Role, RoleConfig> = {
   },
   "CFO / Finance": {
     emphasis: "Cost exposure from part-number proliferation and working capital",
+    ballparkWhy:
+      "Duplicate part numbers are working capital you own twice and buying power you never use.",
     kpiFocus: ["Cost", "Complexity", "Time to market"],
     suggestedQuestions: [
       "What is the annual cost of carrying duplicate part numbers?",
@@ -32,6 +38,8 @@ const configs: Record<Role, RoleConfig> = {
   },
   "Sales / Commercial": {
     emphasis: "Lead time and variant proliferation vs. customer demand",
+    ballparkWhy:
+      "Duplicate part numbers lengthen lead times on the variants customers least care about.",
     kpiFocus: ["Time to market", "Cost", "Complexity"],
     suggestedQuestions: [
       "Which variants do customers actually differentiate on?",
@@ -43,6 +51,8 @@ const configs: Record<Role, RoleConfig> = {
   },
   "Marketing / Product": {
     emphasis: "Portfolio coherence and market differentiation",
+    ballparkWhy:
+      "Duplicate part numbers are variants the market never asked for, carried at full cost.",
     kpiFocus: ["Time to market", "Complexity", "Cost"],
     suggestedQuestions: [
       "Which features are genuinely differentiated versus commodity?",
@@ -54,6 +64,8 @@ const configs: Record<Role, RoleConfig> = {
   },
   "Engineering / R&D": {
     emphasis: "Part reuse, sustaining burden, and design-for-platform",
+    ballparkWhy:
+      "Duplicate part numbers are sustaining work your team repeats on parts that were already solved.",
     kpiFocus: ["Complexity", "Time to market", "Cost"],
     suggestedQuestions: [
       "Which assemblies have the highest potential for shared cores?",
@@ -65,6 +77,8 @@ const configs: Record<Role, RoleConfig> = {
   },
   "Supply Chain / Procurement": {
     emphasis: "Supplier consolidation, price variance, and inventory efficiency",
+    ballparkWhy:
+      "Duplicate part numbers split volume across suppliers, so you pay several prices for one part.",
     kpiFocus: ["Cost", "Complexity", "Time to market"],
     suggestedQuestions: [
       "Which parts are bought from multiple suppliers at different prices?",
@@ -76,6 +90,8 @@ const configs: Record<Role, RoleConfig> = {
   },
   "Operations / Manufacturing": {
     emphasis: "Production complexity, changeover cost, and lead time drivers",
+    ballparkWhy:
+      "Duplicate part numbers mean more changeovers, more lines on the floor, and more ways to pick the wrong one.",
     kpiFocus: ["Time to market", "Cost", "Complexity"],
     suggestedQuestions: [
       "Which product families create the most production changeover?",

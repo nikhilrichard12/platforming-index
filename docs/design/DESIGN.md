@@ -79,6 +79,13 @@ Shared components live in `app/components/ui/`.
 - **Exploded view** (Summary): an isometric stack, one diamond slab per layer, parts drawn as small outlined diamonds on the slab surface. Stroke 1.1px on slabs, 1.5px on blocks, no fills except an 88% `surface` wash so a slab occludes what sits behind it. Accent for five or more products, text for two to four, text-3 for unique. Assembled sits centred in the same frame the exploded stack fills, so the panel never changes height.
 - **Live stage** (Connections): three outlined stations, a Rules tray under the middle one, and chips that carry one call across it. Chips are `panel-2` on a `line` border; the result keeps its badges inside the station box and its numbers as a caption below it.
 - **Origin column and line**: country of origin is a column in the parts rows, the source popover and the New product table, and a line on every card. When a compliance rule blocks a part, the same part from a compliant supplier is offered in 13px text above the alternatives: "Same part, US-origin source: Ostrava Thermal, $12.73", with the part number and its PO tag. Origin is read from `voltara_suppliers.csv`, never guessed from a supplier name, and the copy says so wherever a reader might guess.
+- **Ballpark result** (`components/survey/BallparkResult.tsx`): the score as a
+  range in the 56px light figure with a `warn` "Ballpark" badge, three tiles,
+  one sentence for the reader's role, and a "How we got this" disclosure that
+  prints the arithmetic with their own numbers in a monospace block, the cost
+  per part number as an editable field, and every constant with its source.
+  One accent action, "Get the measured index"; the tab header steps back to an
+  outline button on this screen so orange still appears once.
 - **Side panel** (`/panel`, 400px): the extension's page, with its own small
   header instead of the TopBar. Top to bottom: who is looking, the headline,
   the part numbers converging, one card per need with Reuse and Can't reuse,
@@ -113,6 +120,13 @@ Shared components live in `app/components/ui/`.
   label: a CEO is never told they are "Finance".
 - No em dashes in UI copy. This covers prompt text rendered on screen, so `lib/agent/buildSystemPrompt.ts` carries none either.
 - Every number on screen reads from `data/derived/*.json` through `lib/voltaraData.server.ts`. No figure is typed into a component, including the counts in filter labels and the evidence lines on the alignment view.
+- Two levels, never confused. A ballpark comes from 8 answers and is always a
+  range with a `warn` badge, named constants and visible arithmetic. A measured
+  index comes from a parts list, carries a `positive` "Measured" badge and the
+  line "From 252 part numbers and 1,109 purchase orders.", and prints single
+  figures. Where both exist the dashboard shows "Ballpark was <range>" beside
+  the measured score, so the gap between guessing and measuring is on screen
+  rather than in an argument.
 - The index score leads the dashboard. It sits above the fold at 1440x900, with the KPI tiles and the top of the chart.
 - `/mock-procurement` is deliberately outside this design system. It is a stand-in for the customer's own software, so it has its own root layout and its own light stylesheet, and nothing in `components/ui/` may leak into it.
 - Evidence tags read as words on screen (Survey, Kearney survey 2026, Product master). Only purchase order tags stay in their raw form, because that is what the buyer searches for.

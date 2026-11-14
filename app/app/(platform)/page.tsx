@@ -1,58 +1,62 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import {
   UserProfile,
   EMPTY_PROFILE,
   ROLES,
-  PRODUCTS,
   METRICS,
   Role,
   DecisionLevel,
   Metric,
-  Product,
   ArchitectureOwner,
   PlatformingBlocker,
 } from "@/lib/types";
-import { saveProfile, loadProfile } from "@/lib/profile";
+import {
+  ACQUISITION_BANDS,
+  ALIGNMENT_ANSWERS,
+  AcquisitionBand,
+  AlignmentAnswer,
+  BallparkAnswers,
+  EMPTY_BALLPARK,
+  OWNER_ANSWERS,
+  OwnerAnswer,
+  PART_NUMBER_BANDS,
+  PLATFORMING_ANSWERS,
+  PlatformingAnswer,
+  REVENUE_BANDS,
+  RevenueBand,
+  TARGET_ANSWERS,
+  TargetAnswer,
+  isComplete,
+} from "@/lib/ballpark";
+import { saveProfile, loadProfile, saveBallpark, loadBallpark } from "@/lib/profile";
 import PageHeader from "@/components/ui/PageHeader";
 import Tabs from "@/components/ui/Tabs";
 import Field from "@/components/ui/Field";
 import ChoiceGroup, { Choice } from "@/components/ui/ChoiceGroup";
-import { PrimaryButton } from "@/components/ui/Button";
+import { Button, PrimaryButton } from "@/components/ui/Button";
 import StepStrip, {
-  IconProfile,
   IconBeliefs,
   IconIndex,
-  IconView,
   IconCheck,
 } from "@/components/ui/StepStrip";
+import BallparkResult from "@/components/survey/BallparkResult";
 
 const STEPS = [
   {
-    title: "Profile",
-    body: "Tell us your role and what you are measured on.",
-    icon: <IconProfile />,
-  },
-  {
-    title: "Beliefs",
-    body: "Answer five questions about how product decisions get made.",
+    title: "Ballpark",
+    body: "8 questions, see if it matters.",
     icon: <IconBeliefs />,
   },
   {
-    title: "Index",
-    body: "See one score for how well the product line shares parts and architecture.",
+    title: "Measured",
+    body: "Your parts list, see where.",
     icon: <IconIndex />,
   },
   {
-    title: "Your view",
-    body: "See what complexity costs your function, with an assistant that explains every number.",
-    icon: <IconView />,
-  },
-  {
-    title: "Check",
-    body: "See the same score at the moment someone requests a new part.",
+    title: "Sustained",
+    body: "A check where parts get chosen.",
     icon: <IconCheck />,
   },
 ];
@@ -93,30 +97,26 @@ const opts = (values: readonly string[]): Choice[] =>
 const scaleOpts = (labels: string[]): Choice[] =>
   labels.map((label, i) => ({ value: String(i + 1), label }));
 
-const PROFILE_KEYS = ["role", "decisionLevel", "products", "metrics"] as const;
-const BELIEF_KEYS = [
-  "customersNeedEveryVariant",
-  "architectureOwner",
-  "measuredOnComplexity",
-  "checksForExistingPart",
-  "biggestBlocker",
-] as const;
+type TabId = "overview" | "ballpark" | "result" | "view";
 
-type TabId = "overview" | "profile" | "beliefs";
-
-/** One belief question: text on the left, options on the right. */
+/** One question: text on the left, answer on the right. */
 function QuestionRow({
   question,
+  hint,
   error,
   children,
 }: {
   question: string;
+  hint?: string;
   error?: string;
   children: React.ReactNode;
 }) {
   return (
-    <div className="grid grid-cols-1 gap-4 border-b border-line py-7 lg:grid-cols-[minmax(0,320px)_1fr] lg:gap-10">
-      <p className="text-[15px] leading-snug text-text">{question}</p>
+    <div className="grid grid-cols-1 gap-4 border-b border-line py-6 lg:grid-cols-[minmax(0,320px)_1fr] lg:gap-10">
+      <div>
+        <p className="text-[15px] leading-snug text-text">{question}</p>
+        {hint ? <p className="mt-1 text-[12px] text-text-3">{hint}</p> : null}
+      </div>
       <div>
         {children}
         {error ? <p className="mt-2 text-[12px] text-risk">{error}</p> : null}
@@ -126,19 +126,29 @@ function QuestionRow({
 }
 
 export default function IntakePage() {
-  const router = useRouter();
   const [profile, setProfile] = useState<UserProfile>({ ...EMPTY_PROFILE });
+  const [answers, setAnswers] = useState<BallparkAnswers>({ ...EMPTY_BALLPARK });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [tab, setTab] = useState<TabId>("overview");
 
   useEffect(() => {
     setProfile(loadProfile());
+    setAnswers(loadBallpark());
   }, []);
 
-  function update<K extends keyof UserProfile>(key: K, value: UserProfile[K]) {
+  function updateProfile<K extends keyof UserProfile>(key: K, value: UserProfile[K]) {
     setProfile((p) => {
       const next = { ...p, [key]: value };
       saveProfile(next);
+      return next;
+    });
+    setErrors((e) => ({ ...e, [key]: "" }));
+  }
+
+  function update<K extends keyof BallparkAnswers>(key: K, value: BallparkAnswers[K]) {
+    setAnswers((a) => {
+      const next = { ...a, [key]: value };
+      saveBallpark(next);
       return next;
     });
     setErrors((e) => ({ ...e, [key]: "" }));
@@ -148,56 +158,60 @@ export default function IntakePage() {
     return arr.includes(item) ? arr.filter((x) => x !== item) : [...arr, item];
   }
 
-  function findErrors(p: UserProfile): Record<string, string> {
+  function findErrors(): Record<string, string> {
     const e: Record<string, string> = {};
-    if (!p.role) e.role = "Required";
-    if (!p.decisionLevel) e.decisionLevel = "Required";
-    if (p.products.length === 0) e.products = "Select at least one product";
-    if (p.metrics.length === 0) e.metrics = "Select at least one";
-    if (!p.customersNeedEveryVariant) e.customersNeedEveryVariant = "Required";
-    if (!p.architectureOwner) e.architectureOwner = "Required";
-    if (!p.measuredOnComplexity) e.measuredOnComplexity = "Required";
-    if (!p.checksForExistingPart) e.checksForExistingPart = "Required";
-    if (!p.biggestBlocker) e.biggestBlocker = "Required";
+    if (!profile.role) e.role = "Required";
+    if (!answers.partNumbers) e.partNumbers = "Required";
+    if (!answers.revenue) e.revenue = "Required";
+    if (!answers.productLines) e.productLines = "Required";
+    if (!answers.acquisitions) e.acquisitions = "Required";
+    if (!answers.alignment) e.alignment = "Required";
+    if (!answers.platforming) e.platforming = "Required";
+    if (!answers.complexityTarget) e.complexityTarget = "Required";
+    if (!answers.partNumberOwner) e.partNumberOwner = "Required";
     return e;
   }
 
-  const allErrors = findErrors(profile);
-  const profileIncomplete = PROFILE_KEYS.some((k) => allErrors[k]);
-  const beliefsIncomplete = BELIEF_KEYS.some((k) => allErrors[k]);
+  const allErrors = findErrors();
+  const ready = profile.role !== "" && isComplete(answers);
 
   function advance() {
     if (tab === "overview") {
-      setTab("profile");
+      setTab("ballpark");
       return;
     }
-    if (tab === "profile") {
-      const shown = Object.fromEntries(
-        PROFILE_KEYS.filter((k) => allErrors[k]).map((k) => [k, allErrors[k]])
-      );
-      setErrors(shown);
-      if (Object.keys(shown).length > 0) return;
-      setTab("beliefs");
+    if (tab === "ballpark") {
+      setErrors(allErrors);
+      if (Object.keys(allErrors).length > 0) return;
+      saveProfile(profile);
+      saveBallpark(answers);
+      setTab("result");
       return;
     }
-    setErrors(allErrors);
-    if (Object.keys(allErrors).length > 0) {
-      if (profileIncomplete) setTab("profile");
+    if (tab === "result") {
+      setTab("view");
       return;
     }
     saveProfile(profile);
-    router.push("/build");
+    setTab("result");
   }
 
-  const actionLabel = tab === "beliefs" ? "Build my view" : "Continue";
+  const actionLabel =
+    tab === "ballpark"
+      ? "See my ballpark"
+      : tab === "result"
+      ? "Add your view"
+      : tab === "view"
+      ? "Back to my ballpark"
+      : "Start";
 
   return (
     <div className="min-h-screen bg-surface">
       <div className="mx-auto max-w-shell px-12 pb-24">
         <PageHeader
-          parent="Voltara Power Systems"
-          section="Platforming Index"
-          title="Complexity survey"
+          parent="Platforming Index"
+          section="Ballpark"
+          title="How much complexity are you carrying?"
         />
 
         <Tabs
@@ -206,18 +220,21 @@ export default function IntakePage() {
           items={[
             { id: "overview", label: "Overview" },
             {
-              id: "profile",
-              label: "Profile",
-              flagged: profileIncomplete && PROFILE_KEYS.some((k) => errors[k]),
+              id: "ballpark",
+              label: "Ballpark index",
+              flagged: Object.keys(errors).length > 0,
             },
-            {
-              id: "beliefs",
-              label: "Beliefs",
-              flagged: beliefsIncomplete && BELIEF_KEYS.some((k) => errors[k]),
-            },
+            { id: "result", label: "Result" },
+            { id: "view", label: "Add your view" },
           ]}
           actions={
-            <PrimaryButton onClick={advance}>{actionLabel}</PrimaryButton>
+            // The result screen carries its own accent action, so the header
+            // steps back to an outline button there.
+            tab === "overview" || tab === "ballpark" ? (
+              <PrimaryButton onClick={advance}>{actionLabel}</PrimaryButton>
+            ) : (
+              <Button onClick={advance}>{actionLabel}</Button>
+            )
           }
         />
 
@@ -225,66 +242,189 @@ export default function IntakePage() {
           <section className="pt-14">
             <StepStrip steps={STEPS} />
             <p className="mt-16 text-[15px] text-text-2">
-              Takes three minutes. You get a score and a view built for your role.
+              Start with 8 questions and no upload. Two minutes, and you find
+              out whether this is worth an afternoon.
             </p>
             <p className="mt-3 text-[13px] text-text-3">
-              Sample company. Sample data.
+              The measured index needs a parts list. The example on this build
+              uses sample data for a fictional company.
             </p>
           </section>
         )}
 
-        {tab === "profile" && (
-          <section className="grid grid-cols-1 gap-8 pt-12 lg:grid-cols-2">
-            <Field label="Your role" error={errors.role}>
+        {tab === "ballpark" && (
+          <section className="pt-6">
+            <QuestionRow question="Your role" error={errors.role}>
               <ChoiceGroup
+                size="sm"
                 options={opts(ROLES)}
                 selected={profile.role ? [profile.role] : []}
-                onSelect={(v) => update("role", v as Role)}
+                onSelect={(v) => updateProfile("role", v as Role)}
               />
-            </Field>
+            </QuestionRow>
 
-            <Field label="Decision level" error={errors.decisionLevel}>
+            <QuestionRow
+              question="Roughly how many part numbers do you carry?"
+              hint="A rough figure is enough. The bands fill it in for you."
+              error={errors.partNumbers}
+            >
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="w-[180px]">
+                  <Field label="Part numbers" dense>
+                    <input
+                      type="number"
+                      min={1}
+                      value={answers.partNumbers ?? ""}
+                      onChange={(e) =>
+                        update("partNumbers", Number(e.target.value) || null)
+                      }
+                      placeholder="12000"
+                      className="w-full bg-transparent py-1 text-[14px] tabular-nums text-text placeholder:text-text-3 focus:outline-none"
+                    />
+                  </Field>
+                </div>
+                <ChoiceGroup
+                  size="sm"
+                  options={PART_NUMBER_BANDS.map((b) => ({
+                    value: String(b.value),
+                    label: b.label,
+                  }))}
+                  selected={
+                    PART_NUMBER_BANDS.some((b) => b.value === answers.partNumbers)
+                      ? [String(answers.partNumbers)]
+                      : []
+                  }
+                  onSelect={(v) => update("partNumbers", Number(v))}
+                />
+              </div>
+            </QuestionRow>
+
+            <QuestionRow question="Annual revenue" error={errors.revenue}>
               <ChoiceGroup
-                options={opts(DECISION_LEVELS)}
-                selected={profile.decisionLevel ? [profile.decisionLevel] : []}
-                onSelect={(v) => update("decisionLevel", v as DecisionLevel)}
+                size="sm"
+                options={opts(REVENUE_BANDS)}
+                selected={answers.revenue ? [answers.revenue] : []}
+                onSelect={(v) => update("revenue", v as RevenueBand)}
               />
-            </Field>
+            </QuestionRow>
 
-            <Field
-              label="Products you cover"
-              hint="Voltara's six products. Sample data."
-              error={errors.products}
+            <QuestionRow
+              question="How many product lines do you sell?"
+              error={errors.productLines}
+            >
+              <div className="w-[180px]">
+                <Field label="Product lines" dense>
+                  <input
+                    type="number"
+                    min={1}
+                    value={answers.productLines ?? ""}
+                    onChange={(e) =>
+                      update("productLines", Number(e.target.value) || null)
+                    }
+                    placeholder="6"
+                    className="w-full bg-transparent py-1 text-[14px] tabular-nums text-text placeholder:text-text-3 focus:outline-none"
+                  />
+                </Field>
+              </div>
+            </QuestionRow>
+
+            <QuestionRow
+              question="How many acquisitions in the last 10 years?"
+              error={errors.acquisitions}
             >
               <ChoiceGroup
-                multi
-                options={opts(PRODUCTS)}
-                selected={profile.products}
-                onSelect={(v) =>
-                  update("products", toggleArray(profile.products, v as Product))
-                }
+                size="sm"
+                options={opts(ACQUISITION_BANDS)}
+                selected={answers.acquisitions ? [answers.acquisitions] : []}
+                onSelect={(v) => update("acquisitions", v as AcquisitionBand)}
               />
-            </Field>
+            </QuestionRow>
 
-            <Field label="What you are measured on" error={errors.metrics}>
+            <QuestionRow
+              question="After those acquisitions, did you align parts and suppliers?"
+              error={errors.alignment}
+            >
               <ChoiceGroup
-                multi
-                options={opts(METRICS)}
-                selected={profile.metrics}
-                onSelect={(v) =>
-                  update("metrics", toggleArray(profile.metrics, v as Metric))
-                }
+                size="sm"
+                options={opts(ALIGNMENT_ANSWERS)}
+                selected={answers.alignment ? [answers.alignment] : []}
+                onSelect={(v) => update("alignment", v as AlignmentAnswer)}
               />
-            </Field>
+            </QuestionRow>
+
+            <QuestionRow question="Have you tried platforming?" error={errors.platforming}>
+              <ChoiceGroup
+                size="sm"
+                options={opts(PLATFORMING_ANSWERS)}
+                selected={answers.platforming ? [answers.platforming] : []}
+                onSelect={(v) => update("platforming", v as PlatformingAnswer)}
+              />
+            </QuestionRow>
+
+            <QuestionRow
+              question="Do you set a target for product complexity?"
+              error={errors.complexityTarget}
+            >
+              <ChoiceGroup
+                size="sm"
+                options={opts(TARGET_ANSWERS)}
+                selected={answers.complexityTarget ? [answers.complexityTarget] : []}
+                onSelect={(v) => update("complexityTarget", v as TargetAnswer)}
+              />
+            </QuestionRow>
+
+            <QuestionRow
+              question="Who decides when a new part number gets created?"
+              error={errors.partNumberOwner}
+            >
+              <ChoiceGroup
+                size="sm"
+                options={opts(OWNER_ANSWERS)}
+                selected={answers.partNumberOwner ? [answers.partNumberOwner] : []}
+                onSelect={(v) => update("partNumberOwner", v as OwnerAnswer)}
+              />
+            </QuestionRow>
+
+            <p className="pt-6 text-[13px] text-text-3">
+              Eight answers. No upload. The result is an estimate with its
+              arithmetic shown.
+            </p>
           </section>
         )}
 
-        {tab === "beliefs" && (
+        {tab === "result" &&
+          (ready ? (
+            <BallparkResult
+              answers={answers}
+              profile={profile}
+              onCost={(value) => update("costPerPartNumber", value)}
+            />
+          ) : (
+            <section className="pt-14">
+              <p className="text-[15px] text-text-2">
+                Answer the eight questions and the ballpark appears here.
+              </p>
+              <button
+                type="button"
+                onClick={() => setTab("ballpark")}
+                className="mt-3 text-[13px] text-text-2 underline-offset-4 transition-colors hover:text-text hover:underline"
+              >
+                Go to the questions
+              </button>
+            </section>
+          ))}
+
+        {tab === "view" && (
           <section className="pt-6">
-            <QuestionRow
-              question="Customers need every variant we offer."
-              error={errors.customersNeedEveryVariant}
-            >
+            <div className="border-b border-line pb-5">
+              <p className="text-[15px] text-text">Add your view (1 minute)</p>
+              <p className="mt-1 text-[13px] text-text-3">
+                Optional. These answers sharpen the Incentives score and feed the
+                Alignment view, where functions see where they disagree.
+              </p>
+            </div>
+
+            <QuestionRow question="Customers need every variant we offer.">
               <ChoiceGroup
                 size="sm"
                 options={scaleOpts(SCALE_LABELS)}
@@ -293,26 +433,22 @@ export default function IntakePage() {
                     ? [String(profile.customersNeedEveryVariant)]
                     : []
                 }
-                onSelect={(v) => update("customersNeedEveryVariant", Number(v))}
+                onSelect={(v) => updateProfile("customersNeedEveryVariant", Number(v))}
               />
             </QuestionRow>
 
-            <QuestionRow
-              question="Who owns product architecture decisions today?"
-              error={errors.architectureOwner}
-            >
+            <QuestionRow question="Who owns product architecture decisions today?">
               <ChoiceGroup
                 size="sm"
                 options={opts(ARCHITECTURE_OWNERS)}
                 selected={profile.architectureOwner ? [profile.architectureOwner] : []}
-                onSelect={(v) => update("architectureOwner", v as ArchitectureOwner)}
+                onSelect={(v) =>
+                  updateProfile("architectureOwner", v as ArchitectureOwner)
+                }
               />
             </QuestionRow>
 
-            <QuestionRow
-              question="Are you measured on product complexity?"
-              error={errors.measuredOnComplexity}
-            >
+            <QuestionRow question="Are you measured on product complexity?">
               <ChoiceGroup
                 size="sm"
                 options={opts(MEASURED_ON_COMPLEXITY)}
@@ -320,7 +456,7 @@ export default function IntakePage() {
                   profile.measuredOnComplexity ? [profile.measuredOnComplexity] : []
                 }
                 onSelect={(v) =>
-                  update(
+                  updateProfile(
                     "measuredOnComplexity",
                     v as UserProfile["measuredOnComplexity"]
                   )
@@ -328,10 +464,7 @@ export default function IntakePage() {
               />
             </QuestionRow>
 
-            <QuestionRow
-              question="When a new product needs a part, how often does the team check for an existing one first?"
-              error={errors.checksForExistingPart}
-            >
+            <QuestionRow question="When a new product needs a part, how often does the team check for an existing one first?">
               <ChoiceGroup
                 size="sm"
                 options={scaleOpts(FREQ_LABELS)}
@@ -340,23 +473,43 @@ export default function IntakePage() {
                     ? [String(profile.checksForExistingPart)]
                     : []
                 }
-                onSelect={(v) => update("checksForExistingPart", Number(v))}
+                onSelect={(v) => updateProfile("checksForExistingPart", Number(v))}
               />
             </QuestionRow>
 
-            <QuestionRow
-              question="Biggest blocker to platforming here."
-              error={errors.biggestBlocker}
-            >
+            <QuestionRow question="Biggest blocker to platforming here.">
               <ChoiceGroup
                 size="sm"
                 options={opts(BLOCKERS)}
                 selected={profile.biggestBlocker ? [profile.biggestBlocker] : []}
-                onSelect={(v) => update("biggestBlocker", v as PlatformingBlocker)}
+                onSelect={(v) =>
+                  updateProfile("biggestBlocker", v as PlatformingBlocker)
+                }
               />
             </QuestionRow>
 
-            <div className="grid grid-cols-1 gap-4 py-7 lg:grid-cols-[minmax(0,320px)_1fr] lg:gap-10">
+            <QuestionRow question="How much of this is yours to decide?">
+              <ChoiceGroup
+                size="sm"
+                options={opts(DECISION_LEVELS)}
+                selected={profile.decisionLevel ? [profile.decisionLevel] : []}
+                onSelect={(v) => updateProfile("decisionLevel", v as DecisionLevel)}
+              />
+            </QuestionRow>
+
+            <QuestionRow question="What are you measured on?">
+              <ChoiceGroup
+                size="sm"
+                multi
+                options={opts(METRICS)}
+                selected={profile.metrics}
+                onSelect={(v) =>
+                  updateProfile("metrics", toggleArray(profile.metrics, v as Metric))
+                }
+              />
+            </QuestionRow>
+
+            <div className="grid grid-cols-1 gap-4 py-6 lg:grid-cols-[minmax(0,320px)_1fr] lg:gap-10">
               <p className="text-[15px] leading-snug text-text">
                 A decision your team is facing right now.
                 <span className="ml-2 text-text-3">Optional</span>
@@ -365,7 +518,7 @@ export default function IntakePage() {
                 <input
                   type="text"
                   value={profile.currentDecision}
-                  onChange={(e) => update("currentDecision", e.target.value)}
+                  onChange={(e) => updateProfile("currentDecision", e.target.value)}
                   placeholder="Whether to spec a new enclosure for the next UPS line"
                   className="w-full bg-transparent py-1 text-[15px] text-text placeholder:text-text-3 focus:outline-none"
                 />

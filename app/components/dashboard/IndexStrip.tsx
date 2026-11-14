@@ -1,5 +1,6 @@
 import Badge from "@/components/ui/Badge";
 import CountUp from "@/components/ui/CountUp";
+import BallparkNote from "./BallparkNote";
 import { VoltaraData } from "@/lib/voltaraData";
 
 const STEPS = ["Cut cost today", "Consolidate duplicates", "Common core, modules"];
@@ -8,7 +9,14 @@ const STEPS = ["Cut cost today", "Consolidate duplicates", "Common core, modules
  * The score is the product, so it leads the page: one slim row carrying the
  * score, the four dimensions, and where Voltara sits on the three steps.
  */
-export default function IndexStrip({ data }: { data: VoltaraData }) {
+export default function IndexStrip({
+  data,
+  basis,
+}: {
+  data: VoltaraData;
+  /** What the score was measured from, printed under the badge. */
+  basis?: string;
+}) {
   const idx = data.index;
 
   return (
@@ -22,7 +30,11 @@ export default function IndexStrip({ data }: { data: VoltaraData }) {
           />
           <span className="text-[13px] text-text-3">of 100</span>
         </div>
-        <Badge>Provisional</Badge>
+        <div className="space-y-1">
+          <Badge tone="positive">Measured</Badge>
+          {basis && <p className="text-[12px] text-text-3">{basis}</p>}
+          <BallparkNote />
+        </div>
       </div>
 
       {/* Read and dimensions */}
