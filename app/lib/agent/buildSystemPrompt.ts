@@ -12,13 +12,21 @@ export interface PromptSection {
   source: string;
 }
 
+export interface PageContext {
+  url?: string;
+  title?: string;
+  product?: string;
+  needs?: string[];
+}
+
 export function buildSystemPrompt(
   profile: UserProfile,
   data: VoltaraData,
   survey: SurveyFile,
-  rules: Rule[] = []
+  rules: Rule[] = [],
+  page?: PageContext
 ): string {
-  return buildPromptSections(profile, data, survey, rules)
+  return buildPromptSections(profile, data, survey, rules, page)
     .map((s) => `## ${s.heading}\n${s.body}`)
     .join("\n\n");
 }
@@ -62,7 +70,8 @@ export function buildPromptSections(
   profile: UserProfile,
   data: VoltaraData,
   survey: SurveyFile,
-  rules: Rule[] = []
+  rules: Rule[] = [],
+  page?: PageContext
 ): PromptSection[] {
   const roleCfg = profile.role ? getRoleConfig(profile.role) : null;
   const view = roleViewFor(profile.role);
@@ -173,5 +182,28 @@ export function buildPromptSections(
       ].join("\n"),
       source: "data/derived/voltara_parts.json",
     },
+    ...(page && (page.product || page.needs?.length)
+      ? [
+          {
+            id: "page",
+            heading: "THE PAGE IN FRONT OF THE USER",
+            body: [
+              `The user is reading a page and the panel has already checked it against the parts data.`,
+              page.title ? `Page: ${page.title}` : "",
+              page.url ? `Address: ${page.url}` : "",
+              page.product ? `Product on the page: ${page.product}` : "",
+              page.needs?.length
+                ? `What it needs, with what the check found:\n${page.needs
+                    .map((n) => `  - ${n}`)
+                    .join("\n")}`
+                : "",
+              `Answer about this page first. Use the parts data above for prices, part numbers and origin.`,
+            ]
+              .filter(Boolean)
+              .join("\n"),
+            source: "The page the panel read",
+          },
+        ]
+      : []),
   ];
 }

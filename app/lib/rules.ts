@@ -88,8 +88,31 @@ export interface Activity {
   detail?: ActivityDetail;
 }
 
+/**
+ * What a row did, in words. The log is read by people, so it names the action
+ * rather than the function that performed it.
+ */
+const ACTION_LABEL: Record<string, string> = {
+  check_part: "Part check",
+  plan_product: "Page check",
+  record_decision: "Decision",
+  get_rules: "Rules read",
+  get_index: "Index read",
+  open_dashboard: "Dashboard opened",
+  sync: "Sync",
+  reset: "Reset",
+};
+
+export function actionLabel(tool: string): string {
+  if (ACTION_LABEL[tool]) return ACTION_LABEL[tool];
+  const words = tool.replace(/[_-]+/g, " ").trim();
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
 export const ACTIVITY_LABEL: Record<ActivitySource, string> = {
-  agent: "Agent",
+  // The product has two front doors, the panel and the dashboard. A third
+  // label only appears if someone drives the API from outside them.
+  agent: "Integration",
   extension: "Extension",
   dashboard: "Dashboard",
 };

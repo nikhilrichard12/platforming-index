@@ -1,60 +1,79 @@
-# Platforming Index browser extension
+# Platforming Index extension
 
-Backup path for teams without an agent. The primary integration is the MCP server in `mcp/`.
+The way people reach the Platforming Index outside the dashboard. It does two
+things: it opens a side panel that checks whatever page you are reading
+against the parts your company already buys, and it keeps the inline card on
+part request forms for the moment a part number would be born.
 
-Shows the part Voltara already buys at the moment someone requests a new one,
-inside the procurement system they already use.
+## What it does
 
-The point of the extension is that it works on a page we do not own. The demo
-page (`/mock-procurement`) contains no Platforming Index code and knows nothing
-about the check.
+- **Side panel.** Click the toolbar icon. The panel opens beside the page,
+  reads it, and says how many of the things the page describes already exist,
+  with the part, the best price, the supplier, the country of origin and the
+  purchase order behind each one. Reuse or decline from the panel; declining
+  writes a rule.
+- **Toolbar badge.** On an allowed page the worker counts how many needs
+  already exist and puts that number on the icon. No number means nothing
+  matched. A badge count leaves no trace in the activity log; opening the
+  panel does.
+- **Inline card.** On a part request form the card still appears beside the
+  description field, with the part already in stock and the yearly cost of a
+  new part number.
 
-## Load it in Chrome
+## Where it runs
 
-1. Start the app: `cd app && npm run dev`. It must be on `http://localhost:3000`.
-2. Open `chrome://extensions`.
-3. Turn on **Developer mode** (top right).
-4. Click **Load unpacked** and pick this `extension/` folder.
-5. "Platforming Index" appears in the list with a service worker. If it shows
-   an error, click **Errors** to see it.
+Host permissions, and the only pages it reads:
 
-## Demo it
+- `http://localhost:3000/*` (the demo, including `/mock-plm` and
+  `/mock-procurement`)
+- `https://*.atlassian.net/*`
+- `https://airtable.com/*`
+- `https://kearney-perlab.growthsignals.com/*` (Velocity AI Studio)
 
-1. Open `http://localhost:3000/mock-procurement`. It looks like OrderDesk, a
-   stand-in for the manufacturer's own procurement system.
-2. In **Description**, type: `Fan, axial, 120 mm, 24 VDC`
-3. Half a second after you stop typing, the card appears on the right. It shows
-   6 existing part numbers, the best price of $9.77 at Norwick Components, and
-   a $5,324 yearly saving at 1,800 units.
-4. **Reuse existing part** writes `10-92550` into the Part number field and
-   records the decision.
-5. **Request an exception** asks why this product needs its own part and
-   records that instead.
-6. **Ask why** sends the question to the assistant with the profile saved from
-   the survey, and shows the reply with its evidence tags.
-7. Open `http://localhost:3000/dashboard` and the **New part check** tab to see
-   the decisions you just recorded.
+Page text goes to `PLATFORMING_INDEX_URL` and nowhere else. Nothing is stored
+on the page, and the extension writes to the page only when someone clicks
+"Reuse existing part".
 
-Nothing matches below 0.6 confidence, so typing something Voltara does not buy
-(`titanium widget`) shows no card at all.
+## Install
 
-## What is where
+1. Run the app: `cd app && npm run dev`.
+2. Open `chrome://extensions`, turn on Developer mode, choose "Load unpacked"
+   and pick this folder.
+3. Open one of the allowed pages, for example
+   `http://localhost:3000/mock-plm`, and click the toolbar icon.
 
-| File | Does |
+`PLATFORMING_INDEX_URL` is `http://localhost:3000`, set as `API` at the top of
+`background.js` and `sidepanel.js`. Change both to point at a deployed app.
+
+## Files
+
+| File | What it does |
 |---|---|
-| `manifest.json` | Manifest V3. Content script on `/mock-procurement` only, one host permission, no tabs or storage permission. |
-| `adapters.js` | The only site-specific knowledge: which selectors hold the description, product, units, and part number. Adding a second procurement system means adding one entry here. |
-| `content.js` | Watches the description, debounces 500ms, asks the background worker for a check, and draws the card in a Shadow DOM so the host page's styles cannot reach it. |
-| `background.js` | Does the fetches to `/api/check-part`, `/api/part-decision`, and `/api/agent`, and returns JSON. |
+| `manifest.json` | MV3 manifest: side panel, host permissions, content script |
+| `sidepanel.html` / `sidepanel.js` | The frame around `/panel`, and the context relay |
+| `background.js` | Opens the panel, relays page context, sets the badge, owns every fetch |
+| `content.js` | Reads the page, keeps the inline card, draws it in a Shadow DOM |
+| `adapters.js` | Field selectors per host page, so a new form is one entry |
 
-## Known limits
+## Reading a page
 
-- The content script is registered for `http://localhost:3000/mock-procurement*`
-  only. Pointing it at a real system means adding both a `matches` entry in the
-  manifest and an adapter.
-- Everything is sample data for a fictional company, and a match is a
-  suggestion until engineering approves it.
-- Chrome 137 and later ignore the `--load-extension` command line flag, so the
-  extension cannot be loaded by an automated browser. It must be loaded by hand
-  as above. The card itself is covered by injecting `content.js` into the page
-  in the test harness.
+The content script prefers the current selection, then the last answer on a
+chat style research page, then the main region. It skips navigation, headers,
+footers, buttons, form fields, password inputs and anything hidden, and caps
+what it sends at 8,000 characters. It re-reads when the selection changes and
+when the address changes, which is what single page apps do instead of
+loading.
+
+## Checking by hand
+
+Chrome 157 ignores `--load-extension`, so the automated run in this repo
+injects `content.js` into a page instead. These need a human:
+
+1. Load the folder unpacked, open `http://localhost:3000/mock-plm`, and click
+   the toolbar icon. The panel should open and show "14 of 18 needs already
+   exist."
+2. Select three lines of the requirements table. The panel should re-check
+   and show only those.
+3. Open `http://localhost:3000/mock-procurement` and type a fan description.
+   The inline card should still appear.
+4. Check the toolbar badge on `/mock-plm` before opening the panel.

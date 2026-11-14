@@ -5,9 +5,10 @@ import Field from "@/components/ui/Field";
 import Badge from "@/components/ui/Badge";
 import Tile from "@/components/ui/Tile";
 import { Button, PrimaryButton } from "@/components/ui/Button";
+import ReasonPicker from "@/components/ui/ReasonPicker";
 import { px, usd } from "@/lib/voltaraData";
 import { OriginSource, originLine } from "@/lib/origin";
-import { ACTIVITY_LABEL, Decision, REASON_KINDS, ReasonKind, Rule, reasonLabel } from "@/lib/rules";
+import { ACTIVITY_LABEL, Decision, ReasonKind, Rule, reasonLabel } from "@/lib/rules";
 import { useActivity } from "./ActivityTable";
 
 interface Match {
@@ -58,13 +59,13 @@ const when = (iso: string) => iso.slice(0, 10) + " " + iso.slice(11, 16);
 const SOURCE_LABEL: Record<string, string> = {
   dashboard: "Dashboard",
   extension: "Extension",
-  mcp: "Agent",
+  mcp: "Integration",
 };
 
 /**
- * The same check the engineer's agent performs, inside the app, plus the
- * rules and decisions it has produced. The MCP server is the real delivery;
- * this tab is the reference view and the demo's safety net.
+ * The same check the side panel runs, inside the app, plus the rules and
+ * decisions it has produced. The panel is where the work happens; this tab is
+ * the reference view and the demo's safety net.
  */
 export default function CheckTab({
   rules,
@@ -89,7 +90,7 @@ export default function CheckTab({
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { activity } = useActivity(3, true);
 
-  // Same 500ms debounce the agent and the extension use. Re-runs when a rule
+  // Same 500ms debounce the panel and the extension use. Re-runs when a rule
   // changes, so the card reflects a rule the moment it is created.
   useEffect(() => {
     if (timer.current) clearTimeout(timer.current);
@@ -166,8 +167,8 @@ export default function CheckTab({
       <div>
         <p className="text-[15px] text-text-2">Decisions</p>
         <p className="mt-1 text-[13px] text-text-3">
-          This check runs inside the engineer&apos;s AI agent through our MCP
-          server while they design. Shown here for reference.
+          This check runs in the side panel, beside whatever page the engineer
+          is reading. Shown here for reference.
         </p>
       </div>
 
@@ -361,42 +362,14 @@ export default function CheckTab({
             {done && <p className="mt-3 text-[13px] text-positive">{done}</p>}
 
             {showException && (
-              <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
-                <Field label="Reason" dense>
-                  <select
-                    value={reasonKind}
-                    onChange={(e) => setReasonKind(e.target.value as ReasonKind)}
-                    className="w-full bg-transparent py-1 text-[14px] text-text focus:outline-none"
-                  >
-                    <option value="" className="bg-panel">
-                      Choose a reason
-                    </option>
-                    {REASON_KINDS.map((k) => (
-                      <option key={k.id} value={k.id} className="bg-panel">
-                        {k.label}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-                <Field label="Why does this product need its own part?" dense>
-                  <input
-                    type="text"
-                    value={reasonText}
-                    onChange={(e) => setReasonText(e.target.value)}
-                    placeholder="The cabinet needs US-origin cooling parts for a federal contract."
-                    className="w-full bg-transparent py-1 text-[14px] text-text placeholder:text-text-3 focus:outline-none"
-                  />
-                </Field>
-                <div className="flex items-center gap-3 lg:col-span-2">
-                  <Button onClick={sendException} disabled={!reasonKind}>
-                    Send for approval
-                  </Button>
-                  {!reasonKind && (
-                    <span className="text-[12px] text-text-3">
-                      A reason is required. It becomes the rule others read.
-                    </span>
-                  )}
-                </div>
+              <div className="mt-4">
+                <ReasonPicker
+                  kind={reasonKind}
+                  text={reasonText}
+                  onKind={setReasonKind}
+                  onText={setReasonText}
+                  onSend={sendException}
+                />
               </div>
             )}
           </div>
@@ -521,7 +494,7 @@ export default function CheckTab({
                   {a.at.slice(11, 19)}
                 </span>
                 <span className="w-[96px] shrink-0 truncate text-text-2">
-                  {a.agentName ?? ACTIVITY_LABEL[a.source]}
+                  {ACTIVITY_LABEL[a.source]}
                 </span>
                 <span className="truncate text-text">{a.summary}</span>
               </li>

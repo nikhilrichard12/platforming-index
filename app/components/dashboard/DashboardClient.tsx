@@ -53,7 +53,7 @@ const TAB_QUESTIONS: Record<TabId, string[] | null> = {
   ],
   connections: [
     "Which systems feed this data?",
-    "What can an agent ask for?",
+    "Where does the check appear?",
     "How does a decision change the score?",
   ],
   check: [
@@ -141,11 +141,9 @@ function Reply({
 export default function DashboardClient({
   data,
   survey,
-  mcpServerPath,
 }: {
   data: VoltaraData;
   survey: SurveyFile;
-  mcpServerPath: string;
 }) {
   const [profile, setProfile] = useState<UserProfile>({ ...EMPTY_PROFILE });
   const [tab, setTab] = useState<TabId>("summary");
@@ -182,7 +180,7 @@ export default function DashboardClient({
     refresh();
   }, [refresh]);
 
-  // A decision recorded by an agent or the extension lands in the activity
+  // A decision recorded in the panel or the extension lands in the activity
   // log first. Re-read rules and decisions whenever it moves, so the score and
   // the tables follow a call made outside this browser tab.
   const { activity: latest } = useActivity(1, true);
@@ -372,9 +370,7 @@ export default function DashboardClient({
               />
             )}
 
-            {tab === "connections" && (
-              <ConnectionsTab serverPath={mcpServerPath} />
-            )}
+            {tab === "connections" && <ConnectionsTab />}
 
             {tab === "alignment" && (
               <AlignmentTab

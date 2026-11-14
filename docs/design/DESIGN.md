@@ -78,9 +78,15 @@ Shared components live in `app/components/ui/`.
 - **Merge panel** (`252 become 60`, top of Parts): 252 7px squares, one per part number, blocked and tinted by product in six tints walked from text-3 to text-2. They travel to 60 clusters on a 12 by 5 grid, staggered 6ms by start position so the motion reads as a wave left to right. Cluster footprint is the number of part numbers merged. Core candidates land in accent, two-to-four in text-2, unique in text-3. About 5 seconds, once per tab open.
 - **Exploded view** (Summary): an isometric stack, one diamond slab per layer, parts drawn as small outlined diamonds on the slab surface. Stroke 1.1px on slabs, 1.5px on blocks, no fills except an 88% `surface` wash so a slab occludes what sits behind it. Accent for five or more products, text for two to four, text-3 for unique. Assembled sits centred in the same frame the exploded stack fills, so the panel never changes height.
 - **Live stage** (Connections): three outlined stations, a Rules tray under the middle one, and chips that carry one call across it. Chips are `panel-2` on a `line` border; the result keeps its badges inside the station box and its numbers as a caption below it.
-- **Origin column and line**: country of origin is a column in the parts rows, the source popover and the New product table, and a line on every card. When a compliance rule blocks a part, the same part from a compliant supplier is offered in 13px text above the alternatives: "Same part, US-origin source: Ostrava Thermal, $12.73", with the part number and its PO tag. Origin is read from `voltara_suppliers.csv`, never guessed from a supplier name, and the copy says so wherever an agent might guess.
+- **Origin column and line**: country of origin is a column in the parts rows, the source popover and the New product table, and a line on every card. When a compliance rule blocks a part, the same part from a compliant supplier is offered in 13px text above the alternatives: "Same part, US-origin source: Ostrava Thermal, $12.73", with the part number and its PO tag. Origin is read from `voltara_suppliers.csv`, never guessed from a supplier name, and the copy says so wherever a reader might guess.
+- **Side panel** (`/panel`, 400px): the extension's page, with its own small
+  header instead of the TopBar. Top to bottom: who is looking, the headline,
+  the part numbers converging, one card per need with Reuse and Can't reuse,
+  the rules that apply, the product drawn from this page, the score, the last
+  decisions, and the assistant docked at the foot. Every block is the
+  dashboard's component at panel width, never a second implementation.
 - **New product tab**: a name field beside a tall concept textarea, one text link ("Load sample concept") on the left of the row and the single accent button ("Check against the core") on the right. The answer is a 17px light headline, two supporting lines, then the standard table: need, status badge, matched part, best price, PO tag. Status badges read `positive` in core, `neutral` shared and unique, `warn` for blocked and for new part needed, because both of those end in a new part number.
-- **ActivityTable**: the standard table with a 2px left rule per row, transparent at rest and `accent` for one second on a row that arrived since the last poll. The Source column carries a `positive` badge with the agent's own name when the call came through MCP, otherwise a `neutral` badge. 20 rows on Connections, 3 on Decisions.
+- **ActivityTable**: the standard table with a 2px left rule per row, transparent at rest and `accent` for one second on a row that arrived since the last poll. The Source column carries a `positive` badge when the check came from the panel or the extension, and a `neutral` badge when it came from this dashboard. 20 rows on Connections, 3 on Decisions.
 - Sidebar (when used): black, small text-3 group labels, 14px nav items, active item gets a surface-colored row.
 - Chart panel: panel fill, title top-left in weight 600, segmented toggle top-right, legend centered above the plot, thin gridlines in line color.
 - Tables: `panel` background, `line` row rules, `panel-2` header row, tabular right-aligned numbers, 8px vertical cell padding for tariff-style density. Headers and cells stay on one line; the first column takes `max-w-0 w-full truncate` so it absorbs the slack and ellipsizes rather than pushing later columns out of view. A heat column fills its cell edge to edge, as in the tariff table.
@@ -97,7 +103,7 @@ Shared components live in `app/components/ui/`.
 - Page gutter is 48px. 24px between blocks, 16px inside tiles.
 - Every number shows a source tag in text-3 beneath or beside it.
 - One money format everywhere, `usd()` in `lib/voltaraData.ts`, mirrored in the
-  MCP server and the extension because neither shares our bundle: two decimals
+  side panel's host extension because it does not share our bundle: two decimals
   under $1,000, no decimals above it, K at ten thousand, M at a million,
   thousands separators throughout. A unit price and a yearly total are the same
   kind of number to a reader. `priceSpan()` prints one figure when both ends of
@@ -111,10 +117,10 @@ Shared components live in `app/components/ui/`.
 - `/mock-procurement` is deliberately outside this design system. It is a stand-in for the customer's own software, so it has its own root layout and its own light stylesheet, and nothing in `components/ui/` may leak into it.
 - Evidence tags read as words on screen (Survey, Kearney survey 2026, Product master). Only purchase order tags stay in their raw form, because that is what the buyer searches for.
 - An exception never lowers the index score, and every surface that records one says so. Complexity a rule requires is not complexity anyone chose.
-- The check reaches engineers three ways from one endpoint: the MCP server (primary, inside the agent they already use), the Chrome extension (backup, inside procurement), and the Decisions tab (reference). All three call `/api/check-part` and render the same card, so the wording only has to be right once.
+- The check reaches engineers through one front door outside the dashboard: the browser extension. Its side panel rides along with whatever page they are reading, and its inline card appears on a part request form. Both call the same endpoints the Decisions tab does, so the wording only has to be right once.
 - The check is one question asked at three moments, and the Connections strip
-  says so in order: Concept (plan_product), Design (check_part in the agent),
-  Part release (the extension on the part request form). All three call the
+  says so in order: Concept, Design, Part release. Each one is the panel or
+  the card on a page the engineer is already reading, and all three call the
   same parts data and the same rules.
 - A plan never moves the index score. Only a recorded decision on a real part
   does, and every surface that shows a plan says so.
@@ -139,8 +145,7 @@ Shared components live in `app/components/ui/`.
   strip carries that sentence under the read so a moving number is never a
   surprise. Reset restores the starting values.
 - Connections is one column, not two. The sources table needs the full content
-  width to keep its five headers readable, and the MCP config blocks read
-  better wide than tall.
+  width to keep its five headers readable.
 - Nothing on Connections pretends to call a real system. "Sync now" re-reads the
   CSV files on this machine and says so in the footnote; an unconnected source
   shows the columns it would need and the words "connector not active".

@@ -1,0 +1,22 @@
+Velocity AI Studio
+
+Outdoor battery storage, 30 kW class: what the build usually looks like
+
+For a 30 kW outdoor battery cabinet the thermal path tends to drive the rest
+of the design. Most integrators start with forced air, so a 120 mm axial fan
+running on 24 VDC, a wire fan guard over it, and an extruded aluminum heatsink
+around 200 mm on the hottest devices. Where ambient runs above 45 C a liquid
+cooling cold plate is the usual answer, though it adds a service burden.
+
+The power stage is typically built from half bridge IGBT modules rated
+1200 V 100 A, with an electrolytic DC link capacitor of 470 uF 450 V across
+the bus and an isolated gate driver board, 6 channel, per leg. Control sits on
+a DSP control board, with an NTC temperature sensor 10k at four points and a
+hall effect current sensor 100 A per phase. On the DC side you will also need
+a DC contactor 150 A, a copper busbar 200 A, and a 6 pole terminal block 30 A
+for the auxiliary wiring.
+
+Commercially, the segment grew 14 percent last year and the main constraint is
+installer availability rather than component supply.
+
+Ask a follow up question

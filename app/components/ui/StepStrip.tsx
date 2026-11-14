@@ -162,3 +162,14 @@ export function IconConcept() {
     </svg>
   );
 }
+
+export function IconPanel() {
+  return (
+    <svg {...ico}>
+      <rect x="3" y="8" width="42" height="32" />
+      <path d="M31 8v32" />
+      <path d="M8 17h17M8 24h17M8 31h11" />
+      <path d="M35 16h6M35 23h6M35 30h4" />
+    </svg>
+  );
+}

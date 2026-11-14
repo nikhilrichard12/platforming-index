@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Badge from "@/components/ui/Badge";
-import { ACTIVITY_LABEL, Activity } from "@/lib/rules";
+import { ACTIVITY_LABEL, Activity, actionLabel } from "@/lib/rules";
 
 const POLL_MS = 2000;
 
@@ -64,7 +64,7 @@ export default function ActivityTable({
         <tr className="border-y border-line bg-panel-2 text-left text-text-2">
           <th className="py-2 pl-4 pr-2 font-normal">When</th>
           <th className="px-2 py-2 font-normal">Source</th>
-          <th className="px-2 py-2 font-normal">Tool</th>
+          <th className="px-2 py-2 font-normal">Action</th>
           <th className="w-full max-w-0 px-2 py-2 font-normal">Summary</th>
           <th className="py-2 pl-2 pr-4 font-normal">Product</th>
         </tr>
@@ -73,7 +73,7 @@ export default function ActivityTable({
         {activity.length === 0 ? (
           <tr>
             <td colSpan={5} className="px-4 py-4 text-text-3">
-              Nothing yet. Calls from an agent, the extension, or this
+              Nothing yet. Checks from the panel, the extension, or this
               dashboard appear here as they happen.
             </td>
           </tr>
@@ -87,11 +87,11 @@ export default function ActivityTable({
             >
               <td className="py-2 pl-4 pr-2 tabular-nums text-text-3">{when(a.at)}</td>
               <td className="px-2 py-2">
-                <Badge tone={a.source === "agent" ? "positive" : "neutral"}>
-                  {a.agentName ?? ACTIVITY_LABEL[a.source]}
+                <Badge tone={a.source === "extension" ? "positive" : "neutral"}>
+                  {ACTIVITY_LABEL[a.source]}
                 </Badge>
               </td>
-              <td className="px-2 py-2 font-mono text-[12px] text-text-2">{a.tool}</td>
+              <td className="px-2 py-2 text-text-2">{actionLabel(a.tool)}</td>
               <td className="w-full max-w-0 truncate px-2 py-2 text-text" title={a.summary}>
                 {a.summary}
               </td>

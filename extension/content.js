@@ -521,12 +521,147 @@ async function check() {
   render(result, form);
 }
 
+
+/* ---------- reading the page for the side panel ---------- */
+
+const PAGE_TEXT_CAP = 8000;
+const CONTEXT_DEBOUNCE_MS = 400;
+
+/** Containers whose text is navigation, not content. */
+const SKIP_TAGS = new Set([
+  "SCRIPT", "STYLE", "NOSCRIPT", "SVG", "NAV", "HEADER", "FOOTER", "ASIDE",
+  "BUTTON", "SELECT", "OPTION", "LABEL", "FORM", "INPUT", "TEXTAREA",
+]);
+
+function isHidden(el) {
+  if (el.hidden || el.getAttribute("aria-hidden") === "true") return true;
+  const cs = getComputedStyle(el);
+  if (cs.display === "none" || cs.visibility === "hidden" || cs.opacity === "0") return true;
+  const box = el.getBoundingClientRect();
+  return box.width === 0 && box.height === 0;
+}
+
+/** Text a reader can see, with page chrome left out. */
+function visibleText(root) {
+  const out = [];
+  const walk = (node) => {
+    if (out.join("\n").length > PAGE_TEXT_CAP) return;
+    if (node.nodeType === Node.TEXT_NODE) {
+      const t = node.textContent.replace(/\s+/g, " ").trim();
+      if (t.length > 1) out.push(t);
+      return;
+    }
+    if (node.nodeType !== Node.ELEMENT_NODE) return;
+    const el = node;
+    if (SKIP_TAGS.has(el.tagName)) return;
+    if (el.closest?.("[role=navigation],[role=toolbar],[role=banner]")) return;
+    if (isHidden(el)) return;
+    const block = /^(P|LI|DIV|SECTION|ARTICLE|TR|H1|H2|H3|H4|TD|PRE)$/.test(el.tagName);
+    const before = out.length;
+    for (const child of el.childNodes) walk(child);
+    if (block && out.length > before) out.push("\n");
+  };
+  walk(root);
+  return out
+    .join(" ")
+    .replace(/ ?\n ?/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim()
+    .slice(0, PAGE_TEXT_CAP);
+}
+
+/**
+ * The main content, in order of preference: the selection, then the last
+ * answer on a chat style research page, then the main region. Velocity AI
+ * Studio is a chat, so the last answer is usually the whole question.
+ */
+function mainText() {
+  const answers = document.querySelectorAll(
+    '[data-message-author-role="assistant"], [data-role="assistant"], .assistant-message, [data-testid*="answer"], [data-testid*="response"], article'
+  );
+  if (answers.length) {
+    const last = answers[answers.length - 1];
+    const text = visibleText(last);
+    if (text.length > 120) return text;
+  }
+
+  const main =
+    document.querySelector("main") ||
+    document.querySelector("[role=main]") ||
+    document.body;
+  return visibleText(main);
+}
+
+function collectContext() {
+  return {
+    url: location.href,
+    title: (document.querySelector("h1")?.textContent || document.title || "").trim(),
+    text: mainText(),
+    selection: String(window.getSelection?.() ?? "").trim().slice(0, PAGE_TEXT_CAP),
+  };
+}
+
+let contextTimer = null;
+let lastSent = "";
+
+function sendContext(force) {
+  clearTimeout(contextTimer);
+  contextTimer = setTimeout(() => {
+    const context = collectContext();
+    const key = context.url + "::" + context.selection + "::" + context.text.length;
+    if (!force && key === lastSent) return;
+    lastSent = key;
+    send("pageContext", context);
+  }, CONTEXT_DEBOUNCE_MS);
+}
+
+function watchPage() {
+  sendContext(true);
+
+  // A new selection is a new question.
+  document.addEventListener("selectionchange", () => sendContext(false));
+
+  // These apps route without reloading, so watch the address itself.
+  let href = location.href;
+  const onNavigate = () => {
+    if (location.href === href) return;
+    href = location.href;
+    lastSent = "";
+    sendContext(true);
+  };
+  window.addEventListener("popstate", onNavigate);
+  for (const method of ["pushState", "replaceState"]) {
+    const original = history[method];
+    history[method] = function (...args) {
+      const result = original.apply(this, args);
+      setTimeout(onNavigate, 0);
+      return result;
+    };
+  }
+  // A chat answer arrives without a route change.
+  new MutationObserver(() => sendContext(false)).observe(document.body, {
+    childList: true,
+    subtree: true,
+  });
+
+  chrome.runtime.onMessage?.addListener((message) => {
+    if (message?.type === "sendContext") sendContext(true);
+  });
+}
+
 function schedule() {
   clearTimeout(PI.timer);
   PI.timer = setTimeout(check, DEBOUNCE_MS);
 }
 
 function start() {
+  // The panel wants this page whether or not it is a part request form.
+  try {
+    watchPage();
+  } catch {
+    /* a page we cannot read is not a reason to break the card */
+  }
+
   PI.adapter = piFindAdapter(location.href);
   if (!PI.adapter) return;
 

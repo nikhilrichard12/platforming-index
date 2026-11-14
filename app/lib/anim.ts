@@ -105,3 +105,25 @@ export const SHARE_LABEL: Record<ShareState, string> = {
   shared: "Used by two to four",
   unique: "Unique to this product",
 };
+
+/** Keywords that place a need in a layer when no part matched it. */
+const LAYER_WORDS: [LayerId, RegExp][] = [
+  ["storage", /\b(batter|cell|lfp|vrla|energy storage|pack)\b/i],
+  ["thermal", /\b(fan|heatsink|heat sink|thermal|cooling|cold plate|hvac|duct|guard|pad)\b/i],
+  ["enclosure", /\b(cabinet|enclosure|chassis|frame|sled|rack|door|housing|bracket)\b/i],
+  ["control", /\b(board|dsp|controller|sensor|display|lcd|modbus|rs485|snmp|ethernet|wifi|telemetry|gateway|bms|monitor|supply)\b/i],
+  ["power", /\b(igbt|capacitor|busbar|contactor|inverter|converter|breaker|fuse|relay|varistor|mov|emi|inductor|transformer|mppt|shunt|resistor|driver|power)\b/i],
+  ["io", /\b(connector|cable|harness|ribbon|terminal|lug|gland|screw|nut|washer|standoff|tie|gasket|grommet|switch|port)\b/i],
+];
+
+/**
+ * The layer a need belongs to. A matched need uses the part's own category;
+ * an unmatched one is placed by the words the engineer wrote.
+ */
+export function layerOfNeed(text: string, part?: { cat: string; name: string }): LayerId {
+  if (part) return layerOf(part);
+  for (const [id, pattern] of LAYER_WORDS) {
+    if (pattern.test(text)) return id;
+  }
+  return "io";
+}

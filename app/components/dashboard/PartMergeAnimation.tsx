@@ -12,6 +12,7 @@ const CELL = 9; // start grid pitch
 const COLS = 12; // squares across inside one product block
 const LABEL_H = 16;
 const STAGE_H = 152;
+const COMPACT_STAGE_H = 96;
 const END_SCALE = 0.62;
 const CLUSTER_PITCH = 5;
 
@@ -50,12 +51,13 @@ function endColor(products: number) {
  * carries it. End: one cluster per real part, its footprint the number of part
  * numbers that merged into it.
  */
-function buildLayout(data: VoltaraData, width: number): Layout {
+function buildLayout(parts: Part[], width: number, compact: boolean): Layout {
+  const stageH = compact ? COMPACT_STAGE_H : STAGE_H;
   const products = PRODUCT_MASTER.map((p) => p.id);
   const byProduct = new Map<string, { part: Part; pn: string }[]>(
     products.map((id) => [id, []])
   );
-  for (const part of data.parts) {
+  for (const part of parts) {
     for (const row of part.rows) {
       // A part number sits with the first product that carries it, so the
       // 252 squares count the part numbers once each.
@@ -75,16 +77,16 @@ function buildLayout(data: VoltaraData, width: number): Layout {
   }));
 
   // Clusters, largest sharing first, so the common core lands at the top.
-  const ordered = [...data.parts].sort(
+  const ordered = [...parts].sort(
     (a, b) => b.products - a.products || b.rows.length - a.rows.length
   );
-  const gridCols = 12;
+  const gridCols = compact ? Math.min(6, Math.max(3, ordered.length)) : 12;
   const gridRows = Math.ceil(ordered.length / gridCols);
   const colW = width / gridCols;
   // The clusters start just under the product labels. The start blocks sit in
   // the same band, which is only ever occupied by one of the two states.
   const top = LABEL_H + 6;
-  const rowH = (STAGE_H - top) / gridRows;
+  const rowH = (stageH - top) / gridRows;
 
   const clusters: Cluster[] = ordered.map((part, i) => ({
     part,
@@ -96,6 +98,9 @@ function buildLayout(data: VoltaraData, width: number): Layout {
 
   const squares: Square[] = [];
   const placed = new Map<string, number>();
+  const flatCols = Math.max(6, Math.floor(width / CELL));
+  let flat = 0;
+
   groups.forEach((g) => {
     (byProduct.get(g.id) ?? []).forEach((item, i) => {
       const cluster = clusterOf.get(item.part.id)!;
@@ -112,11 +117,18 @@ function buildLayout(data: VoltaraData, width: number): Layout {
         partId: item.part.id,
         tint: g.tint,
         endColor: endColor(item.part.products),
-        sx: g.x + (i % COLS) * CELL,
-        sy: LABEL_H + Math.floor(i / COLS) * CELL,
+        // Compact runs as one block: at 400px there is no room to column by
+        // product, and the point is the merge, not the grouping.
+        sx: compact
+          ? (flat % flatCols) * CELL
+          : g.x + (i % COLS) * CELL,
+        sy: compact
+          ? LABEL_H + Math.floor(flat / flatCols) * CELL
+          : LABEL_H + Math.floor(i / COLS) * CELL,
         ex: cluster.cx + ox - SQ / 2,
         ey: cluster.cy + oy - SQ / 2,
       });
+      flat += 1;
     });
   });
 
@@ -127,11 +139,28 @@ function buildLayout(data: VoltaraData, width: number): Layout {
 
 export default function PartMergeAnimation({
   data,
+  parts,
+  compact = false,
+  title,
+  note,
+  footnote,
+  tail,
   onOpenPart,
 }: {
   data: VoltaraData;
+  /** Which parts merge. Defaults to the whole parts list. */
+  parts?: Part[];
+  /** Narrow variant for the side panel: one block, shorter stage, no labels. */
+  compact?: boolean;
+  title?: string;
+  note?: string;
+  footnote?: string;
+  /** The line that fades in when the count lands. */
+  tail?: string;
   onOpenPart: (partId: string) => void;
 }) {
+  const merging = parts ?? data.parts;
+  const stageH = compact ? COMPACT_STAGE_H : STAGE_H;
   const reduced = useReducedMotion();
   const stageRef = useRef<HTMLDivElement>(null);
   const countRef = useRef<HTMLSpanElement>(null);
@@ -151,8 +180,8 @@ export default function PartMergeAnimation({
   }, []);
 
   const layout = useMemo(
-    () => (width > 0 ? buildLayout(data, width) : null),
-    [data, width]
+    () => (width > 0 ? buildLayout(merging, width, compact) : null),
+    [merging, width, compact]
   );
 
   const play = useCallback(() => {
@@ -180,7 +209,7 @@ export default function PartMergeAnimation({
         scale: END_SCALE,
         backgroundColor: per((s) => s.endColor),
       });
-      if (countRef.current) countRef.current.textContent = "60";
+      if (countRef.current) countRef.current.textContent = String(merging.length);
       setDone(true);
       return;
     }
@@ -192,9 +221,10 @@ export default function PartMergeAnimation({
       scale: 1,
       backgroundColor: per((s) => s.tint),
     });
-    if (countRef.current) countRef.current.textContent = "252";
+    const total = merging.reduce((n, p) => n + p.rows.length, 0);
+    if (countRef.current) countRef.current.textContent = String(total);
 
-    const counter = { value: 252 };
+    const counter = { value: total };
     const tl = createTimeline({
       defaults: { ease: "inOutQuad" },
       onComplete: () => setDone(true),
@@ -224,7 +254,7 @@ export default function PartMergeAnimation({
       .add(
         counter,
         {
-          value: 60,
+          value: merging.length,
           duration: 2900,
           ease: "outQuad",
           modifier: utils.round(0),
@@ -238,7 +268,7 @@ export default function PartMergeAnimation({
       );
 
     tlRef.current = tl;
-  }, [layout, reduced]);
+  }, [layout, reduced, merging]);
 
   // Plays once when the tab opens, then waits for Replay.
   const started = useRef(false);
@@ -256,20 +286,29 @@ export default function PartMergeAnimation({
   );
 
   const core = data.summary.coreCandidates;
+  const startCount = merging.reduce((n, p) => n + p.rows.length, 0);
 
   return (
     <AnimationPanel
-      title="252 become 60"
-      note="Every square is one part number in the parts list, grouped by product."
+      title={title ?? `${startCount} become ${merging.length}`}
+      note={
+        note ??
+        "Every square is one part number in the parts list, grouped by product."
+      }
       onReplay={play}
-      footnote="Hover a cluster for the part it became. Click one to open its row below."
+      footnote={
+        footnote ??
+        "Hover a cluster for the part it became. Click one to open its row below."
+      }
     >
       <div className="flex items-baseline gap-3">
         <span
           ref={countRef}
-          className="text-[40px] font-light leading-none tabular-nums text-text"
+          className={`font-light leading-none tabular-nums text-text ${
+            compact ? "text-[28px]" : "text-[40px]"
+          }`}
         >
-          252
+          {startCount}
         </span>
         <span className="text-[13px] text-text-2">
           {done ? "real parts" : "part numbers"}
@@ -279,17 +318,18 @@ export default function PartMergeAnimation({
             done ? "opacity-100" : "opacity-0"
           }`}
         >
-          {core} fit a common core
+          {tail ?? `${core} fit a common core`}
         </span>
       </div>
 
       <div
         ref={stageRef}
         className="relative mt-3 w-full"
-        style={{ height: STAGE_H }}
+        style={{ height: stageH }}
       >
         {/* Product labels, visible while the squares are still blocked by product */}
-        {layout?.groups.map((g) => (
+        {!compact &&
+          layout?.groups.map((g) => (
           <span
             key={g.id}
             className={`absolute text-[11px] tabular-nums text-text-3 transition-opacity duration-500 ${
@@ -297,9 +337,9 @@ export default function PartMergeAnimation({
             }`}
             style={{ left: g.x, top: 0 }}
           >
-            {g.id}
-          </span>
-        ))}
+              {g.id}
+            </span>
+          ))}
 
         {layout?.squares.map((s) => (
           <i
@@ -341,7 +381,7 @@ export default function PartMergeAnimation({
             className="pointer-events-none absolute z-10 w-[220px] border border-line-2 bg-surface p-3"
             style={{
               left: Math.min(Math.max(hover.cx - 110, 0), Math.max(width - 220, 0)),
-              top: hover.cy > STAGE_H / 2 ? hover.cy - 96 : hover.cy + 18,
+              top: hover.cy > stageH / 2 ? hover.cy - 96 : hover.cy + 18,
             }}
           >
             <p className="text-[13px] leading-snug text-text">{hover.part.name}</p>

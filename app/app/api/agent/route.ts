@@ -17,6 +17,13 @@ interface Message {
 interface AgentRequest {
   messages: Message[];
   profile: UserProfile;
+  /** What the side panel is looking at, when the question comes from there. */
+  context?: {
+    url?: string;
+    title?: string;
+    product?: string;
+    needs?: string[];
+  };
 }
 
 const MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-5";
@@ -107,7 +114,13 @@ export async function POST(req: NextRequest) {
   if (!apiKey) return offlineResponse(body, data, "no_api_key");
 
   const client = new Anthropic({ apiKey });
-  const system = buildSystemPrompt(body.profile, data, loadSurvey(), listRules());
+  const system = buildSystemPrompt(
+    body.profile,
+    data,
+    loadSurvey(),
+    listRules(),
+    body.context
+  );
   const messages = body.messages.slice(-HISTORY).map((m) => ({
     role: m.role,
     content: m.content,

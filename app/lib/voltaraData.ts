@@ -107,8 +107,8 @@ export function deriveVoltaraData(raw: VoltaraFile): VoltaraData {
 /**
  * The one money formatter. A unit price and a yearly total are the same kind
  * of number to a reader, so they are written the same way everywhere: the
- * dashboard, the cards, the popover, the prompt, the extension and the MCP
- * replies all call this.
+ * dashboard, the panel, the cards, the popover, the prompt and the extension
+ * all call this.
  *
  *   $3.95        under $1,000, two decimals
  *   $781.89

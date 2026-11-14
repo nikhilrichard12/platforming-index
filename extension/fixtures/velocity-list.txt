@@ -1,0 +1,24 @@
+Velocity AI Studio
+
+Bill of materials sketch, VBS-30 outdoor cabinet
+
+- Cabinet enclosure, outdoor rated, 50 kWh class
+- Battery module, LFP, 5 kWh
+- Contactor, DC, 150 A
+- Busbar, copper, 200 A
+- IGBT module, half bridge, 1200 V 100 A
+- DC link capacitor, electrolytic, 470 uF 450 V
+- Gate driver board, isolated, 6 channel
+- Control board with DSP
+- Current sensor, hall effect, 100 A
+- Temperature sensor, NTC 10k
+- Cooling fan, axial, 120 mm 24 VDC
+- Fan guard, wire, 120 mm
+- Heatsink, extruded aluminum, 200 mm
+- Terminal block, 6 pole, 30 A
+- Bidirectional 30 kW power conversion module
+- Liquid cooling cold plate
+- Cellular 4G telemetry gateway
+- Anti-theft door intrusion switch
+
+Ask a follow up question
