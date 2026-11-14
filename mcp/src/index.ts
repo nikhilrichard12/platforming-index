@@ -151,6 +151,99 @@ interface CheckResponse {
 
 const server = new McpServer({ name: "platforming-index", version: "0.1.0" });
 
+interface PlannedNeed {
+  need: string;
+  status: "in core" | "shared" | "exists, unique" | "blocked by rule" | "new part needed";
+  confidence: number;
+  part?: string;
+  partNumber?: string;
+  price?: number;
+  supplier?: string;
+  po?: string;
+  products?: number;
+  rule?: { id: string; text: string; kind: string };
+}
+interface PlanResponse {
+  product: { name: string; description: string };
+  needs: PlannedNeed[];
+  summary: {
+    total: number;
+    byStatus: Record<string, number>;
+    covered: number;
+    coveredPercent: number;
+    projectedNewPartNumbers: number;
+  };
+  note: string;
+}
+
+/** A concept has no product id yet, so keep its name unless it names a real product. */
+function toProductRef(input: string): string {
+  const raw = (input ?? "").trim();
+  const id = toProductId(raw);
+  return PRODUCTS[id] ? id : raw;
+}
+
+server.registerTool(
+  "plan_product",
+  {
+    title: "Check a product concept against the existing core",
+    description:
+      "Call this when the user describes a new product, a concept, or a list of requirements, before any part is chosen. Call check_part later for each individual part.",
+    inputSchema: {
+      product_name: z
+        .string()
+        .describe("What the concept is called, for example 'VBS-30 Outdoor Battery Cabinet'."),
+      description: z
+        .string()
+        .optional()
+        .describe(
+          "The concept in the user's own words. One need per line, or a comma separated list. Used when needs is not given."
+        ),
+      needs: z
+        .array(z.string())
+        .optional()
+        .describe(
+          "The functions or parts the product needs, in plain words, for example ['120mm cooling fan', 'DC link capacitor', 'enclosure latch']."
+        ),
+    },
+  },
+  async ({ product_name, description, needs }) => {
+    const ref = toProductRef(product_name);
+    const res = await api<PlanResponse>("/api/plan-product", {
+      method: "POST",
+      body: JSON.stringify({
+        product_name: ref,
+        description: description ?? "",
+        needs: needs ?? [],
+      }),
+    });
+
+    const s = res.summary;
+    const lines = res.needs
+      .map((n) => {
+        const evidence =
+          n.status === "new part needed"
+            ? "no match in the parts data"
+            : n.status === "blocked by rule"
+            ? `${n.part}, blocked by ${n.rule?.id}: "${n.rule?.text}"`
+            : `${n.part}, ${n.partNumber} at ${px(n.price ?? 0)} from ${n.supplier} [${n.po}], in ${n.products} products`;
+        return `  - ${n.need}: ${n.status}, ${evidence}`;
+      })
+      .join("\n");
+
+    return reply(
+      `${s.covered} of ${s.total} needs already exist at Voltara. ` +
+        `${s.byStatus["in core"] ?? 0} sit in the common core, ${s.byStatus["shared"] ?? 0} are shared by two to four products, ` +
+        `${s.byStatus["exists, unique"] ?? 0} exist on one product only. ` +
+        `${s.projectedNewPartNumbers} would need new part numbers, which is ${100 - s.coveredPercent} percent of the concept.\n\n` +
+        `${lines}\n\n` +
+        `Start from the ${s.covered} that exist and design the rest around them. Call check_part for each part once the engineer picks one. ` +
+        `${res.note} ${SUGGESTION_NOTE}`,
+      res
+    );
+  }
+);
+
 server.registerTool(
   "check_part",
   {

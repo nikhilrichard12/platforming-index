@@ -66,6 +66,11 @@ export interface ActivityDetail {
   candidates?: string[];
   /** Set when a rule blocks the matched part for this product. */
   ruleText?: string;
+  /** Set by a concept plan. */
+  productName?: string;
+  needsChecked?: number;
+  needsCovered?: number;
+  newPartsNeeded?: number;
   decision?: "reuse" | "exception";
   reasonKind?: ReasonKind;
   ruleId?: string;

@@ -18,13 +18,20 @@ import GapChart from "./GapChart";
 import ExplodedView from "./ExplodedView";
 import IndexStrip from "./IndexStrip";
 import PartsTab from "./PartsTab";
+import NewProductTab from "./NewProductTab";
 import AlignmentTab from "./AlignmentTab";
 import CheckTab from "./CheckTab";
 import ConnectionsTab from "./ConnectionsTab";
 import SourcePopover, { SourceHit } from "./SourcePopover";
 import { useActivity } from "./ActivityTable";
 
-type TabId = "summary" | "parts" | "alignment" | "check" | "connections";
+type TabId =
+  | "summary"
+  | "parts"
+  | "newproduct"
+  | "alignment"
+  | "check"
+  | "connections";
 
 /** The three prompts under the assistant's first message, per tab. */
 const TAB_QUESTIONS: Record<TabId, string[] | null> = {
@@ -33,6 +40,11 @@ const TAB_QUESTIONS: Record<TabId, string[] | null> = {
     "Which part should we consolidate first?",
     "Why do names differ across products?",
     "What needs engineering review?",
+  ],
+  newproduct: [
+    "How much of this concept already exists?",
+    "Which needs force a new part number?",
+    "What would a common core give the next product?",
   ],
   alignment: [
     "Where do we disagree most?",
@@ -261,6 +273,7 @@ export default function DashboardClient({
           items={[
             { id: "summary", label: "Summary" },
             { id: "parts", label: "Parts" },
+            { id: "newproduct", label: "New product" },
             { id: "alignment", label: "Alignment" },
             { id: "check", label: "Decisions" },
             { id: "connections", label: "Connections" },
@@ -344,6 +357,10 @@ export default function DashboardClient({
                 onAsk={ask}
                 onTag={(po) => setSource(data.rowsByPo[po] ?? null)}
               />
+            )}
+
+            {tab === "newproduct" && (
+              <NewProductTab onTag={(po) => setSource(data.rowsByPo[po] ?? null)} />
             )}
 
             {tab === "check" && (

@@ -152,3 +152,13 @@ export function IconCheck() {
     </svg>
   );
 }
+
+export function IconConcept() {
+  return (
+    <svg {...ico}>
+      <path d="M7 5h22l10 10v28H7z" />
+      <path d="M29 5v10h10" />
+      <path d="M23 24v11M17.5 29.5h11" />
+    </svg>
+  );
+}

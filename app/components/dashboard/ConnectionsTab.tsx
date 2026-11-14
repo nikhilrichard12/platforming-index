@@ -4,9 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Badge from "@/components/ui/Badge";
 import StepStrip, {
   IconAgent,
-  IconEngine,
-  IconLoop,
-  IconSystems,
+  IconCheck,
+  IconConcept,
 } from "@/components/ui/StepStrip";
 import ActivityTable, { useActivity } from "./ActivityTable";
 import LiveCheckStage from "./LiveCheckStage";
@@ -25,24 +24,19 @@ interface DataSource {
 
 const STEPS = [
   {
-    title: "Your systems",
-    body: "Parts lists and purchase records sync in from the PLM and the ERP.",
-    icon: <IconSystems />,
+    title: "Concept",
+    body: "Someone describes a product. plan_product checks the whole concept against the parts that already exist.",
+    icon: <IconConcept />,
   },
   {
-    title: "Platforming Index",
-    body: "Duplicates are matched, the price gap is computed, the score is scored.",
-    icon: <IconEngine />,
-  },
-  {
-    title: "Your agent",
-    body: "The engineer's AI agent checks parts while they design, through MCP.",
+    title: "Design",
+    body: "The engineer picks a component. check_part runs inside the agent they already work in.",
     icon: <IconAgent />,
   },
   {
-    title: "Decisions and rules",
-    body: "What they decide flows back to the score and to the next engineer.",
-    icon: <IconLoop />,
+    title: "Part release",
+    body: "A part number gets raised. The extension puts the same check on the part request form.",
+    icon: <IconCheck />,
   },
 ];
 
@@ -210,6 +204,9 @@ export default function ConnectionsTab({ serverPath }: { serverPath: string }) {
         <div className="mt-5">
           <StepStrip steps={STEPS} />
         </div>
+        <p className="mt-6 text-[12px] text-text-3">
+          One check, wherever a part number gets born.
+        </p>
       </div>
 
       {/* 2. The calls themselves, drawn as they land */}
