@@ -1,0 +1,325 @@
+#!/usr/bin/env node
+/**
+ * Platforming Index MCP server.
+ *
+ * The reuse decision happens while an engineer designs, not when procurement
+ * raises a part number. Every team runs a different NPD or PLM system but
+ * every team now runs an agent, so the check is delivered here: any agent can
+ * call it from inside whatever tool the engineer is already using.
+ *
+ * This server holds no data. It calls the Platforming Index app, which owns
+ * the parts data, the rules, and the index.
+ */
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { z } from "zod";
+
+const BASE = (process.env.PLATFORMING_INDEX_URL ?? "http://localhost:3000").replace(/\/$/, "");
+
+/* ---------- products ---------- */
+
+const PRODUCTS: Record<string, string> = {
+  "VRK-1000": "RackLine 1 kVA Rack UPS",
+  "VRK-3000": "RackLine 3 kVA Rack UPS",
+  "VMX-20": "ModuLine 20 kW Modular UPS",
+  "VSI-5": "SunLine 5 kW Solar Inverter",
+  "VSI-10": "SunLine 10 kW Solar Inverter",
+  "VBS-50": "StorLine 50 kWh Battery Cabinet",
+};
+
+/** Engineers say "the battery cabinet", not "VBS-50". Accept both. */
+function toProductId(input: string): string {
+  const raw = (input ?? "").trim();
+  const upper = raw.toUpperCase();
+  if (PRODUCTS[upper]) return upper;
+
+  const needle = raw.toLowerCase();
+  for (const [id, name] of Object.entries(PRODUCTS)) {
+    if (name.toLowerCase() === needle) return id;
+  }
+  for (const [id, name] of Object.entries(PRODUCTS)) {
+    if (needle && (name.toLowerCase().includes(needle) || needle.includes(name.toLowerCase()))) {
+      return id;
+    }
+  }
+  // "battery cabinet", "modular ups", "solar inverter", "rack ups"
+  const words = needle.split(/\s+/).filter((w) => w.length > 3);
+  if (words.length) {
+    for (const [id, name] of Object.entries(PRODUCTS)) {
+      const hay = name.toLowerCase();
+      if (words.every((w) => hay.includes(w))) return id;
+    }
+  }
+  return upper || raw;
+}
+
+const productField = z
+  .string()
+  .describe(
+    "Which product the part is for. A product id (VRK-1000, VRK-3000, VMX-20, VSI-5, VSI-10, VBS-50) or its name, for example 'StorLine 50 kWh Battery Cabinet' or 'battery cabinet'."
+  );
+
+/* ---------- formatting ---------- */
+
+const usd = (n: number) =>
+  n >= 1e6
+    ? "$" + (n / 1e6).toFixed(2) + "M"
+    : n >= 1e4
+    ? "$" + Math.round(n / 1e3) + "K"
+    : "$" + Math.round(n).toLocaleString("en-US");
+
+const px = (n: number) => "$" + (n < 1 ? n.toFixed(3) : n.toFixed(2));
+
+const date = (iso: string) => (iso ?? "").slice(0, 10);
+
+/** Plain answer first, the JSON after it for the agent to read if it wants. */
+function reply(text: string, data: unknown) {
+  return {
+    content: [
+      { type: "text" as const, text },
+      { type: "text" as const, text: "```json\n" + JSON.stringify(data, null, 2) + "\n```" },
+    ],
+  };
+}
+
+function failure(text: string) {
+  return { content: [{ type: "text" as const, text }], isError: true };
+}
+
+async function api<T>(path: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(BASE + path, {
+    ...init,
+    headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
+  });
+  const body = (await res.json()) as T & { error?: string };
+  if (!res.ok) throw new Error(body?.error ?? `${path} returned ${res.status}`);
+  return body;
+}
+
+const SUGGESTION_NOTE = "A match is a suggestion until engineering confirms fit.";
+
+/* ---------- types the app returns ---------- */
+
+interface Match {
+  name: string;
+  partNumberCount: number;
+  products: number;
+  bestRow: { pn: string; products: string[]; supplier: string; price: number; po: string };
+  minPrice: number;
+  maxPrice: number;
+  yearlySavingVsHighest: number;
+  confidence: number;
+}
+interface Rule {
+  id: string;
+  at: string;
+  scope: { product: string };
+  kind: string;
+  text: string;
+  appliesToPart: string;
+}
+interface Alternative {
+  name: string;
+  partNumber: string;
+  price: number;
+  supplier: string;
+  products: number;
+}
+interface CheckResponse {
+  match: Match | null;
+  blockedBy: Rule[] | null;
+  alternatives: Alternative[];
+}
+
+/* ---------- server ---------- */
+
+const server = new McpServer({ name: "platforming-index", version: "0.1.0" });
+
+server.registerTool(
+  "check_part",
+  {
+    title: "Check whether this part already exists",
+    description:
+      "Call this before specifying, designing in, or requesting any component, so the engineer reuses an existing part when one exists. Returns the matching part Voltara already buys, how many part numbers it already carries, the best price and supplier, the yearly saving against the highest price paid, and the part number to reuse. If a rule from an earlier exception blocks that part for this product, returns the rule and alternative parts instead.",
+    inputSchema: {
+      description: z
+        .string()
+        .describe("The component as the engineer would write it, for example 'Fan, axial, 120 mm, 24 VDC'."),
+      product: productField,
+      unitsPerYear: z
+        .number()
+        .optional()
+        .describe("Expected annual volume. Used to size the saving. Defaults to 1000."),
+    },
+  },
+  async ({ description, product, unitsPerYear }) => {
+    const productId = toProductId(product);
+    const units = unitsPerYear ?? 1000;
+    const res = await api<CheckResponse>("/api/check-part", {
+      method: "POST",
+      body: JSON.stringify({ description, product: productId, unitsPerYear: units }),
+    });
+
+    if (!res.match) {
+      return reply(
+        `No part in Voltara's data matches "${description}". Nothing to reuse, so a new part number is reasonable here. ${SUGGESTION_NOTE}`,
+        { match: null, product: productId }
+      );
+    }
+
+    const m = res.match;
+    if (res.blockedBy?.length) {
+      const rule = res.blockedBy[0];
+      const alts = res.alternatives.length
+        ? res.alternatives
+            .map((a) => `  - ${a.name}, ${a.partNumber} at ${px(a.price)} from ${a.supplier}, already in ${a.products} products`)
+            .join("\n")
+        : "  (no unblocked alternative in the same category)";
+      return reply(
+        `${m.name} is blocked for ${productId} by a rule set on ${date(rule.at)}: "${rule.text}"\n\n` +
+          `Do not suggest reusing it here. Alternatives that no rule blocks:\n${alts}\n\n` +
+          `${SUGGESTION_NOTE}`,
+        res
+      );
+    }
+
+    return reply(
+      `Voltara already buys this part: ${m.name}.\n\n` +
+        `It carries ${m.partNumberCount} part numbers today. The best price paid is ${px(m.minPrice)} from ${m.bestRow.supplier} [${m.bestRow.po}], against ${px(m.maxPrice)} at the worst. ` +
+        `At ${units.toLocaleString("en-US")} units a year that gap is worth ${usd(m.yearlySavingVsHighest)}.\n\n` +
+        `Reuse ${m.bestRow.pn} rather than raising a new number. A new number would make ${m.partNumberCount + 1} part numbers for one part.\n\n` +
+        `${SUGGESTION_NOTE}`,
+      res
+    );
+  }
+);
+
+server.registerTool(
+  "record_decision",
+  {
+    title: "Record what the engineer decided",
+    description:
+      "Call this when the engineer accepts or declines a suggested part. If they decline, ask why and pass the reason. A declined suggestion becomes a rule for that product and that part, so nobody is asked the same question again. Declining never lowers the Platforming Index score.",
+    inputSchema: {
+      description: z.string().describe("The component the engineer asked for."),
+      product: productField,
+      decision: z
+        .enum(["reuse", "exception"])
+        .describe("'reuse' if they accepted the existing part, 'exception' if they declined it."),
+      matchedPart: z
+        .string()
+        .optional()
+        .describe("The part name check_part returned. Needed for an exception to become a rule."),
+      suggestedPn: z.string().optional().describe("The part number check_part suggested."),
+      reasonKind: z
+        .enum(["compliance_or_origin", "customer_requirement", "technical_fit", "other"])
+        .optional()
+        .describe("Required for an exception. Why the existing part cannot be used."),
+      reasonText: z
+        .string()
+        .optional()
+        .describe("The engineer's own words. This becomes the rule text other engineers read."),
+      role: z.string().optional().describe("The engineer's function, if known."),
+    },
+  },
+  async (args) => {
+    if (args.decision === "exception" && !args.reasonKind) {
+      return failure(
+        "An exception needs a reason. Ask the engineer why the existing part will not work and pass reasonKind as one of: compliance_or_origin, customer_requirement, technical_fit, other."
+      );
+    }
+    const productId = toProductId(args.product);
+    const res = await api<{ recorded: { id: string }; rule: Rule | null }>("/api/part-decision", {
+      method: "POST",
+      body: JSON.stringify({ ...args, product: productId, source: "mcp" }),
+    });
+
+    if (res.rule) {
+      return reply(
+        `Recorded. New rule ${res.rule.id} for ${productId}: "${res.rule.text}" applies to ${res.rule.appliesToPart}. ` +
+          `Anyone checking that part for ${productId} now sees this rule instead of the suggestion. ` +
+          `The Platforming Index score does not drop: complexity a rule requires is not complexity anyone chose.`,
+        res
+      );
+    }
+    return reply(
+      `Recorded as ${res.recorded.id}. ${args.decision === "reuse" ? "Reuse noted against this product." : "No rule created, because no matched part was supplied."}`,
+      res
+    );
+  }
+);
+
+server.registerTool(
+  "get_rules",
+  {
+    title: "List the rules in force",
+    description:
+      "Call this to see which parts are already ruled out, and why, before suggesting anything. Each rule came from an engineer declining a suggestion. Newest first.",
+    inputSchema: {
+      product: z.string().optional().describe("Limit to one product. Omit for every rule."),
+    },
+  },
+  async ({ product }) => {
+    const query = product ? `?product=${encodeURIComponent(toProductId(product))}` : "";
+    const res = await api<{ rules: Rule[] }>(`/api/rules${query}`);
+    if (res.rules.length === 0) {
+      return reply(
+        "No rules in force. Nothing has been ruled out yet, so every suggestion stands on the data alone.",
+        res
+      );
+    }
+    const lines = res.rules
+      .map((r) => `  - ${r.scope.product}: ${r.appliesToPart} is ruled out. "${r.text}" (${r.kind.replace(/_/g, " ")}, set ${date(r.at)})`)
+      .join("\n");
+    return reply(`${res.rules.length} rule${res.rules.length === 1 ? "" : "s"} in force:\n${lines}`, res);
+  }
+);
+
+server.registerTool(
+  "get_index",
+  {
+    title: "Get the Platforming Index score",
+    description:
+      "Call this when someone asks how the product line is doing overall, how complex it is, or how far along platforming is. Returns the score out of 100, what it means, the four dimensions behind it, which of the three steps the company is on, and the headline part and spend numbers.",
+    inputSchema: {},
+  },
+  async () => {
+    const res = await api<{
+      index: { score: number; status: string; step: number; dimensions: { name: string; score: number; basis: string }[] };
+      summary: Record<string, number>;
+      read: string;
+      steps: string[];
+    }>("/api/index");
+
+    const dims = res.index.dimensions.map((d) => `  - ${d.name}: ${d.score}. ${d.basis}`).join("\n");
+    const s = res.summary;
+    return reply(
+      `Platforming Index ${res.index.score} of 100, ${res.index.status}. ${res.read}\n\n` +
+        `Four dimensions, equal weights:\n${dims}\n\n` +
+        `Voltara is on step ${res.index.step} of three: ${res.steps[res.index.step - 1]}.\n\n` +
+        `Behind it: ${s.partNumbers} part numbers describe ${s.realParts} real parts, ${s.sharedParts} of them shared across products and ${s.coreCandidates} in five or more. ` +
+        `Yearly parts spend ${usd(s.yearlySpendUsd)}, with ${usd(s.yearlyPriceGapUsd)} of price gap on shared parts. ` +
+        `${s.needsReviewLines} lines still need engineering review.`,
+      res
+    );
+  }
+);
+
+server.registerTool(
+  "open_dashboard",
+  {
+    title: "Get the dashboard link",
+    description:
+      "Call this when the engineer wants to see the whole picture rather than one part: the score, the parts list, where the functions disagree, and the decisions recorded so far.",
+    inputSchema: {},
+  },
+  async () => {
+    const url = `${BASE}/dashboard`;
+    return reply(
+      `${url}\n\nThe dashboard shows the Platforming Index with its four dimensions, the four numbers that matter to your function, the yearly price gap by part, every part with its duplicate part numbers, where the functions disagree, and the rules and decisions recorded so far.`,
+      { url }
+    );
+  }
+);
+
+await server.connect(new StdioServerTransport());

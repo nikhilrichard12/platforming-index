@@ -9,3 +9,6 @@ dist/
 
 # TypeScript incremental build info
 *.tsbuildinfo
+
+# Written at runtime by the decisions and rules store
+data/derived/decisions.json

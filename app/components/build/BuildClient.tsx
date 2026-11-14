@@ -106,7 +106,7 @@ export default function BuildClient({
   useEffect(() => {
     const p = loadProfile();
     setProfile(p);
-    setSections(buildPromptSections(p, data, survey));
+    setSections(buildPromptSections(p, data, survey, []));
   }, [data, survey]);
 
   // Drive the stages on a timer.

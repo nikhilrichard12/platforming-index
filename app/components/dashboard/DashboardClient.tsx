@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { UserProfile, EMPTY_PROFILE, Role } from "@/lib/types";
 import { loadProfile } from "@/lib/profile";
 import { buildSystemPrompt } from "@/lib/agent/buildSystemPrompt";
 import { roleViewFor } from "@/lib/roleViews";
 import { Part, VoltaraData, usd } from "@/lib/voltaraData";
 import { SurveyFile } from "@/lib/survey";
+import { Decision, Rule } from "@/lib/rules";
 import PageHeader from "@/components/ui/PageHeader";
 import Tabs from "@/components/ui/Tabs";
 import Tile from "@/components/ui/Tile";
@@ -36,9 +37,9 @@ const TAB_QUESTIONS: Record<TabId, string[] | null> = {
     "What does the data say about variants?",
   ],
   check: [
+    "Which rules are in force right now?",
     "What does a new part number cost us?",
-    "How often does the team check first?",
-    "Which parts already cover this need?",
+    "Why does an exception not lower the score?",
   ],
 };
 
@@ -132,16 +133,37 @@ export default function DashboardClient({
   const [live, setLive] = useState<boolean | null>(null);
   const [showPrompt, setShowPrompt] = useState(false);
   const [source, setSource] = useState<SourceHit | null>(null);
+  const [rules, setRules] = useState<Rule[]>([]);
+  const [decisions, setDecisions] = useState<Decision[]>([]);
   const threadRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setProfile(loadProfile());
   }, []);
 
+  // Rules shape both the check and the assistant's instructions, so they live
+  // here rather than inside the tab that happens to display them.
+  const refresh = useCallback(async () => {
+    try {
+      const [r, d] = await Promise.all([
+        fetch("/api/rules").then((res) => res.json()),
+        fetch("/api/part-decision").then((res) => res.json()),
+      ]);
+      setRules(r.rules ?? []);
+      setDecisions(d.decisions ?? []);
+    } catch {
+      /* the tables simply stay empty */
+    }
+  }, []);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
   const role = (profile.role || "CEO") as Role;
   const view = roleViewFor(role);
   const kpis = view.kpis(data);
-  const systemPrompt = buildSystemPrompt(profile, data, survey);
+  const systemPrompt = buildSystemPrompt(profile, data, survey, rules);
 
   useEffect(() => {
     setMessages([
@@ -216,7 +238,7 @@ export default function DashboardClient({
             { id: "summary", label: "Summary" },
             { id: "parts", label: "Parts" },
             { id: "alignment", label: "Alignment" },
-            { id: "check", label: "New part check" },
+            { id: "check", label: "Decisions" },
           ]}
         />
 
@@ -298,7 +320,12 @@ export default function DashboardClient({
             )}
 
             {tab === "check" && (
-              <CheckTab onTag={(po) => setSource(data.rowsByPo[po] ?? null)} />
+              <CheckTab
+                rules={rules}
+                decisions={decisions}
+                onRefresh={refresh}
+                onTag={(po) => setSource(data.rowsByPo[po] ?? null)}
+              />
             )}
 
             {tab === "alignment" && (

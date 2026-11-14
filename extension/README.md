@@ -1,5 +1,7 @@
 # Platforming Index browser extension
 
+Backup path for teams without an agent. The primary integration is the MCP server in `mcp/`.
+
 Shows the part Voltara already buys at the moment someone requests a new one,
 inside the procurement system they already use.
 

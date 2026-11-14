@@ -1,0 +1,71 @@
+Platforming Index MCP server: five-step demo
+Run: node demo.mjs (with the app on http://localhost:3000)
+
+Tools exposed: check_part, record_decision, get_rules, get_index, open_dashboard
+==============================================================================
+
+### a. I need a 120 mm 24 volt fan for the VBS-50 battery cabinet.
+call check_part({"description":"120 mm 24 volt axial fan","product":"VBS-50 StorLine Battery Cabinet","unitsPerYear":1800})
+
+Voltara already buys this part: Axial Fan 120mm 24VDC.
+
+It carries 6 part numbers today. The best price paid is $9.77 from Norwick Components [PO450076], against $12.73 at the worst. At 1,800 units a year that gap is worth $5,324.
+
+Reuse 10-92550 rather than raising a new number. A new number would make 7 part numbers for one part.
+
+A match is a suggestion until engineering confirms fit.
+------------------------------------------------------------------------------
+
+### b. We can't reuse it. The battery cabinet needs US-origin cooling parts for a federal contract.
+call record_decision({"description":"120 mm 24 volt axial fan","product":"VBS-50","decision":"exception","matchedPart":"Axial Fan 120mm 24VDC","suggestedPn":"10-92550","reasonKind":"compliance_or_origin","reasonText":"The battery cabinet needs US-origin cooling parts for a federal contract.","role":"Engineering / R&D"})
+
+Recorded. New rule R0001 for VBS-50: "The battery cabinet needs US-origin cooling parts for a federal contract." applies to Axial Fan 120mm 24VDC. Anyone checking that part for VBS-50 now sees this rule instead of the suggestion. The Platforming Index score does not drop: complexity a rule requires is not complexity anyone chose.
+------------------------------------------------------------------------------
+
+### c. Same fan for the VMX-20 modular UPS.
+call check_part({"description":"120 mm 24 volt axial fan","product":"modular UPS","unitsPerYear":1200})
+
+Voltara already buys this part: Axial Fan 120mm 24VDC.
+
+It carries 6 part numbers today. The best price paid is $9.77 from Norwick Components [PO450076], against $12.73 at the worst. At 1,200 units a year that gap is worth $3,550.
+
+Reuse 10-92550 rather than raising a new number. A new number would make 7 part numbers for one part.
+
+A match is a suggestion until engineering confirms fit.
+------------------------------------------------------------------------------
+
+### d. I need another 120 mm fan for the VBS-50.
+call check_part({"description":"axial fan 120 mm 24 VDC","product":"battery cabinet","unitsPerYear":450})
+
+Axial Fan 120mm 24VDC is blocked for VBS-50 by a rule set on 2026-11-14: "The battery cabinet needs US-origin cooling parts for a federal contract."
+
+Do not suggest reusing it here. Alternatives that no rule blocks:
+  - Silicone Thermal Pad 40x40mm, 10-43892 at $0.448 from Ostrava Thermal, already in 6 products
+  - Wire Fan Guard 120mm, 10-55970 at $0.801 from Ostrava Thermal, already in 6 products
+  - Extruded Aluminum Heatsink 200mm, 10-73029 at $14.07 from Norwick Components, already in 6 products
+
+A match is a suggestion until engineering confirms fit.
+------------------------------------------------------------------------------
+
+### e. How is Voltara doing overall?
+call get_index({})
+
+Platforming Index 34 of 100, provisional. Sharing parts, not yet a platform.
+
+Four dimensions, equal weights:
+  - Shared architecture: 18. 10 of 252 part numbers reused across products
+  - Decision ownership: 40. Functions name different owners
+  - Incentives: 28. No function reports a complexity target
+  - Complexity control: 50. No data yet on new part numbers per year
+
+Voltara is on step 1 of three: cut cost on today's products.
+
+Behind it: 252 part numbers describe 60 real parts, 45 of them shared across products and 23 in five or more. Yearly parts spend $39.33M, with $1.13M of price gap on shared parts. 9 lines still need engineering review.
+------------------------------------------------------------------------------
+
+### Checks
+OK   a suggests reuse of 10-92550
+OK   c is not blocked
+OK   c suggests reuse
+OK   d is blocked by the rule
+OK   d offers alternatives

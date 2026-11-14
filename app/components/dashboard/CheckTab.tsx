@@ -1,16 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Field from "@/components/ui/Field";
 import Badge from "@/components/ui/Badge";
 import Tile from "@/components/ui/Tile";
 import { Button, PrimaryButton } from "@/components/ui/Button";
 import { px, usd } from "@/lib/voltaraData";
+import { Decision, REASON_KINDS, ReasonKind, Rule, reasonLabel } from "@/lib/rules";
 
 interface Match {
   name: string;
   partNumberCount: number;
-  products: number;
   bestRow: { pn: string; products: string[]; supplier: string; price: number; po: string };
   minPrice: number;
   maxPrice: number;
@@ -18,14 +18,18 @@ interface Match {
   confidence: number;
 }
 
-interface Decision {
-  id: string;
-  description: string;
-  product: string;
-  decision: "reuse" | "exception";
-  partNumber?: string;
-  reason?: string;
-  at: string;
+interface Alternative {
+  name: string;
+  partNumber: string;
+  price: number;
+  supplier: string;
+  products: number;
+}
+
+interface CheckResult {
+  match: Match | null;
+  blockedBy: Rule[] | null;
+  alternatives: Alternative[];
 }
 
 const PRODUCTS = [
@@ -36,41 +40,47 @@ const PRODUCTS = [
 
 const MIN_CONFIDENCE = 0.6;
 
+const when = (iso: string) => iso.slice(0, 10) + " " + iso.slice(11, 16);
+
+const SOURCE_LABEL: Record<string, string> = {
+  dashboard: "Dashboard",
+  extension: "Extension",
+  mcp: "Agent",
+};
+
 /**
- * The same check the extension performs, inside the app. The extension is the
- * real delivery; this tab is the demo's safety net and the place to show the
- * decisions the check has recorded.
+ * The same check the engineer's agent performs, inside the app, plus the
+ * rules and decisions it has produced. The MCP server is the real delivery;
+ * this tab is the reference view and the demo's safety net.
  */
-export default function CheckTab({ onTag }: { onTag: (po: string) => void }) {
+export default function CheckTab({
+  rules,
+  decisions,
+  onRefresh,
+  onTag,
+}: {
+  rules: Rule[];
+  decisions: Decision[];
+  onRefresh: () => void;
+  onTag: (po: string) => void;
+}) {
   const [description, setDescription] = useState("");
   const [partNumber, setPartNumber] = useState("");
   const [product, setProduct] = useState(PRODUCTS[0].id);
   const [units, setUnits] = useState(1800);
-  const [match, setMatch] = useState<Match | null>(null);
+  const [result, setResult] = useState<CheckResult | null>(null);
   const [done, setDone] = useState("");
   const [showException, setShowException] = useState(false);
-  const [reason, setReason] = useState("");
-  const [decisions, setDecisions] = useState<Decision[]>([]);
+  const [reasonKind, setReasonKind] = useState<ReasonKind | "">("");
+  const [reasonText, setReasonText] = useState("");
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const loadDecisions = useCallback(async () => {
-    try {
-      const res = await fetch("/api/part-decision");
-      setDecisions((await res.json()).decisions ?? []);
-    } catch {
-      /* the panel simply stays empty */
-    }
-  }, []);
-
-  useEffect(() => {
-    loadDecisions();
-  }, [loadDecisions]);
-
-  // Same 500ms debounce the content script uses.
+  // Same 500ms debounce the agent and the extension use. Re-runs when a rule
+  // changes, so the card reflects a rule the moment it is created.
   useEffect(() => {
     if (timer.current) clearTimeout(timer.current);
     if (!description.trim()) {
-      setMatch(null);
+      setResult(null);
       return;
     }
     timer.current = setTimeout(async () => {
@@ -80,60 +90,76 @@ export default function CheckTab({ onTag }: { onTag: (po: string) => void }) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ description, product, unitsPerYear: units }),
         });
-        const data = await res.json();
-        setMatch(data.match && data.match.confidence >= MIN_CONFIDENCE ? data.match : null);
+        const data: CheckResult = await res.json();
+        setResult(data.match && data.match.confidence >= MIN_CONFIDENCE ? data : null);
       } catch {
-        setMatch(null);
+        setResult(null);
       }
     }, 500);
     return () => {
       if (timer.current) clearTimeout(timer.current);
     };
-  }, [description, product, units]);
+  }, [description, product, units, rules]);
 
-  async function record(decision: "reuse" | "exception", extra: Partial<Decision> = {}) {
+  const match = result?.match ?? null;
+  const blocked = result?.blockedBy?.[0] ?? null;
+
+  async function record(decision: "reuse" | "exception", extra: Record<string, unknown> = {}) {
     await fetch("/api/part-decision", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ description, product, decision, ...extra }),
+      body: JSON.stringify({
+        description,
+        product,
+        decision,
+        matchedPart: match?.name,
+        suggestedPn: match?.bestRow.pn,
+        source: "dashboard",
+        ...extra,
+      }),
     });
-    loadDecisions();
+    onRefresh();
   }
 
   async function reuse() {
     if (!match) return;
     setPartNumber(match.bestRow.pn);
-    await record("reuse", { partNumber: match.bestRow.pn });
+    await record("reuse");
     setShowException(false);
     setDone(`Reusing ${match.bestRow.pn}. Part number filled in and the decision recorded.`);
   }
 
   async function sendException() {
-    await record("exception", { reason });
+    if (!reasonKind) return;
+    await record("exception", { reasonKind, reasonText });
     setShowException(false);
-    setReason("");
-    setDone("Exception sent for approval. The decision is recorded.");
+    setDone(
+      `Exception recorded as ${reasonLabel(reasonKind)}. A rule now covers this part for ${product}. The index score does not drop.`
+    );
+    setReasonKind("");
+    setReasonText("");
+  }
+
+  async function resetDemo() {
+    await fetch("/api/rules", { method: "DELETE" });
+    setDone("");
+    onRefresh();
   }
 
   return (
     <div className="space-y-5">
       <div>
-        <p className="text-[15px] text-text-2">New part check</p>
+        <p className="text-[15px] text-text-2">Decisions</p>
         <p className="mt-1 text-[13px] text-text-3">
-          This check runs inside the procurement system through a browser
-          extension. Shown here for reference.
+          This check runs inside the engineer&apos;s AI agent through our MCP
+          server while they design. Shown here for reference.
         </p>
       </div>
 
-      <div className="space-y-5">
-        {/* The requisition, as the procurement system asks for it */}
-        <div className="space-y-4 bg-panel p-4">
-          <h2 className="text-[15px] font-semibold text-text">
-            New part requisition REQ-2026-1184
-          </h2>
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-            <div className="lg:col-span-3">
-              <Field label="Description" dense>
+      {/* The requisition, in one compact row */}
+      <div className="bg-panel p-4">
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1.3fr)_minmax(0,0.8fr)]">
+          <Field label="Description" dense>
             <input
               type="text"
               value={description}
@@ -141,204 +167,304 @@ export default function CheckTab({ onTag }: { onTag: (po: string) => void }) {
                 setDescription(e.target.value);
                 setDone("");
               }}
-                  placeholder="Fan, axial, 120 mm, 24 VDC"
-                  className="w-full bg-transparent py-1 text-[14px] text-text placeholder:text-text-3 focus:outline-none"
-                />
-              </Field>
-            </div>
-            <Field label="Part number" dense>
+              placeholder="Fan, axial, 120 mm, 24 VDC"
+              className="w-full bg-transparent py-1 text-[14px] text-text placeholder:text-text-3 focus:outline-none"
+            />
+          </Field>
+          <Field label="Part number" dense>
             <input
               type="text"
               value={partNumber}
               onChange={(e) => setPartNumber(e.target.value)}
-                placeholder="Assigned on submit"
-                className="w-full bg-transparent py-1 font-mono text-[14px] text-text placeholder:font-sans placeholder:text-text-3 focus:outline-none"
-              />
-            </Field>
-            <Field label="Product" dense>
-              <select
-                value={product}
-                onChange={(e) => setProduct(e.target.value)}
-                className="w-full bg-transparent py-1 text-[14px] text-text focus:outline-none"
-              >
-                {PRODUCTS.map((p) => (
-                  <option key={p.id} value={p.id} className="bg-panel">
-                    {p.name}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Units per year" dense>
-              <input
-                type="number"
-                min={1}
-                value={units}
-                onChange={(e) => setUnits(Number(e.target.value) || 0)}
-                className="w-full bg-transparent py-1 text-[14px] tabular-nums text-text focus:outline-none"
-              />
-            </Field>
-          </div>
+              placeholder="On submit"
+              className="w-full bg-transparent py-1 font-mono text-[14px] text-text placeholder:font-sans placeholder:text-text-3 focus:outline-none"
+            />
+          </Field>
+          <Field label="Product" dense>
+            <select
+              value={product}
+              onChange={(e) => setProduct(e.target.value)}
+              className="w-full bg-transparent py-1 text-[14px] text-text focus:outline-none"
+            >
+              {PRODUCTS.map((p) => (
+                <option key={p.id} value={p.id} className="bg-panel">
+                  {p.name}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Units per year" dense>
+            <input
+              type="number"
+              min={1}
+              value={units}
+              onChange={(e) => setUnits(Number(e.target.value) || 0)}
+              className="w-full bg-transparent py-1 text-[14px] tabular-nums text-text focus:outline-none"
+            />
+          </Field>
         </div>
 
-        {/* The card, same shape the extension draws */}
-        <div className="bg-panel p-4">
-          {!match ? (
-            <p className="text-[13px] text-text-3">
-              Type a description. If Voltara already buys the part, the check
-              appears here.
-            </p>
-          ) : (
-            <div>
-              <Badge tone="positive">Voltara already buys this part</Badge>
-              <p className="mt-3 text-[17px] font-light text-text">{match.name}</p>
-
-              <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
-                <Tile>
-                  <div className="flex min-h-[74px] flex-col justify-between">
-                    <p className="text-[12px] font-semibold leading-snug text-text">
-                      Existing part numbers
-                    </p>
-                    <div className="text-right">
-                      <p className="text-[26px] font-light leading-none text-text">
-                        {match.partNumberCount}
-                      </p>
-                      <p className="mt-1 text-[11px] text-text-3">voltara_boms.csv</p>
-                    </div>
-                  </div>
-                </Tile>
-                <Tile>
-                  <div className="flex min-h-[74px] flex-col justify-between">
-                    <p className="text-[12px] font-semibold leading-snug text-text">
-                      Best price paid
-                    </p>
-                    <div className="text-right">
-                      <p className="text-[26px] font-light leading-none text-text">
-                        {px(match.minPrice)}
-                      </p>
-                      <p className="mt-1 truncate text-[11px] text-text-3">
-                        {match.bestRow.supplier}
-                      </p>
-                    </div>
-                  </div>
-                </Tile>
-                <Tile>
-                  <div className="flex min-h-[74px] flex-col justify-between">
-                    <p className="text-[12px] font-semibold leading-snug text-text">
-                      Yearly saving versus the highest price paid
-                    </p>
-                    <div className="text-right">
-                      <p className="text-[26px] font-light leading-none text-text">
-                        {usd(match.yearlySavingVsHighest)}
-                      </p>
-                      <p className="mt-1 text-[11px] text-text-3">
-                        {units.toLocaleString("en-US")} units a year at{" "}
-                        {px(match.minPrice)} instead of {px(match.maxPrice)}
-                      </p>
-                    </div>
-                  </div>
-                </Tile>
-              </div>
-
-              <p className="mt-4 text-[13px] text-text-2">
-                Reuse <span className="text-text">{match.bestRow.pn}</span> from{" "}
-                {match.bestRow.products.join(", ")}.{" "}
-                <button
-                  type="button"
-                  onClick={() => onTag(match.bestRow.po)}
-                  className="rounded-field border border-line-2 px-[6px] py-px font-mono text-[11px] text-text-2 transition-colors hover:border-text-2 hover:text-text"
-                >
-                  {match.bestRow.po}
-                </button>
-              </p>
-              <p className="mt-2 text-[13px] text-text-2">
-                A new number makes {match.partNumberCount + 1} part numbers for
-                one part and lowers the Complexity control score. Engineering
-                confirms fit before any swap.
-              </p>
-
-              <div className="mt-4 flex flex-wrap items-center gap-3">
-                <PrimaryButton onClick={reuse}>Reuse existing part</PrimaryButton>
-                <Button onClick={() => setShowException((s) => !s)}>
-                  Request an exception
-                </Button>
-              </div>
-
-              {done && <p className="mt-3 text-[13px] text-positive">{done}</p>}
-
-              {showException && (
-                <div className="mt-4">
-                  <Field label="Why does this product need its own part?" dense>
-                    <textarea
-                      value={reason}
-                      onChange={(e) => setReason(e.target.value)}
-                      rows={3}
-                      placeholder="The cabinet needs a sealed bearing for the salt-fog test."
-                      className="w-full resize-y bg-transparent py-1 text-[14px] text-text placeholder:text-text-3 focus:outline-none"
-                    />
-                  </Field>
+        {match && (
+          <div className="mt-4 border-t border-line pt-4">
+            {blocked ? (
+              <>
+                <Badge tone="warn">Blocked by a rule for this product</Badge>
+                <p className="mt-3 text-[17px] font-light text-text">{match.name}</p>
+                <p className="mt-2 text-[13px] text-text-2">
+                  &ldquo;{blocked.text}&rdquo;{" "}
+                  <span className="text-text-3">
+                    {reasonLabel(blocked.kind)}, set {blocked.at.slice(0, 10)}
+                  </span>
+                </p>
+                {result!.alternatives.length > 0 ? (
                   <div className="mt-3">
-                    <Button onClick={sendException}>Send for approval</Button>
+                    <p className="text-[13px] text-text-2">
+                      Parts in the same category that no rule blocks:
+                    </p>
+                    <ul className="mt-2 space-y-1">
+                      {result!.alternatives.map((a) => (
+                        <li key={a.partNumber} className="text-[13px] text-text">
+                          {a.name}{" "}
+                          <span className="font-mono text-[12px] text-text-2">
+                            {a.partNumber}
+                          </span>{" "}
+                          <span className="text-text-3">
+                            at {px(a.price)} from {a.supplier}, already in{" "}
+                            {a.products} products
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
+                ) : (
+                  <p className="mt-3 text-[13px] text-text-3">
+                    No unblocked alternative in the same category. A new part
+                    number is reasonable here.
+                  </p>
+                )}
+              </>
+            ) : (
+              <>
+                <Badge tone="positive">Voltara already buys this part</Badge>
+                <p className="mt-3 text-[17px] font-light text-text">{match.name}</p>
+
+                <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
+                  {[
+                    {
+                      label: "Existing part numbers",
+                      value: String(match.partNumberCount),
+                      sub: "voltara_boms.csv",
+                    },
+                    {
+                      label: "Best price paid",
+                      value: px(match.minPrice),
+                      sub: match.bestRow.supplier,
+                    },
+                    {
+                      label: "Yearly saving versus the highest price paid",
+                      value: usd(match.yearlySavingVsHighest),
+                      sub: `${units.toLocaleString("en-US")} units at ${px(match.minPrice)} not ${px(match.maxPrice)}`,
+                    },
+                  ].map((t) => (
+                    <Tile key={t.label}>
+                      <div className="flex min-h-[70px] flex-col justify-between">
+                        <p className="text-[12px] font-semibold leading-snug text-text">
+                          {t.label}
+                        </p>
+                        <div className="text-right">
+                          <p className="text-[24px] font-light leading-none text-text">
+                            {t.value}
+                          </p>
+                          <p className="mt-1 truncate text-[11px] text-text-3">{t.sub}</p>
+                        </div>
+                      </div>
+                    </Tile>
+                  ))}
                 </div>
-              )}
+
+                <p className="mt-3 text-[13px] text-text-2">
+                  Reuse <span className="text-text">{match.bestRow.pn}</span> from{" "}
+                  {match.bestRow.products.join(", ")}.{" "}
+                  <button
+                    type="button"
+                    onClick={() => onTag(match.bestRow.po)}
+                    className="rounded-field border border-line-2 px-[6px] py-px font-mono text-[11px] text-text-2 transition-colors hover:border-text-2 hover:text-text"
+                  >
+                    {match.bestRow.po}
+                  </button>{" "}
+                  A new number makes {match.partNumberCount + 1} part numbers
+                  for one part. Engineering confirms fit before any swap.
+                </p>
+              </>
+            )}
+
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              {!blocked && <PrimaryButton onClick={reuse}>Reuse existing part</PrimaryButton>}
+              <Button onClick={() => setShowException((s) => !s)}>
+                Request an exception
+              </Button>
             </div>
-          )}
-        </div>
+
+            {done && <p className="mt-3 text-[13px] text-positive">{done}</p>}
+
+            {showException && (
+              <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+                <Field label="Reason" dense>
+                  <select
+                    value={reasonKind}
+                    onChange={(e) => setReasonKind(e.target.value as ReasonKind)}
+                    className="w-full bg-transparent py-1 text-[14px] text-text focus:outline-none"
+                  >
+                    <option value="" className="bg-panel">
+                      Choose a reason
+                    </option>
+                    {REASON_KINDS.map((k) => (
+                      <option key={k.id} value={k.id} className="bg-panel">
+                        {k.label}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label="Why does this product need its own part?" dense>
+                  <input
+                    type="text"
+                    value={reasonText}
+                    onChange={(e) => setReasonText(e.target.value)}
+                    placeholder="The cabinet needs US-origin cooling parts for a federal contract."
+                    className="w-full bg-transparent py-1 text-[14px] text-text placeholder:text-text-3 focus:outline-none"
+                  />
+                </Field>
+                <div className="flex items-center gap-3 lg:col-span-2">
+                  <Button onClick={sendException} disabled={!reasonKind}>
+                    Send for approval
+                  </Button>
+                  {!reasonKind && (
+                    <span className="text-[12px] text-text-3">
+                      A reason is required. It becomes the rule others read.
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
+      {/* Rules in force */}
       <div className="bg-panel">
         <div className="flex items-baseline justify-between gap-4 px-4 pb-3 pt-4">
-          <h2 className="text-[15px] font-semibold text-text">Recent decisions</h2>
+          <h2 className="text-[15px] font-semibold text-text">Rules in force</h2>
           <span className="text-[12px] text-text-3">
-            {decisions.length} recorded this session
+            {rules.length} rule{rules.length === 1 ? "" : "s"}
           </span>
         </div>
         <table className="w-full border-collapse whitespace-nowrap text-[13px]">
           <thead>
             <tr className="border-y border-line bg-panel-2 text-left text-text-2">
-              <th className="py-2 pl-4 pr-2 font-normal">Decision</th>
-              <th className="w-full max-w-0 px-2 py-2 font-normal">Description</th>
-              <th className="px-2 py-2 font-normal">Product</th>
-              <th className="px-2 py-2 font-normal">Part number</th>
-              <th className="py-2 pl-2 pr-4 font-normal">Reason</th>
+              <th className="py-2 pl-4 pr-2 font-normal">Product</th>
+              <th className="px-2 py-2 font-normal">Kind</th>
+              <th className="w-full max-w-0 px-2 py-2 font-normal">Rule</th>
+              <th className="px-2 py-2 font-normal">Part it applies to</th>
+              <th className="py-2 pl-2 pr-4 font-normal">Created</th>
             </tr>
           </thead>
           <tbody>
-            {decisions.length === 0 && (
+            {rules.length === 0 ? (
               <tr>
                 <td colSpan={5} className="px-4 py-4 text-text-3">
-                  Nothing recorded yet.
+                  No rules yet. A rule appears when someone declines a
+                  suggestion and says why.
                 </td>
               </tr>
+            ) : (
+              rules.map((r) => (
+                <tr key={r.id} className="border-b border-line last:border-b-0">
+                  <td className="py-2 pl-4 pr-2 text-text">{r.scope.product}</td>
+                  <td className="px-2 py-2 text-text-2">{reasonLabel(r.kind)}</td>
+                  <td
+                    className="w-full max-w-0 truncate px-2 py-2 text-text-2"
+                    title={r.text}
+                  >
+                    {r.text}
+                  </td>
+                  <td className="px-2 py-2 text-text-2">{r.appliesToPart}</td>
+                  <td className="py-2 pl-2 pr-4 text-text-3">{r.at.slice(0, 10)}</td>
+                </tr>
+              ))
             )}
-            {decisions.map((d) => (
-              <tr key={d.id} className="border-b border-line last:border-b-0">
-                <td className="py-2 pl-4 pr-2">
-                  <Badge tone={d.decision === "reuse" ? "positive" : "warn"}>
-                    {d.decision === "reuse" ? "Reuse" : "Exception"}
-                  </Badge>
-                </td>
-                <td className="w-full max-w-0 truncate px-2 py-2 text-text" title={d.description}>
-                  {d.description || "(no description)"}
-                </td>
-                <td className="px-2 py-2 text-text-2">{d.product || "—"}</td>
-                <td className="px-2 py-2 font-mono text-text-2">{d.partNumber ?? ""}</td>
-                <td
-                  className="max-w-[220px] truncate py-2 pl-2 pr-4 text-text-2"
-                  title={d.reason}
-                >
-                  {d.reason ?? ""}
-                </td>
-              </tr>
-            ))}
           </tbody>
         </table>
       </div>
 
-      <p className="text-[12px] text-text-3">
-        Decisions are held in memory for this session only. Sample company and
-        sample data.
-      </p>
+      {/* Recent decisions */}
+      <div className="bg-panel">
+        <div className="flex items-baseline justify-between gap-4 px-4 pb-3 pt-4">
+          <h2 className="text-[15px] font-semibold text-text">Recent decisions</h2>
+          <span className="text-[12px] text-text-3">{decisions.length} recorded</span>
+        </div>
+        <table className="w-full border-collapse whitespace-nowrap text-[13px]">
+          <thead>
+            <tr className="border-y border-line bg-panel-2 text-left text-text-2">
+              <th className="py-2 pl-4 pr-2 font-normal">When</th>
+              <th className="px-2 py-2 font-normal">Product</th>
+              <th className="w-full max-w-0 px-2 py-2 font-normal">Requested</th>
+              <th className="px-2 py-2 font-normal">Decision</th>
+              <th className="px-2 py-2 font-normal">Reason</th>
+              <th className="py-2 pl-2 pr-4 font-normal">Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            {decisions.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="px-4 py-4 text-text-3">
+                  Nothing recorded yet.
+                </td>
+              </tr>
+            ) : (
+              decisions.map((d) => (
+                <tr key={d.id} className="border-b border-line last:border-b-0">
+                  <td className="py-2 pl-4 pr-2 tabular-nums text-text-3">{when(d.at)}</td>
+                  <td className="px-2 py-2 text-text-2">{d.product || "—"}</td>
+                  <td
+                    className="w-full max-w-0 truncate px-2 py-2 text-text"
+                    title={d.description}
+                  >
+                    {d.description || "(no description)"}
+                  </td>
+                  <td className="px-2 py-2">
+                    <Badge tone={d.decision === "reuse" ? "positive" : "warn"}>
+                      {d.decision === "reuse" ? "Reused" : "Exception"}
+                    </Badge>
+                  </td>
+                  <td
+                    className="max-w-[200px] truncate px-2 py-2 text-text-2"
+                    title={d.reasonText}
+                  >
+                    {d.decision === "exception" ? reasonLabel(d.reasonKind) : ""}
+                  </td>
+                  <td className="py-2 pl-2 pr-4 text-text-2">
+                    {SOURCE_LABEL[d.source] ?? d.source}
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-4">
+        <button
+          type="button"
+          onClick={resetDemo}
+          className="text-[13px] text-text-3 underline-offset-4 transition-colors hover:text-text-2 hover:underline"
+        >
+          Reset demo data
+        </button>
+        <span className="text-[12px] text-text-3">
+          An exception never lowers the index score. Sample company and sample
+          data.
+        </span>
+      </div>
     </div>
   );
 }

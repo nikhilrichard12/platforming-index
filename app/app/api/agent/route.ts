@@ -4,6 +4,7 @@ import { UserProfile } from "@/lib/types";
 import { buildSystemPrompt } from "@/lib/agent/buildSystemPrompt";
 import { VoltaraData, usd } from "@/lib/voltaraData";
 import { loadSurvey, loadVoltaraData } from "@/lib/voltaraData.server";
+import { listRules } from "@/lib/rules.server";
 import { roleViewFor } from "@/lib/roleViews";
 
 export const runtime = "nodejs";
@@ -106,7 +107,7 @@ export async function POST(req: NextRequest) {
   if (!apiKey) return offlineResponse(body, data, "no_api_key");
 
   const client = new Anthropic({ apiKey });
-  const system = buildSystemPrompt(body.profile, data, loadSurvey());
+  const system = buildSystemPrompt(body.profile, data, loadSurvey(), listRules());
   const messages = body.messages.slice(-HISTORY).map((m) => ({
     role: m.role,
     content: m.content,

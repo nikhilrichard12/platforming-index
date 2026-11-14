@@ -3,6 +3,7 @@ import { getRoleConfig } from "../roles";
 import { roleViewFor } from "../roleViews";
 import { PRODUCT_MASTER, VoltaraData, px, usd } from "../voltaraData";
 import { SurveyFile, applyOwnAnswers, isSplit } from "../survey";
+import { Rule, reasonLabel } from "../rules";
 
 export interface PromptSection {
   id: string;
@@ -14,9 +15,10 @@ export interface PromptSection {
 export function buildSystemPrompt(
   profile: UserProfile,
   data: VoltaraData,
-  survey: SurveyFile
+  survey: SurveyFile,
+  rules: Rule[] = []
 ): string {
-  return buildPromptSections(profile, data, survey)
+  return buildPromptSections(profile, data, survey, rules)
     .map((s) => `## ${s.heading}\n${s.body}`)
     .join("\n\n");
 }
@@ -59,7 +61,8 @@ function surveyLines(survey: SurveyFile, profile: UserProfile): string {
 export function buildPromptSections(
   profile: UserProfile,
   data: VoltaraData,
-  survey: SurveyFile
+  survey: SurveyFile,
+  rules: Rule[] = []
 ): PromptSection[] {
   const roleCfg = profile.role ? getRoleConfig(profile.role) : null;
   const view = roleViewFor(profile.role);
@@ -126,6 +129,22 @@ export function buildPromptSections(
           ].join("\n")
         : "Role not set. No role-specific metrics loaded.",
       source: "app/lib/roleViews.ts",
+    },
+    {
+      id: "rules_in_force",
+      heading: "RULES IN FORCE",
+      body:
+        rules.length === 0
+          ? "No rules yet. Nothing has been ruled out, so every suggestion stands on the data alone."
+          : [
+              "Each rule came from an engineer declining a suggested part and saying why. A rule outranks any reuse suggestion for its product. Never suggest reusing a part a rule blocks for that product; say what the rule is and offer another part.",
+              ...rules.map(
+                (r) =>
+                  `  - ${r.scope.product}: ${r.appliesToPart} is ruled out. "${r.text}" (${reasonLabel(r.kind)}, set ${r.at.slice(0, 10)}) [rule ${r.id}]`
+              ),
+              "An exception does not lower the index score. Complexity a rule requires is not complexity anyone chose.",
+            ].join("\n"),
+      source: "data/derived/decisions.json",
     },
     {
       id: "rules",

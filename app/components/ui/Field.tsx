@@ -25,7 +25,7 @@ export default function Field({
           error ? "border-risk" : "border-line-2"
         }`}
       >
-        <legend className="px-2 text-[12px] font-normal text-text-2">{label}</legend>
+        <legend className="whitespace-nowrap px-2 text-[12px] font-normal text-text-2">{label}</legend>
         {hint ? <p className="mb-4 mt-1 text-[12px] text-text-3">{hint}</p> : null}
         <div className={hint ? "" : dense ? "" : "pt-2"}>{children}</div>
       </fieldset>

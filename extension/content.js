@@ -21,6 +21,13 @@ const PI = {
 };
 
 const DEBOUNCE_MS = 500;
+
+const REASON_KINDS = [
+  ["compliance_or_origin", "Compliance or country of origin"],
+  ["customer_requirement", "Customer requirement"],
+  ["technical_fit", "Technical fit"],
+  ["other", "Other"],
+];
 const MIN_CONFIDENCE = 0.6;
 
 /* ---------- talking to the background worker ---------- */
@@ -78,6 +85,9 @@ const usd = (n) =>
 
 const px = (n) => "$" + (n < 1 ? n.toFixed(3) : n.toFixed(2));
 
+const reasonLabel = (kind) =>
+  (REASON_KINDS.find(([id]) => id === kind) ?? [null, "Other"])[1];
+
 const esc = (s) =>
   String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
@@ -110,6 +120,18 @@ const STYLE = `
     display: inline-block; background: #59C376; color: #1E1E1E;
     font-size: 11px; line-height: 1; padding: 4px 8px; border-radius: 2px;
   }
+  .badge.warn { background: #F5C042; }
+  .rule { margin-top: 12px; font-size: 13px; color: #B8BBBE; }
+  .rule .meta { color: #818182; }
+  ul.alts { margin-top: 10px; padding-left: 0; list-style: none; }
+  ul.alts li { font-size: 13px; color: #FFFFFF; margin-top: 6px; }
+  ul.alts .pn { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #B8BBBE; }
+  ul.alts .meta { color: #818182; }
+  select.reason {
+    width: 100%; background: #242728; color: #FFFFFF; font: inherit; font-size: 13px;
+    border: 1px solid #6A7275; border-radius: 2px; padding: 7px 8px; margin-bottom: 10px;
+  }
+  select.reason:focus { outline: none; border-color: #B8BBBE; }
   .name { margin-top: 12px; font-size: 17px; font-weight: 300; }
   .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px; }
   .tile { background: #303436; padding: 12px; display: flex; flex-direction: column;
@@ -152,7 +174,7 @@ const STYLE = `
   .reply { margin-top: 12px; background: #303436; padding: 12px; font-size: 13px; color: #B8BBBE; }
   .reply p + p { margin-top: 8px; }
   .foot { margin-top: 14px; font-size: 11px; color: #818182; }
-  .rule { height: 1px; background: #2F3234; margin: 16px 0; border: 0; }
+  hr.rule-line { height: 1px; background: #2F3234; margin: 16px 0; border: 0; }
   .hidden { display: none; }
 `;
 
@@ -170,17 +192,33 @@ function unmount() {
   PI.root = null;
 }
 
-function cardHtml(match, form) {
+function cardHtml(result, form) {
+  const match = result.match;
+  const blocked = result.blockedBy && result.blockedBy[0];
   const n = match.partNumberCount;
   const row = match.bestRow;
-  return `
-    <style>${STYLE}</style>
-    <div class="card" role="complementary" aria-label="Platforming Index part check">
-      <div class="head">
-        <span class="brand"><b>Platforming</b> <span>Index</span></span>
-        <button class="close" type="button" aria-label="Close">&#215;</button>
-      </div>
-      <div class="body">
+
+  const body = blocked
+    ? `
+        <span class="badge warn">Blocked by a rule for this product</span>
+        <p class="name">${esc(match.name)}</p>
+        <p class="rule">&ldquo;${esc(blocked.text)}&rdquo;
+          <span class="meta">${esc(reasonLabel(blocked.kind))}, set ${esc(blocked.at.slice(0, 10))}</span>
+        </p>
+        ${
+          result.alternatives && result.alternatives.length
+            ? `<p class="read">Parts in the same category that no rule blocks:</p>
+               <ul class="alts">${result.alternatives
+                 .map(
+                   (a) =>
+                     `<li>${esc(a.name)} <span class="pn">${esc(a.partNumber)}</span>
+                        <span class="meta">at ${px(a.price)} from ${esc(a.supplier)}, already in ${a.products} products</span></li>`
+                 )
+                 .join("")}</ul>`
+            : `<p class="read">No unblocked alternative in the same category. A new part number is reasonable here.</p>`
+        }
+      `
+    : `
         <span class="badge">Voltara already buys this part</span>
         <p class="name">${esc(match.name)}</p>
 
@@ -204,22 +242,38 @@ function cardHtml(match, form) {
 
         <p class="read">Reuse <b>${esc(row.pn)}</b> from ${esc(row.products.join(", "))}. <span class="po">${esc(row.po)}</span></p>
         <p class="read">A new number makes ${n + 1} part numbers for one part and lowers the Complexity control score. Engineering confirms fit before any swap.</p>
+      `;
+
+  return `
+    <style>${STYLE}</style>
+    <div class="card" role="complementary" aria-label="Platforming Index part check">
+      <div class="head">
+        <span class="brand"><b>Platforming</b> <span>Index</span></span>
+        <button class="close" type="button" aria-label="Close">&#215;</button>
+      </div>
+      <div class="body">
+        ${body}
 
         <div class="actions">
-          <button class="primary" type="button" data-act="reuse">Reuse existing part</button>
+          ${blocked ? "" : '<button class="primary" type="button" data-act="reuse">Reuse existing part</button>'}
           <button class="outline" type="button" data-act="exception">Request an exception</button>
         </div>
         <p class="done hidden" data-el="done"></p>
 
         <div class="exception hidden" data-el="exception">
+          <label for="pi-kind">Reason</label>
+          <select class="reason" id="pi-kind" data-el="kind">
+            <option value="">Choose a reason</option>
+            ${REASON_KINDS.map(([id, label]) => `<option value="${id}">${label}</option>`).join("")}
+          </select>
           <label for="pi-reason">Why does this product need its own part?</label>
-          <textarea id="pi-reason" data-el="reason" placeholder="The cabinet needs a sealed bearing for the salt-fog test."></textarea>
+          <textarea id="pi-reason" data-el="reason" placeholder="The cabinet needs US-origin cooling parts for a federal contract."></textarea>
           <div class="actions">
             <button class="outline" type="button" data-act="send-exception">Send for approval</button>
           </div>
         </div>
 
-        <hr class="rule" />
+        <hr class="rule-line" />
         <div class="ask-row">
           <input class="ask" type="text" data-el="ask" placeholder="Ask why" aria-label="Ask why" />
           <button class="outline" type="button" data-act="ask">Ask</button>
@@ -276,9 +330,10 @@ function savedProfile() {
   };
 }
 
-function render(match, form) {
+function render(result, form) {
+  const match = result.match;
   mount();
-  PI.root.innerHTML = cardHtml(match, form);
+  PI.root.innerHTML = cardHtml(result, form);
 
   const el = (name) => PI.root.querySelector(`[data-el="${name}"]`);
   const act = (name) => PI.root.querySelector(`[data-act="${name}"]`);
@@ -288,13 +343,15 @@ function render(match, form) {
     unmount();
   });
 
-  act("reuse").addEventListener("click", async () => {
+  act("reuse")?.addEventListener("click", async () => {
     const written = writePartNumber(match.bestRow.pn);
     await send("recordDecision", {
       description: form.description,
       product: form.product,
       decision: "reuse",
-      partNumber: match.bestRow.pn,
+      matchedPart: match.name,
+      suggestedPn: match.bestRow.pn,
+      source: "extension",
     });
     const done = el("done");
     done.textContent = written
@@ -310,16 +367,27 @@ function render(match, form) {
   });
 
   act("send-exception").addEventListener("click", async () => {
-    const reason = el("reason").value.trim();
-    await send("recordDecision", {
+    const kind = el("kind").value;
+    const done = el("done");
+    if (!kind) {
+      done.textContent = "Choose a reason first. It becomes the rule other engineers read.";
+      done.classList.remove("hidden");
+      return;
+    }
+    const res = await send("recordDecision", {
       description: form.description,
       product: form.product,
       decision: "exception",
-      reason,
+      matchedPart: match.name,
+      suggestedPn: match.bestRow.pn,
+      reasonKind: kind,
+      reasonText: el("reason").value.trim(),
+      source: "extension",
     });
     el("exception").classList.add("hidden");
-    const done = el("done");
-    done.textContent = "Exception sent for approval. The decision is recorded.";
+    done.textContent = res.ok && res.data.rule
+      ? `Exception recorded. A rule now covers ${match.name} for ${form.product}. The index score does not drop.`
+      : "Exception recorded.";
     done.classList.remove("hidden");
   });
 
@@ -373,13 +441,17 @@ async function check() {
   const res = await send("checkPart", form);
   if (!res.ok) return;
 
-  const match = res.data.match;
-  PI.match = match;
-  if (!match || match.confidence < MIN_CONFIDENCE || form.description === PI.dismissed) {
+  const result = res.data;
+  PI.match = result.match;
+  if (
+    !result.match ||
+    result.match.confidence < MIN_CONFIDENCE ||
+    form.description === PI.dismissed
+  ) {
     unmount();
     return;
   }
-  render(match, form);
+  render(result, form);
 }
 
 function schedule() {
