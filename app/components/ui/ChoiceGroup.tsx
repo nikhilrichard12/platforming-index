@@ -34,7 +34,7 @@ export default function ChoiceGroup({
               size === "sm" ? "px-3 py-[7px] text-[13px]" : "px-4 py-2 text-[13px]"
             } ${
               isOn
-                ? "border-text bg-text text-[#1E1E1E]"
+                ? "border-text bg-transparent text-text"
                 : "border-line bg-panel-2 text-text-2 hover:border-line-2 hover:text-text"
             }`}
           >

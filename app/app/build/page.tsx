@@ -5,394 +5,318 @@ import { useRouter } from "next/navigation";
 import { loadProfile } from "@/lib/profile";
 import { buildPromptSections, PromptSection } from "@/lib/agent/buildSystemPrompt";
 import { UserProfile, EMPTY_PROFILE } from "@/lib/types";
+import PageHeader from "@/components/ui/PageHeader";
+import { Button, PrimaryButton } from "@/components/ui/Button";
 
-const STEPS = [
-  "Reading your profile",
-  "Loading Voltara data",
-  "Loading role metrics",
-  "Loading assumptions and citation rules",
-  "Composing the system prompt",
-  "Advisor ready",
+type Stage = {
+  name: string;
+  detail: string;
+  /** Prompt section ids revealed when this stage completes. */
+  reveals: string[];
+  delay: number;
+};
+
+const STAGES: Stage[] = [
+  {
+    name: "Reading your profile",
+    detail: "Role, decision level, products, and what you are measured on.",
+    reveals: ["role_profile"],
+    delay: 600,
+  },
+  {
+    name: "Reading your beliefs",
+    detail: "Five answers about how product decisions get made here.",
+    reveals: ["beliefs"],
+    delay: 800,
+  },
+  {
+    name: "Loading Voltara parts and spend data",
+    detail: "Parts lists and purchase records, counted and cited.",
+    reveals: ["company_data"],
+    delay: 900,
+  },
+  {
+    name: "Choosing the metrics for your role",
+    detail: "The numbers your function is judged on, in order.",
+    reveals: ["role_metrics"],
+    delay: 700,
+  },
+  {
+    name: "Adding rules and assumptions",
+    detail: "Every figure cites a source row or a listed assumption.",
+    reveals: ["rules", "assumptions"],
+    delay: 1000,
+  },
+  {
+    name: "Writing your assistant's instructions",
+    detail: "One model, a prompt written for you.",
+    reveals: [],
+    delay: 700,
+  },
 ];
 
-const STEP_DELAYS = [600, 800, 700, 900, 1200, 400];
+/** "ROLE AND PROFILE" reads as an eyebrow label. Show it as a sentence. */
+function displayHeading(heading: string): string {
+  const lower = heading.toLowerCase();
+  return lower.charAt(0).toUpperCase() + lower.slice(1);
+}
+
+function StatusMark({ state }: { state: "waiting" | "running" | "done" }) {
+  if (state === "done") {
+    return (
+      <svg viewBox="0 0 16 16" className="h-4 w-4 text-positive" aria-hidden="true">
+        <path
+          d="M2 8.5 6 12.5 14 4"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+        />
+      </svg>
+    );
+  }
+  if (state === "running") {
+    return (
+      <span className="block h-4 w-4 rounded-full border-2 border-accent animate-pulse-ring" />
+    );
+  }
+  return <span className="block h-4 w-4 rounded-full border border-line-2" />;
+}
 
 export default function BuildPage() {
   const router = useRouter();
   const [profile, setProfile] = useState<UserProfile>({ ...EMPTY_PROFILE });
-  const [currentStep, setCurrentStep] = useState(-1);
-  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [sections, setSections] = useState<PromptSection[]>([]);
-  const [visibleSections, setVisibleSections] = useState<number>(0);
-  const [typedChars, setTypedChars] = useState<number[]>([]);
+  const [currentStage, setCurrentStage] = useState(-1);
+  const [completedStages, setCompletedStages] = useState<number[]>([]);
+  const [visibleIds, setVisibleIds] = useState<string[]>([]);
+  const [arrivedId, setArrivedId] = useState<string | null>(null);
+  const [typedChars, setTypedChars] = useState<Record<string, number>>({});
   const [done, setDone] = useState(false);
   const [skipped, setSkipped] = useState(false);
-  const monoRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const p = loadProfile();
     setProfile(p);
-    const built = buildPromptSections(p);
-    setSections(built);
-    setTypedChars(new Array(built.length).fill(0));
+    setSections(buildPromptSections(p));
   }, []);
 
-  // Drive the stepper
+  // Drive the stages on a timer.
   useEffect(() => {
     if (sections.length === 0 || skipped) return;
-    function runStep(idx: number) {
-      if (idx >= STEPS.length) return;
-      setCurrentStep(idx);
-      setTimeout(() => {
-        setCompletedSteps((prev) => [...prev, idx]);
-        // Reveal a prompt section roughly aligned to steps 1-5
-        if (idx < sections.length) {
-          setVisibleSections((prev) => prev + 1);
-        }
-        if (idx === STEPS.length - 1) {
-          setDone(true);
-        } else {
-          runStep(idx + 1);
-        }
-      }, STEP_DELAYS[idx]);
+    let cancelled = false;
+    const timers: ReturnType<typeof setTimeout>[] = [];
+
+    function runStage(idx: number) {
+      if (cancelled || idx >= STAGES.length) return;
+      setCurrentStage(idx);
+      timers.push(
+        setTimeout(() => {
+          if (cancelled) return;
+          setCompletedStages((prev) => [...prev, idx]);
+          const reveals = STAGES[idx].reveals;
+          if (reveals.length > 0) {
+            setVisibleIds((prev) => [...prev, ...reveals]);
+            setArrivedId(reveals[reveals.length - 1]);
+          }
+          if (idx === STAGES.length - 1) setDone(true);
+          else runStage(idx + 1);
+        }, STAGES[idx].delay)
+      );
     }
 
-    runStep(0);
+    runStage(0);
+    return () => {
+      cancelled = true;
+      timers.forEach(clearTimeout);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sections.length]);
 
-  // Typewriter for each visible section
+  // The arrival rule shows for one second.
   useEffect(() => {
-    if (skipped) return;
-    if (visibleSections === 0) return;
-    const idx = visibleSections - 1;
-    if (idx >= sections.length) return;
-    const text = `## ${sections[idx].heading}\n${sections[idx].body}`;
+    if (!arrivedId) return;
+    const t = setTimeout(() => setArrivedId(null), 1000);
+    return () => clearTimeout(t);
+  }, [arrivedId]);
+
+  // Type out the body of the newest section. A stage that reveals more than one
+  // section shows the earlier ones in full.
+  useEffect(() => {
+    if (skipped || visibleIds.length === 0) return;
+    setTypedChars((prev) => {
+      const next = { ...prev };
+      for (const id of visibleIds.slice(0, -1)) {
+        const s = sections.find((x) => x.id === id);
+        if (s) next[id] = s.body.length;
+      }
+      return next;
+    });
+    const id = visibleIds[visibleIds.length - 1];
+    const section = sections.find((s) => s.id === id);
+    if (!section) return;
     let char = 0;
     const interval = setInterval(() => {
-      char += 4; // type 4 chars per tick for speed
-      setTypedChars((prev) => {
-        const next = [...prev];
-        next[idx] = Math.min(char, text.length);
-        return next;
-      });
-      if (char >= text.length) clearInterval(interval);
+      char += 6;
+      setTypedChars((prev) => ({
+        ...prev,
+        [id]: Math.min(char, section.body.length),
+      }));
+      if (char >= section.body.length) clearInterval(interval);
     }, 20);
     return () => clearInterval(interval);
-  }, [visibleSections, sections, skipped]);
+  }, [visibleIds, sections, skipped]);
 
-  // Auto-scroll mono panel
+  // Follow the text while it assembles, then return to the top so the finished
+  // prompt reads from its first line.
   useEffect(() => {
-    if (monoRef.current) {
-      monoRef.current.scrollTop = monoRef.current.scrollHeight;
-    }
-  }, [typedChars, visibleSections]);
+    if (!panelRef.current) return;
+    panelRef.current.scrollTop = done ? 0 : panelRef.current.scrollHeight;
+  }, [typedChars, visibleIds, done]);
 
   function handleSkip() {
     setSkipped(true);
-    setCurrentStep(STEPS.length - 1);
-    setCompletedSteps(STEPS.map((_, i) => i));
-    setVisibleSections(sections.length);
+    setCurrentStage(STAGES.length - 1);
+    setCompletedStages(STAGES.map((_, i) => i));
+    setVisibleIds(sections.map((s) => s.id));
+    setArrivedId(null);
     setTypedChars(
-      sections.map((s) => `## ${s.heading}\n${s.body}`.length)
+      Object.fromEntries(sections.map((s) => [s.id, s.body.length]))
     );
     setDone(true);
   }
 
-  function getDisplayedText(idx: number): string {
-    if (idx >= sections.length) return "";
-    const full = `## ${sections[idx].heading}\n${sections[idx].body}`;
-    if (skipped) return full;
-    return full.slice(0, typedChars[idx] ?? 0);
+  function bodyFor(section: PromptSection): string {
+    if (skipped) return section.body;
+    return section.body.slice(0, typedChars[section.id] ?? 0);
   }
 
+  const who = [
+    profile.role,
+    profile.decisionLevel,
+    profile.products.length > 0
+      ? `${profile.products.length} ${profile.products.length === 1 ? "product" : "products"}`
+      : "",
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
+  const visible = sections.filter((s) => visibleIds.includes(s.id));
+
   return (
-    <div style={{ minHeight: "100vh", background: "#F5F5F5" }}>
-      {/* Hero */}
-      <div
-        className="hero-pattern"
-        style={{ background: "#1B1330", padding: "48px 48px 40px" }}
-      >
-        <div style={{ maxWidth: 1440, margin: "0 auto" }}>
-          <p
-            style={{
-              fontSize: 11,
-              fontWeight: 600,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              color: "#c084fc",
-              marginBottom: 12,
-            }}
-          >
-            Step 2 of 3
-          </p>
-          <h1 style={{ fontSize: 36, fontWeight: 600, color: "#FFFFFF", margin: 0 }}>
-            Building your advisor
-          </h1>
-          <p style={{ color: "rgba(255,255,255,0.55)", marginTop: 8, fontSize: 15 }}>
-            Loading Voltara sample data and composing a system prompt tailored to your profile.
-          </p>
-        </div>
-      </div>
-
-      {/* Main split */}
-      <div
-        style={{
-          maxWidth: 1440,
-          margin: "0 auto",
-          padding: "48px 48px 80px",
-          display: "grid",
-          gridTemplateColumns: "280px 1fr",
-          gap: 40,
-          alignItems: "start",
-        }}
-      >
-        {/* Left: Stepper */}
-        <div>
-          <div
-            style={{
-              background: "#FFFFFF",
-              border: "1px solid #CCCCCC",
-              padding: "28px 24px",
-            }}
-          >
-            <p
-              style={{
-                fontSize: 11,
-                fontWeight: 600,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                color: "#495057",
-                margin: "0 0 20px",
-              }}
-            >
-              Assembly steps
-            </p>
-            {STEPS.map((step, i) => {
-              const isComplete = completedSteps.includes(i);
-              const isActive = currentStep === i && !isComplete;
-              return (
-                <div
-                  key={step}
-                  style={{
-                    display: "flex",
-                    alignItems: "flex-start",
-                    gap: 12,
-                    marginBottom: 20,
-                  }}
-                >
-                  {/* Circle */}
-                  <div
-                    style={{
-                      width: 24,
-                      height: 24,
-                      border: isComplete
-                        ? "2px solid #7823DC"
-                        : isActive
-                        ? "2px solid #7823DC"
-                        : "2px solid #CCCCCC",
-                      background: isComplete ? "#7823DC" : "transparent",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flexShrink: 0,
-                      marginTop: 1,
-                    }}
-                  >
-                    {isComplete ? (
-                      <span style={{ color: "#FFFFFF", fontSize: 12, fontWeight: 700 }}>✓</span>
-                    ) : isActive ? (
-                      <span
-                        style={{
-                          width: 8,
-                          height: 8,
-                          background: "#7823DC",
-                          display: "block",
-                          animation: "pulse 1s infinite",
-                        }}
-                      />
-                    ) : (
-                      <span
-                        style={{
-                          width: 6,
-                          height: 6,
-                          background: "#CCCCCC",
-                          display: "block",
-                        }}
-                      />
-                    )}
-                  </div>
-                  <span
-                    style={{
-                      fontSize: 13,
-                      color: isComplete ? "#1E1E1E" : isActive ? "#7823DC" : "#495057",
-                      fontWeight: isActive || isComplete ? 600 : 400,
-                    }}
-                  >
-                    {step}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Skip / open dashboard */}
-          <div style={{ marginTop: 20 }}>
-            {done ? (
-              <button
-                onClick={() => router.push("/dashboard")}
-                style={{
-                  width: "100%",
-                  padding: "12px 20px",
-                  background: "#7823DC",
-                  color: "#FFFFFF",
-                  border: "none",
-                  fontSize: 13,
-                  fontWeight: 600,
-                  letterSpacing: "0.04em",
-                  textTransform: "uppercase",
-                  cursor: "pointer",
-                }}
-              >
-                Open dashboard →
-              </button>
+    <div className="min-h-screen bg-surface">
+      <div className="mx-auto max-w-shell px-12 pb-24">
+        <PageHeader
+          parent="Voltara Power Systems"
+          section="Platforming Index"
+          title="Building your view"
+          actions={
+            done ? (
+              <PrimaryButton onClick={() => router.push("/dashboard")}>
+                Open my dashboard
+              </PrimaryButton>
             ) : (
+              <Button variant="muted" disabled>
+                Open my dashboard
+              </Button>
+            )
+          }
+        />
+
+        <p className="mt-4 text-[15px] text-text-2">
+          {who || "No profile saved yet. Showing the default build."}
+        </p>
+
+        <div className="mt-10 grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+          {/* Stages */}
+          <div>
+            <div className="border-t border-line">
+              {STAGES.map((stage, i) => {
+                const isDone = completedStages.includes(i);
+                const isRunning = currentStage === i && !isDone;
+                return (
+                  <div
+                    key={stage.name}
+                    className="flex gap-4 border-b border-line py-5"
+                  >
+                    <div className="pt-[3px]">
+                      <StatusMark
+                        state={isDone ? "done" : isRunning ? "running" : "waiting"}
+                      />
+                    </div>
+                    <div>
+                      <p
+                        className={`text-[15px] leading-snug ${
+                          isDone || isRunning ? "text-text" : "text-text-2"
+                        }`}
+                      >
+                        {stage.name}
+                      </p>
+                      <p className="mt-1 text-[13px] leading-snug text-text-3">
+                        {stage.detail}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {!done && (
               <button
+                type="button"
                 onClick={handleSkip}
-                style={{
-                  width: "100%",
-                  padding: "10px 20px",
-                  background: "transparent",
-                  color: "#7823DC",
-                  border: "1px solid #7823DC",
-                  fontSize: 12,
-                  fontWeight: 600,
-                  letterSpacing: "0.04em",
-                  cursor: "pointer",
-                  textTransform: "uppercase",
-                }}
+                className="mt-5 text-[13px] text-text-3 underline-offset-4 transition-colors hover:text-text-2 hover:underline"
               >
-                Skip animation
+                Skip
               </button>
             )}
           </div>
-        </div>
 
-        {/* Right: Monospace prompt panel */}
-        <div
-          style={{
-            background: "#0D0D0D",
-            border: "1px solid #333",
-            minHeight: 480,
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
-          <div
-            style={{
-              padding: "10px 16px",
-              borderBottom: "1px solid #333",
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-            }}
-          >
-            <span
-              style={{
-                fontSize: 11,
-                color: "#666",
-                fontFamily: "monospace",
-                letterSpacing: "0.06em",
-                textTransform: "uppercase",
-              }}
+          {/* Assistant instructions */}
+          <div className="bg-panel p-6">
+            <h2 className="text-[15px] font-semibold text-text">
+              Assistant instructions
+            </h2>
+            <p className="mt-1 text-[13px] text-text-3">
+              Assembled from your survey and Voltara data
+            </p>
+
+            {/* The negative margin keeps the arrival rule inside the scroll box,
+                which clips anything sitting left of its padding edge. */}
+            <div
+              ref={panelRef}
+              className="-ml-5 mt-6 max-h-[520px] min-h-[420px] overflow-y-auto pl-5"
             >
-              system_prompt.txt
-            </span>
-            {profile.role && (
-              <span
-                style={{
-                  fontSize: 10,
-                  background: "rgba(120,35,220,0.3)",
-                  border: "1px solid #7823DC",
-                  color: "#c084fc",
-                  padding: "2px 8px",
-                  letterSpacing: "0.06em",
-                }}
-              >
-                {profile.role}
-              </span>
-            )}
-          </div>
-
-          <div
-            ref={monoRef}
-            className="mono-panel"
-            style={{
-              flex: 1,
-              padding: 24,
-              overflowY: "auto",
-              maxHeight: 520,
-              color: "#d4d4d4",
-            }}
-          >
-            {sections.slice(0, visibleSections).map((section, idx) => {
-              const displayed = getDisplayedText(idx);
-              const isTyping =
-                !skipped &&
-                idx === visibleSections - 1 &&
-                (typedChars[idx] ?? 0) < `## ${section.heading}\n${section.body}`.length;
-
-              return (
-                <div key={section.id} style={{ marginBottom: 24 }}>
+              {visible.length === 0 ? (
+                <p className="text-[13px] text-text-3">Waiting for the first stage.</p>
+              ) : (
+                visible.map((section) => (
                   <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      marginBottom: 4,
-                    }}
+                    key={section.id}
+                    className={`-ml-4 mb-7 border-l pl-4 ${
+                      arrivedId === section.id
+                        ? "border-accent"
+                        : "border-transparent"
+                    }`}
                   >
-                    <span style={{ color: "#888", fontSize: 10, letterSpacing: "0.06em" }}>
-                      ▸ SOURCE: {section.source}
-                    </span>
+                    <div className="flex items-baseline justify-between gap-6">
+                      <h3 className="text-[14px] font-semibold text-text">
+                        {displayHeading(section.heading)}
+                      </h3>
+                      <span className="max-w-[45%] break-words text-right text-[12px] leading-snug text-text-3">
+                        {section.source}
+                      </span>
+                    </div>
+                    <pre className="mt-2 whitespace-pre-wrap break-words font-mono text-[13px] leading-relaxed text-text-2">
+                      {bodyFor(section)}
+                    </pre>
                   </div>
-                  <pre
-                    style={{
-                      margin: 0,
-                      whiteSpace: "pre-wrap",
-                      wordBreak: "break-word",
-                      color: idx === 0 ? "#c084fc" : idx === 2 ? "#86efac" : "#d4d4d4",
-                    }}
-                  >
-                    {displayed}
-                    {isTyping && (
-                      <span
-                        style={{
-                          display: "inline-block",
-                          width: 8,
-                          height: 14,
-                          background: "#7823DC",
-                          marginLeft: 2,
-                          verticalAlign: "text-bottom",
-                          animation: "blink 1s step-end infinite",
-                        }}
-                      />
-                    )}
-                  </pre>
-                </div>
-              );
-            })}
-            {sections.length === 0 && (
-              <span style={{ color: "#555" }}>Initialising…</span>
-            )}
+                ))
+              )}
+            </div>
           </div>
         </div>
       </div>
-
-      <style>{`
-        @keyframes blink { 50% { opacity: 0; } }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-      `}</style>
     </div>
   );
 }

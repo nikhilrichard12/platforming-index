@@ -224,7 +224,10 @@ export default function IntakePage() {
         {tab === "overview" && (
           <section className="pt-14">
             <StepStrip steps={STEPS} />
-            <p className="mt-16 text-[13px] text-text-3">
+            <p className="mt-16 text-[15px] text-text-2">
+              Takes three minutes. You get a score and a view built for your role.
+            </p>
+            <p className="mt-3 text-[13px] text-text-3">
               Sample company. Sample data.
             </p>
           </section>

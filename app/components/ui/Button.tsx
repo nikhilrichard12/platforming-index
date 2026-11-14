@@ -16,14 +16,19 @@ export function Button({
   onClick,
   type = "button",
   disabled,
+  variant = "default",
   className = "",
-}: Common) {
+}: Common & { variant?: "default" | "muted" }) {
+  const tone =
+    variant === "muted"
+      ? "border-line bg-transparent text-text-3"
+      : "border-line-2 bg-panel-2 text-text hover:border-text-2";
   return (
     <button
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`h-[34px] rounded-full border border-line-2 bg-panel-2 px-5 text-[14px] font-normal text-text transition-colors hover:border-text-2 disabled:opacity-40 ${className}`}
+      className={`h-[34px] rounded-full border px-5 text-[14px] font-normal transition-colors disabled:cursor-default ${tone} ${className}`}
     >
       {children}
     </button>

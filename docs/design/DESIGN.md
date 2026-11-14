@@ -54,26 +54,31 @@ Live in `app/tailwind.config.ts` as named colors and in `app/app/globals.css` as
 
 Shared components live in `app/components/ui/`.
 
-- **TopBar**: black, 44px tall, 48px gutter. "Platforming" bold, "Index" light. No logo.
+- **TopBar**: black, 44px tall, 48px gutter. "Platforming" bold, "Index" light, no logo. At the right, the client name in text-2 and a "Sample data" badge.
 - **PageHeader**: breadcrumb, then title, with optional right-side actions.
 - **Tabs**: plain text, active tab has a 1px white underline, a hairline (`line`) runs under the whole row. Our addition: a 6px `risk` dot after a tab whose answers are incomplete.
-- **Button**: pill, 34px tall, `panel-2` fill, 1px `line-2` border, white text.
+- **Button**: pill, 34px tall, `panel-2` fill, 1px `line-2` border, white text. The `muted` variant (transparent fill, `line` border, text-3) is the disabled state of a primary action that is not ready yet.
   - **PrimaryButton**: not a pill. The reference "Get Results" button is a **chamfered hexagon** (14px cut on each end) in `accent` with #1E1E1E text and a 1px `line-2` edge. Image beats the earlier "pill" note in this doc. One per screen.
   - **IconButton**: outlined circle, 34px.
 - **Field**: fieldset with the legend sitting on the top border, 1px `line-2` outline, 2px radius, transparent fill. Error state turns the outline `risk` and prints a 12px `risk` line underneath.
-- **ChoiceGroup**: a wrapping row of selectable options. Unselected is `panel-2` fill with a `line` border and text-2 label. Selected inverts to a white fill with #1E1E1E text, so orange stays reserved for the one primary action.
+- **ChoiceGroup**: a wrapping row of selectable options. Unselected is `panel-2` fill with a `line` border and text-2 label. Selected is a transparent fill with a 1px white border and white text, so orange stays reserved for the one primary action.
+- **Badge**: solid rectangle, 2px radius, 11px text. `neutral` is `panel-2` with text-2; `positive` is the green chip from the reference.
 - **Tile**: `panel` fill, no border, no shadow, square corners, 140px tall minimum.
+- **StatusMark** (build screen): 16px. Empty `line-2` circle while waiting, an `accent` ring while running, a `positive` check when done.
 - **StepStrip**: five columns of orange line icon, 20px/800 title, 15px text-2 body, with a thin text-2 arrow between columns. Icons are 56px with 2.6px strokes. Stacks to one column under `md`.
 - Sidebar (when used): black, small text-3 group labels, 14px nav items, active item gets a surface-colored row.
 - Chart panel: panel fill, title top-left in weight 600, segmented toggle top-right, legend centered above the plot, thin gridlines in line color.
 - Tables: surface background, 1px row rules, header row slightly lighter, tabular numbers.
-- Badges: small solid rectangle (2px radius), 11px text.
 
 ## Rules
 
 - Dark theme only. Flat. No gradients, shadows, glows, or rounded cards.
 - Corners are square or nearly square (2px on fields and chips). Only the outline button and icon button are pills; the primary button is a chamfered hexagon.
-- Orange appears once per screen, on the main action.
+- Orange appears once per screen, on the main action. The build screen's two
+  transient marks are the only exception: the ring on the running stage and the
+  1 second left rule on a section as it arrives.
 - Page gutter is 48px. 24px between blocks, 16px inside tiles.
 - Every number shows a source tag in text-3 beneath or beside it.
-- No em dashes in UI copy.
+- No em dashes in UI copy. This covers prompt text rendered on screen, so `lib/agent/buildSystemPrompt.ts` carries none either.
+- A scroll container clips anything left of its padding edge. A left rule on a
+  child inside one needs the container pulled left and padded back (`-ml-5 pl-5`).
