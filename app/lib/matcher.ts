@@ -48,7 +48,20 @@ function settleUnit(token: string): string {
   return token.replace(/^(\d+)v$/, "$1vdc");
 }
 
+/** A token and the word it came from, so a screen can show the expansion. */
+export interface SourceToken {
+  /** The word as the parts list wrote it: "brd". */
+  raw: string;
+  /** What the matcher reads: "board". */
+  token: string;
+  expanded: boolean;
+}
+
 export function tokenize(text: string): string[] {
+  return tokenizeWithSource(text).map((t) => t.token);
+}
+
+export function tokenizeWithSource(text: string): SourceToken[] {
   const raw = text
     .toLowerCase()
     .replace(/[_,()[\]{}/\\.;:"'+]/g, " ")
@@ -78,9 +91,12 @@ export function tokenize(text: string): string[] {
   }
 
   return joinedUnits
-    .map((t) => ABBREVIATIONS[t] ?? t)
-    .map(settleUnit)
-    .filter((t) => t.length > 0 && !STOP.has(t));
+    .map((word) => {
+      const expansion = ABBREVIATIONS[word];
+      const token = settleUnit(expansion ?? word);
+      return { raw: word, token, expanded: Boolean(expansion) || token !== word };
+    })
+    .filter((t) => t.token.length > 0 && !STOP.has(t.token));
 }
 
 /**

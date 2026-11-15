@@ -1,4 +1,4 @@
-import { headNoun, tokenize } from "./matcher";
+import { headNoun, tokenizeWithSource } from "./matcher";
 
 /**
  * How we know two part numbers are the same part.
@@ -57,36 +57,71 @@ export interface Spec {
   unit: string;
 }
 
+export type Lane = "type" | "ratings" | "wording";
+
+/** One word of a description, in the lane it was read into. */
+export interface Chip {
+  /** The word as the parts list wrote it. */
+  raw: string;
+  /** What the matcher read it as, after abbreviations and synonyms. */
+  token: string;
+  expanded: boolean;
+  lane: Lane;
+  /** Set when the chip is a rating. */
+  unit?: string;
+  value?: string;
+}
+
 export interface ParsedPart {
   /** The kind of thing this is. Empty when the description says nothing. */
   type: string;
   specs: Spec[];
   /** Everything else: adjectives, trade words, leftovers. */
   words: string[];
+  /** Every word of the description, labelled with the lane it landed in. */
+  chips: Chip[];
   /** True when there is nothing here to compare, like "SEE DWG". */
   empty: boolean;
 }
 
 export function parsePart(description: string): ParsedPart {
-  const tokens = tokenize(description ?? "");
+  const tokens = tokenizeWithSource(description ?? "");
   const specs: Spec[] = [];
   const words: string[] = [];
+  const chips: Chip[] = [];
 
-  for (const t of tokens) {
+  for (const { raw, token: t, expanded } of tokens) {
     const spec = SPEC.exec(t);
     if (spec) {
       specs.push({ value: spec[1], unit: spec[2] });
+      chips.push({
+        raw,
+        token: t,
+        expanded,
+        lane: "ratings",
+        unit: spec[2],
+        value: spec[1],
+      });
       continue;
     }
     if (THREAD.test(t)) {
       specs.push({ value: t, unit: "thread" });
+      chips.push({ raw, token: t, expanded, lane: "ratings", unit: "thread", value: t });
       continue;
     }
     if (BARE_NUMBER.test(t)) {
       specs.push({ value: t, unit: "count" });
+      chips.push({ raw, token: t, expanded, lane: "ratings", unit: "count", value: t });
       continue;
     }
-    words.push(NOUN_SYNONYM[t] ?? t);
+    const word = NOUN_SYNONYM[t] ?? t;
+    words.push(word);
+    chips.push({
+      raw,
+      token: word,
+      expanded: expanded || word !== t,
+      lane: "wording",
+    });
   }
 
   // The type is the last component noun mentioned, or the head noun if the
@@ -98,7 +133,17 @@ export function parsePart(description: string): ParsedPart {
   const leftovers = words.filter((w) => w !== type);
   const empty = !type && specs.length === 0;
 
-  return { type, specs, words: leftovers, empty };
+  // The word that names the kind of thing moves out of the wording lane. A
+  // type read from the head noun may not be a word the description wrote.
+  let typed = false;
+  for (let i = chips.length - 1; i >= 0; i--) {
+    if (!typed && chips[i].lane === "wording" && chips[i].token === type) {
+      chips[i] = { ...chips[i], lane: "type" };
+      typed = true;
+    }
+  }
+
+  return { type, specs, words: leftovers, chips, empty };
 }
 
 /**

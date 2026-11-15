@@ -1,5 +1,7 @@
 import {
   loadMatcherEval,
+  loadMatcherGrouping,
+  loadReviewQueue,
   loadSurvey,
   loadVoltaraData,
 } from "@/lib/voltaraData.server";
@@ -27,6 +29,8 @@ export default function DashboardPage() {
       data={data}
       survey={loadSurvey()}
       evaluation={loadMatcherEval()}
+      grouping={loadMatcherGrouping()}
+      reviewQueue={loadReviewQueue()}
       basis={`From ${basis}.`}
     />
   );

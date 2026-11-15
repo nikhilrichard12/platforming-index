@@ -19,7 +19,8 @@ export default function AnimationPanel({
   title: string;
   note?: string;
   controls?: ReactNode;
-  onReplay: () => void;
+  /** Omitted when the panel sits inside another that already replays it. */
+  onReplay?: () => void;
   replayLabel?: string;
   children: ReactNode;
   footnote?: string;
@@ -33,13 +34,15 @@ export default function AnimationPanel({
         </div>
         <div className="flex items-center gap-4">
           {controls}
-          <button
-            type="button"
-            onClick={onReplay}
-            className="h-[26px] shrink-0 rounded-full border border-line-2 bg-panel-2 px-3 text-[12px] text-text transition-colors hover:border-text-2"
-          >
-            {replayLabel}
-          </button>
+          {onReplay && (
+            <button
+              type="button"
+              onClick={onReplay}
+              className="h-[26px] shrink-0 rounded-full border border-line-2 bg-panel-2 px-3 text-[12px] text-text transition-colors hover:border-text-2"
+            >
+              {replayLabel}
+            </button>
+          )}
         </div>
       </div>
 

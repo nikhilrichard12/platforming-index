@@ -1,6 +1,9 @@
 import { Decision, IndexShape } from "./rules";
 import { SurveyFile } from "./survey";
 import { VoltaraFile } from "./voltaraData";
+// grouping.ts reads CORE_PRODUCTS from here. The cycle is safe because
+// neither module calls the other while it is still loading.
+import { Grouping, GroupingId, regroup } from "./grouping";
 
 /**
  * The measured index, computed.
@@ -41,6 +44,8 @@ export interface ComputedIndex extends IndexShape {
   working: IndexWorking;
   /** Part numbers a recorded reuse has taken off the list. */
   avoided: number;
+  /** Which grouping of the part numbers the score was computed from. */
+  grouping: GroupingId;
 }
 
 const pct = (top: number, bottom: number) =>
@@ -132,6 +137,7 @@ export function computeIndex(
   return {
     score,
     status: "measured",
+    grouping: "reviewed",
     step: file.index.step,
     dimensions,
     avoided,
@@ -146,6 +152,24 @@ export function computeIndex(
       incentiveCredit,
       incentiveRespondents: targetAnswers.length,
     },
+  };
+}
+
+/**
+ * The same index, computed from a given grouping of the part numbers. Two of
+ * the four dimensions are counts of real parts, so the matcher's own groups
+ * and the groups an engineer confirmed do not produce the same score, and the
+ * dashboard can show either.
+ */
+export function computeIndexFor(
+  file: VoltaraFile,
+  grouping: Grouping,
+  survey: SurveyFile | null,
+  decisions: Decision[]
+): ComputedIndex {
+  return {
+    ...computeIndex(regroup(file, grouping), survey, decisions),
+    grouping: grouping.id,
   };
 }
 

@@ -3,12 +3,15 @@ import path from "path";
 import { deriveVoltaraData, VoltaraData, VoltaraFile } from "./voltaraData";
 import { SurveyFile } from "./survey";
 import { MatcherEval } from "./similarity";
+import { Grouping, ReviewPair, matcherGrouping, reviewQueue } from "./grouping";
 
 const DERIVED = path.join(process.cwd(), "..", "data", "derived");
 
 let cached: VoltaraData | null = null;
 let cachedSurvey: SurveyFile | null = null;
 let cachedEval: MatcherEval | null | undefined = undefined;
+let cachedGrouping: Grouping | null = null;
+let cachedQueue: ReviewPair[] | null = null;
 
 /**
  * Server-side loader. Reads data/derived/voltara_parts.json once per process.
@@ -33,6 +36,23 @@ export function loadMatcherEval(): MatcherEval | null {
     ? (JSON.parse(fs.readFileSync(file, "utf8")) as MatcherEval)
     : null;
   return cachedEval;
+}
+
+/**
+ * The grouping the matcher reaches on its own, and the pairs it left for a
+ * person. Every pair of the 252 descriptions is scored, so this runs once per
+ * process on the server and the result is handed to the client as data.
+ */
+export function loadMatcherGrouping(): Grouping {
+  if (cachedGrouping) return cachedGrouping;
+  cachedGrouping = matcherGrouping(loadVoltaraData());
+  return cachedGrouping;
+}
+
+export function loadReviewQueue(): ReviewPair[] {
+  if (cachedQueue) return cachedQueue;
+  cachedQueue = reviewQueue(loadVoltaraData());
+  return cachedQueue;
 }
 
 /** Sample survey responses for the alignment view and the system prompt. */

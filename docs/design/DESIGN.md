@@ -111,7 +111,8 @@ Shared components live in `app/components/ui/`.
   right staggered by row while each cost counts up; the end state is the whole
   chart. A footer row totals the gap across every shared part. Hovering a row
   shows the two orders behind it with their suppliers, origins and PO tags.
-- **AnimationPanel**: the shell every animated panel shares. Title, optional 12px text-3 note, a control slot on the right, the stage, and a Replay pill. Same `panel` fill and square corners as every other block, so motion is the only thing that marks it out.
+- **AnimationPanel**: the shell every animated panel shares. Title, optional 12px text-3 note, a control slot on the right, the stage, and a Replay pill. Same `panel` fill and square corners as every other block, so motion is the only thing that marks it out. A panel nested inside another drops its own Replay, so one stage never carries two.
+- **MatchExplainer**: how two part numbers get compared, in five beats left to right — the two rows arrive, their words fly into the Type, Ratings and Wording lanes, matching chips connect with a tick or a risk cross, the three weighted meters pour into one score bar marked at 0.60 and 0.85, and a verdict badge lands. `autoplay` cycles the examples and ends on the whole parts list; `step` lets a parent hold one beat; `compact` shortens the stage. Every figure on the stage comes from `similarity()` on the two descriptions.
 - **CountUp**: a number that counts to its new value over 700ms when the value changes. Renders the figure outright on first paint, so the server HTML and a reader with reduced motion both show the real number. Used for the index score and the four dimension scores.
 - **Merge panel** (`252 become 60`, top of Parts): 252 7px squares, one per part number, blocked and tinted by product in six tints walked from text-3 to text-2. They travel to 60 clusters on a 12 by 5 grid, staggered 6ms by start position so the motion reads as a wave left to right. Cluster footprint is the number of part numbers merged. Core candidates land in accent, two-to-four in text-2, unique in text-3. About 5 seconds, once per tab open.
 - **Exploded view** (Summary): an isometric stack, one diamond slab per layer, parts drawn as small outlined diamonds on the slab surface. Stroke 1.1px on slabs, 1.5px on blocks, no fills except an 88% `surface` wash so a slab occludes what sits behind it. Accent for five or more products, text for two to four, text-3 for unique. Assembled sits centred in the same frame the exploded stack fills, so the panel never changes height.
@@ -223,10 +224,17 @@ Shared components live in `app/components/ui/`.
   matcher compares head nouns, so a fan guard is never offered in place of a
   fan. With nothing in the same category the card says "No approved alternative
   yet. Request a new part and note the rule." in all three surfaces.
-- The index score responds to use. Complexity control starts at 50 and gains 2
-  points per recorded reuse; an exception with a reason changes nothing. The
-  strip carries that sentence under the read so a moving number is never a
-  surprise. Reset restores the starting values.
+- The index score responds to use. Every dimension is a ratio of two numbers
+  in the data: a recorded reuse retires a part number and Complexity control
+  follows, while an exception with a reason changes nothing. The strip carries
+  that sentence under the read so a moving number is never a surprise. Reset
+  restores the starting values.
+- The score is only as good as the matching underneath it, and the index block
+  says so: "Matcher found 80 parts from 252 part numbers. Engineer review
+  confirmed 60", with a toggle that reads the whole page from either grouping.
+  Switching recomputes every figure that depends on grouping and names which
+  grouping is showing. The chain is printed in the disclosure: part numbers →
+  matcher → engineer review → index.
 - Connections is one column, not two. The sources table needs the full content
   width to keep its five headers readable.
 - Nothing on Connections pretends to call a real system. "Sync now" re-reads the

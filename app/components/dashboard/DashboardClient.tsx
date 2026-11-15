@@ -8,11 +8,19 @@ import { roleViewFor } from "@/lib/roleViews";
 import { FUNCTION_IDENTITY, shortRole } from "@/lib/roles";
 import { FUNCTION_ICON } from "@/components/ui/FunctionIcons";
 import { FunctionName, functionFor } from "@/lib/survey";
-import { VoltaraData } from "@/lib/voltaraData";
+import { VoltaraData, deriveVoltaraData, usd } from "@/lib/voltaraData";
 import { SurveyFile } from "@/lib/survey";
 import { MatcherEval } from "@/lib/similarity";
 import { Decision, Rule } from "@/lib/rules";
-import { computeIndex } from "@/lib/index";
+import { computeIndexFor } from "@/lib/index";
+import {
+  Grouping,
+  GroupingId,
+  ReviewPair,
+  priceGapOf,
+  reviewedGrouping,
+  regroup,
+} from "@/lib/grouping";
 import {
   AlignmentDecision,
   AlignmentQuestionId,
@@ -25,6 +33,7 @@ import Badge from "@/components/ui/Badge";
 import Field from "@/components/ui/Field";
 import { Button } from "@/components/ui/Button";
 import Sparkle from "@/components/ui/Sparkle";
+import CountUpFigure from "@/components/ui/CountUpFigure";
 import PriceSpreadPanel from "./PriceSpreadPanel";
 import ExplodedView from "./ExplodedView";
 import IndexStrip from "./IndexStrip";
@@ -129,12 +138,17 @@ export default function DashboardClient({
   data,
   survey,
   evaluation,
+  grouping,
+  reviewQueue,
   basis,
 }: {
   data: VoltaraData;
   survey: SurveyFile;
   /** How the matcher scored when it was graded blind, for the Inventory tab. */
   evaluation: MatcherEval | null;
+  /** The matcher's own groups, and what it left for a person. */
+  grouping: Grouping;
+  reviewQueue: ReviewPair[];
   basis?: string;
 }) {
   const [profile, setProfile] = useState<UserProfile>({ ...EMPTY_PROFILE });
@@ -187,10 +201,29 @@ export default function DashboardClient({
     if (latestId) refresh();
   }, [latestId, refresh]);
 
+  // Which grouping of the 252 part numbers the page is reading. The headline
+  // is the reviewed one; the matcher's own groups are one click away, and
+  // every figure that depends on grouping follows the switch.
+  const [groupingView, setGroupingView] = useState<GroupingId>("reviewed");
+  const reviewed = useMemo(() => reviewedGrouping(data), [data]);
+  const shownGrouping = groupingView === "matcher" ? grouping : reviewed;
+  const shownData = useMemo(
+    () =>
+      groupingView === "matcher"
+        ? deriveVoltaraData(regroup(data, grouping))
+        : data,
+    [groupingView, data, grouping]
+  );
+
   // The score is computed from the parts list, the survey and the decisions
   // recorded so far, so the strip and the prompt read the same arithmetic.
-  const index = computeIndex(data, applyAlignment(survey, alignment), decisions);
-  const liveData = { ...data, index };
+  const index = computeIndexFor(
+    data,
+    shownGrouping,
+    applyAlignment(survey, alignment),
+    decisions
+  );
+  const liveData = { ...shownData, index };
 
   const role = (roleOverride || profile.role || "CEO") as Role;
   // Stable between renders, so the orbit does not restart on every poll.
@@ -199,7 +232,7 @@ export default function DashboardClient({
   const identity = FUNCTION_IDENTITY[fn];
   const FnIcon = FUNCTION_ICON[fn];
   const view = roleViewFor(role);
-  const kpis = view.kpis(data);
+  const kpis = view.kpis(shownData);
   const systemPrompt = buildSystemPrompt(profile, liveData, survey, rules);
 
   useEffect(() => {
@@ -313,19 +346,24 @@ export default function DashboardClient({
                 <IndexStrip
                   data={liveData}
                   basis={basis}
-                  meaning={identity.meaning(data, index.score)}
+                  meaning={identity.meaning(shownData, index.score)}
                   fn={fn}
                   onFunction={(f: FunctionName) =>
                     setRoleOverride(FUNCTION_IDENTITY[f].role)
                   }
+                  grouping={groupingView}
+                  onGrouping={setGroupingView}
+                  matcherGroups={grouping.groups.length}
+                  reviewedGroups={reviewed.groups.length}
+                  comparableGap={usd(priceGapOf(data, reviewed))}
                 />
                 <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
                   {[
                     {
                       label: `Your unit: ${identity.unit}`,
-                      value: identity.figure(data, index.score).value,
-                      source: identity.figure(data, index.score).source,
-                      question: `What does ${identity.figure(data, index.score).value} ${identity.unit} mean for ${shortRole(role)}?`,
+                      value: identity.figure(shownData, index.score).value,
+                      source: identity.figure(shownData, index.score).source,
+                      question: `What does ${identity.figure(shownData, index.score).value} ${identity.unit} mean for ${shortRole(role)}?`,
                       answer: () => "",
                       icon: true,
                     },
@@ -350,7 +388,7 @@ export default function DashboardClient({
                                 k.value.length > 10 ? "text-[24px]" : "text-[30px]"
                               }`}
                             >
-                              {k.value}
+                              <CountUpFigure value={k.value} />
                             </p>
                             <p className="mt-2 truncate text-[12px] text-text-3">
                               {k.source}
@@ -362,7 +400,11 @@ export default function DashboardClient({
                   ))}
                 </div>
 
-                <PriceSpreadPanel data={data} onAsk={ask} />
+                <PriceSpreadPanel
+                  key={groupingView}
+                  data={shownData}
+                  onAsk={ask}
+                />
 
                 <ExplodedView data={data} onAsk={ask} />
 
@@ -378,6 +420,8 @@ export default function DashboardClient({
               <PartsTab
                 data={data}
                 evaluation={evaluation}
+                grouping={grouping}
+                reviewQueue={reviewQueue}
                 onAsk={ask}
                 onTag={(po) => setSource(data.rowsByPo[po] ?? null)}
               />

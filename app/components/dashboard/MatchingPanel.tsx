@@ -1,22 +1,23 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Badge from "@/components/ui/Badge";
 import Field from "@/components/ui/Field";
+import MatchExplainer, { Pair } from "./MatchExplainer";
+import { Grouping } from "@/lib/grouping";
 import {
   CONFLICT_CAP,
   MatcherEval,
-  REVIEW,
   SAME,
   Similarity,
   similarity,
-  WEIGHTS,
 } from "@/lib/similarity";
+import { VoltaraData } from "@/lib/voltaraData";
 
 /**
  * The answer to "how do you know two part numbers are the same part", shown
- * rather than claimed: the formula, the three thresholds, what it measured
- * when it was graded blind, and a box to try it on any two descriptions.
+ * rather than claimed: the comparison animated on real rows, and a box that
+ * runs the same animation on any two descriptions a reader types.
  */
 
 const n2 = (v: number) => v.toFixed(2);
@@ -52,89 +53,66 @@ const VERDICT_WORD = {
   different: "Different parts",
 };
 
-export default function MatchingPanel({ evaluation }: { evaluation: MatcherEval | null }) {
+export default function MatchingPanel({
+  data,
+  evaluation,
+  grouping,
+  onOpenPart,
+}: {
+  data: VoltaraData;
+  evaluation: MatcherEval | null;
+  grouping: Grouping;
+  onOpenPart?: (partId: string) => void;
+}) {
   const [a, setA] = useState(EXAMPLES[0].a);
   const [b, setB] = useState(EXAMPLES[0].b);
+  /** Null until the reader changes something: the examples play until then. */
+  const [typed, setTyped] = useState<Pair | null>(null);
   const result = useMemo(() => similarity(a, b), [a, b]);
 
+  // The stage reruns on the reader's own words, a moment after they stop
+  // typing, so every keystroke does not restart the animation.
+  useEffect(() => {
+    if (typed === null) return;
+    const t = setTimeout(
+      () =>
+        setTyped({
+          id: "typed",
+          label: "Your two descriptions",
+          a: { desc: a, product: "Typed here" },
+          b: { desc: b, product: "Typed here" },
+        }),
+      450
+    );
+    return () => clearTimeout(t);
+    // typed is the switch, not an input: including it would loop.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [a, b]);
+
   return (
-    <div className="bg-panel">
-      <div className="border-b border-line px-5 py-4">
-        <div className="flex flex-wrap items-baseline justify-between gap-3">
-          <p className="text-[15px] text-text">How we know two parts are the same</p>
-          <Badge>Matcher evaluation</Badge>
-        </div>
-        <p className="mt-2 max-w-[70ch] text-[13px] leading-relaxed text-text-2">
-          Two descriptions are compared on three things, in the order an
-          engineer checks them. No answer key is involved: the matcher reads
-          the parts list only.
-        </p>
+    <div className="space-y-5">
+      <MatchExplainer
+        data={data}
+        evaluation={evaluation}
+        grouping={grouping}
+        pair={typed}
+        onOpenPart={onOpenPart}
+      />
 
-        <p className="mt-3 font-mono text-[12px] leading-relaxed text-text">
-          score = {n2(WEIGHTS.type)} × same kind of thing + {n2(WEIGHTS.specs)} ×
-          ratings agree + {n2(WEIGHTS.words)} × rest of the wording
-        </p>
-
-        <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          {[
-            {
-              tone: "positive" as const,
-              head: `${n2(SAME)} and above`,
-              body: "Same part. The two part numbers are merged.",
-            },
-            {
-              tone: "warn" as const,
-              head: `${n2(REVIEW)} to ${n2(SAME)}`,
-              body: "A person decides. Nothing is merged on its own.",
-            },
-            {
-              tone: "neutral" as const,
-              head: `Below ${n2(REVIEW)}`,
-              body: "Different parts. A different kind of thing scores 0.",
-            },
-          ].map((t) => (
-            <div key={t.head} className="border-t border-line pt-2">
-              <Badge tone={t.tone}>{t.head}</Badge>
-              <p className="mt-2 text-[12px] leading-snug text-text-2">{t.body}</p>
-            </div>
-          ))}
-        </div>
-
-        {evaluation ? (
-          <p className="mt-4 max-w-[80ch] text-[13px] leading-relaxed text-text-2">
-            Graded against {evaluation.partNumbers} part numbers whose real
-            identity is known, which the matcher never sees: it merged{" "}
-            {evaluation.mergedPairs} pairs of part numbers and{" "}
-            {evaluation.correctMerges} of them were right
-            {evaluation.wrongMerges === 1
-              ? ", one was wrong"
-              : `, ${evaluation.wrongMerges} were wrong`}
-            . It found {evaluation.correctMerges} of the {evaluation.truePairs}{" "}
-            pairs it should have, and sent {evaluation.sentToReview} pairs to a
-            person rather than guess. That is {evaluation.groupsFound} groups
-            where the truth is {evaluation.trueParts} parts.
-            <span className="text-text-3">
-              {" "}
-              Precision {evaluation.pairwisePrecision.toFixed(3)}, recall{" "}
-              {evaluation.pairwiseRecall.toFixed(3)}.
-            </span>
-          </p>
-        ) : (
-          <p className="mt-4 text-[13px] text-text-3">
-            No evaluation on file. Run engine/evaluate_matcher.ts.
-          </p>
-        )}
-
-        <p className="mt-3 text-[12px] leading-relaxed text-text-3">
-          Groups on this dashboard are engineer-confirmed. The matcher
-          proposes, a person approves anything under {n2(SAME)}.
-        </p>
-      </div>
-
-      {/* Try it */}
-      <div className="px-5 py-4">
+      <div className="bg-panel px-5 py-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-[13px] text-text-2">Try it</p>
+          <div className="flex items-baseline gap-3">
+            <p className="text-[13px] text-text-2">Try it</p>
+            {typed && (
+              <button
+                type="button"
+                onClick={() => setTyped(null)}
+                className="text-[12px] text-text-3 underline-offset-4 transition-colors hover:text-text hover:underline"
+              >
+                Back to the examples
+              </button>
+            )}
+          </div>
           <div className="flex flex-wrap gap-2">
             {EXAMPLES.map((e) => (
               <button
@@ -143,9 +121,15 @@ export default function MatchingPanel({ evaluation }: { evaluation: MatcherEval 
                 onClick={() => {
                   setA(e.a);
                   setB(e.b);
+                  setTyped({
+                    id: "typed",
+                    label: "Your two descriptions",
+                    a: { desc: e.a, product: "Typed here" },
+                    b: { desc: e.b, product: "Typed here" },
+                  });
                 }}
                 className={`rounded-full border px-3 py-1 text-[12px] transition-colors ${
-                  a === e.a && b === e.b
+                  typed && a === e.a && b === e.b
                     ? "border-text text-text"
                     : "border-line-2 text-text-2 hover:border-text-2 hover:text-text"
                 }`}
@@ -160,14 +144,20 @@ export default function MatchingPanel({ evaluation }: { evaluation: MatcherEval 
           <Field label="First description" dense>
             <input
               value={a}
-              onChange={(e) => setA(e.target.value)}
+              onChange={(e) => {
+                setA(e.target.value);
+                setTyped((t) => t ?? { id: "typed", label: "Your two descriptions", a: { desc: e.target.value }, b: { desc: b } });
+              }}
               className="w-full bg-transparent py-1 text-[14px] text-text placeholder:text-text-3 focus:outline-none"
             />
           </Field>
           <Field label="Second description" dense>
             <input
               value={b}
-              onChange={(e) => setB(e.target.value)}
+              onChange={(e) => {
+                setB(e.target.value);
+                setTyped((t) => t ?? { id: "typed", label: "Your two descriptions", a: { desc: a }, b: { desc: e.target.value } });
+              }}
               className="w-full bg-transparent py-1 text-[14px] text-text placeholder:text-text-3 focus:outline-none"
             />
           </Field>
@@ -176,6 +166,14 @@ export default function MatchingPanel({ evaluation }: { evaluation: MatcherEval 
         <div className="mt-4">
           <SimilarityBreakdown a={a} b={b} result={result} />
         </div>
+
+        <p className="mt-3 text-[12px] leading-relaxed text-text-3">
+          Groups on this dashboard are engineer-confirmed. The matcher
+          proposes, a person approves anything under {n2(SAME)}.{" "}
+          <span className="whitespace-nowrap">
+            <Badge>Matcher evaluation</Badge>
+          </span>
+        </p>
       </div>
     </div>
   );

@@ -3,9 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import Field from "@/components/ui/Field";
 import Badge from "@/components/ui/Badge";
-import PartMergeAnimation from "./PartMergeAnimation";
 import MatchingPanel, { SimilarityBreakdown } from "./MatchingPanel";
 import { MatcherEval, similarity } from "@/lib/similarity";
+import { Grouping, ReviewPair } from "@/lib/grouping";
 import {
   Part,
   VoltaraData,
@@ -16,13 +16,15 @@ import {
   usd,
 } from "@/lib/voltaraData";
 
-type FilterId = "all" | "shared" | "core" | "review";
+type FilterId = "all" | "shared" | "core" | "review" | "queue";
 
 const NUM = "text-right tabular-nums";
 
 export default function PartsTab({
   data,
   evaluation,
+  grouping,
+  reviewQueue,
   initialFilter = "all",
   onAsk,
   onTag,
@@ -30,6 +32,9 @@ export default function PartsTab({
   data: VoltaraData;
   /** What the matcher scored when it was graded blind. */
   evaluation: MatcherEval | null;
+  /** The matcher's own groups, and the pairs it left for a person. */
+  grouping: Grouping;
+  reviewQueue: ReviewPair[];
   /** Alignment can send the reader here with a filter already applied. */
   initialFilter?: FilterId;
   onAsk: (question: string) => void;
@@ -51,6 +56,7 @@ export default function PartsTab({
     { id: "shared", label: `Shared ${s.sharedParts}` },
     { id: "core", label: `Core candidates ${s.coreCandidates}` },
     { id: "review", label: `Needs review ${data.reviewRows.length}` },
+    { id: "queue", label: `Review queue ${reviewQueue.length}` },
   ];
 
   const maxGap = data.byGap[0]?.gap ?? 1;
@@ -94,9 +100,12 @@ export default function PartsTab({
         </p>
       </div>
 
-      <MatchingPanel evaluation={evaluation} />
-
-      <PartMergeAnimation data={data} onOpenPart={openPart} />
+      <MatchingPanel
+        data={data}
+        evaluation={evaluation}
+        grouping={grouping}
+        onOpenPart={openPart}
+      />
 
       <div className="flex flex-wrap items-end gap-4">
         <div className="min-w-[260px] flex-1">
@@ -132,6 +141,9 @@ export default function PartsTab({
         </div>
       </div>
 
+      {filter === "queue" ? (
+        <ReviewQueueTable rows={reviewQueue} />
+      ) : (
       <div className="overflow-x-auto bg-panel">
         <table className="w-full border-collapse whitespace-nowrap text-[13px]">
           <thead>
@@ -167,10 +179,12 @@ export default function PartsTab({
           </tbody>
         </table>
       </div>
+      )}
 
       <p className="text-[12px] text-text-3">
-        Sorted by yearly gap. Sample company and sample data. A price gap is not
-        booked savings.
+        {filter === "queue"
+          ? "Scored between 0.60 and 0.85, so the matcher merged none of them on its own. For this sample, a prepared key stands in for the engineer."
+          : "Sorted by yearly gap. Sample company and sample data. A price gap is not booked savings."}
       </p>
     </div>
   );
@@ -320,5 +334,58 @@ function PartRows({
         </tr>
       )}
     </>
+  );
+}
+
+/**
+ * The merges the matcher would not make alone. Each one is a pair it scored
+ * into the review band, with both descriptions and the reason it stopped.
+ */
+function ReviewQueueTable({ rows }: { rows: ReviewPair[] }) {
+  return (
+    <div className="overflow-x-auto bg-panel">
+      <table className="w-full border-collapse text-[13px]">
+        <thead>
+          <tr className="border-b border-line bg-panel-2 text-left text-text-2">
+            <th className="w-1/2 py-2 pl-4 pr-2 font-normal">These two descriptions</th>
+            <th className={`px-2 py-2 font-normal ${NUM}`}>Score</th>
+            <th className="px-2 py-2 font-normal">Why it stopped</th>
+            <th className="py-2 pl-2 pr-4 font-normal">Outcome</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.length === 0 && (
+            <tr>
+              <td colSpan={4} className="px-4 py-5 text-text-3">
+                The matcher left nothing in the review band.
+              </td>
+            </tr>
+          )}
+          {rows.map((r) => (
+            <tr key={`${r.a}-${r.b}`} className="border-b border-line align-top">
+              <td className="py-2 pl-4 pr-2">
+                <p className="text-text">
+                  <span className="mr-2 font-mono text-[11px] text-text-3">{r.a}</span>
+                  {r.descA}
+                </p>
+                <p className="mt-1 text-text-2">
+                  <span className="mr-2 font-mono text-[11px] text-text-3">{r.b}</span>
+                  {r.descB}
+                </p>
+              </td>
+              <td className={`px-2 py-2 tabular-nums text-text ${NUM}`}>
+                {r.score.toFixed(2)}
+              </td>
+              <td className="px-2 py-2 text-text-2">{r.reason}</td>
+              <td className="py-2 pl-2 pr-4">
+                <Badge tone={r.confirmed ? "positive" : "neutral"}>
+                  {r.confirmed ? "Approved in review" : "Left apart"}
+                </Badge>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }

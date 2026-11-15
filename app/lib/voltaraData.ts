@@ -7,6 +7,9 @@ export interface PartRow {
   /** Country of origin, joined from voltara_suppliers.csv by engine/add_origin.py. */
   origin: string;
   po: string;
+  /** The year's purchased quantity and spend, joined by engine/add_quantity.py. */
+  qty?: number;
+  spend?: number;
 }
 
 export interface Part {
@@ -80,8 +83,18 @@ export function isReviewRow(row: PartRow): boolean {
   return /SEE DWG/i.test(row.desc);
 }
 
+/**
+ * The part a page wants to cite as an example. Words, not a phrase: a group
+ * is named after one of its own rows, and the same part is written
+ * "Electrolytic DC Link Capacitor 470uF 450V" on one product and
+ * "CAPACITOR, ELECTROLYTIC DC LINK, 470UF, 450V" on another.
+ */
 export function findPart(data: VoltaraData, fragment: string): Part {
-  const hit = data.parts.find((p) => p.name.toLowerCase().includes(fragment.toLowerCase()));
+  const words = fragment.toLowerCase().split(/\s+/).filter(Boolean);
+  const hit = data.parts.find((p) => {
+    const name = p.name.toLowerCase();
+    return words.every((w) => name.includes(w));
+  });
   if (!hit) throw new Error(`No part matching "${fragment}" in voltara_parts.json`);
   return hit;
 }
