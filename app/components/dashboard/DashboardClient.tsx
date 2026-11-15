@@ -140,6 +140,7 @@ export default function DashboardClient({
   evaluation,
   grouping,
   reviewQueue,
+  reuse,
   basis,
 }: {
   data: VoltaraData;
@@ -149,6 +150,14 @@ export default function DashboardClient({
   /** The matcher's own groups, and what it left for a person. */
   grouping: Grouping;
   reviewQueue: ReviewPair[];
+  /** How much of the sample concept starts from an interface that exists. */
+  reuse?: {
+    concept: string;
+    needs: number;
+    startFromSomethingBuilt: number;
+    onInterface: number;
+    newThinking: number;
+  };
   basis?: string;
 }) {
   const [profile, setProfile] = useState<UserProfile>({ ...EMPTY_PROFILE });
@@ -356,6 +365,7 @@ export default function DashboardClient({
                   matcherGroups={grouping.groups.length}
                   reviewedGroups={reviewed.groups.length}
                   comparableGap={usd(priceGapOf(data, reviewed))}
+                  reuse={reuse}
                 />
                 <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
                   {[

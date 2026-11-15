@@ -1,0 +1,583 @@
+{
+ "company": "Voltara Power Systems (fictional sample)",
+ "note": "Curated by hand from data/derived/voltara_parts.json by engine/build_interfaces.py. In a deployment these come from CAD and PLM. For this sample they are curated, and the products and years are resolved from the parts data.",
+ "source": "curated",
+ "interfaces": [
+  {
+   "id": "IF-COOL-120",
+   "name": "120 mm forced air module",
+   "subsystem": "Cooling",
+   "spec": "120 mm fan frame, M4 bolt pattern, 24 VDC",
+   "parts": [
+    "C005",
+    "C043",
+    "C034",
+    "C037"
+   ],
+   "partNames": [
+    "Axial Fan 120mm 24VDC",
+    "Wire Fan Guard 120mm",
+    "Pan Head Machine Screw M4x10",
+    "Split Lock Washer M4"
+   ],
+   "roles": [
+    {
+     "role": "Fan",
+     "parts": [
+      "C005"
+     ],
+     "partNames": [
+      "Axial Fan 120mm 24VDC"
+     ]
+    },
+    {
+     "role": "Guard",
+     "parts": [
+      "C043"
+     ],
+     "partNames": [
+      "Wire Fan Guard 120mm"
+     ]
+    },
+    {
+     "role": "Fasteners",
+     "parts": [
+      "C034",
+      "C037"
+     ],
+     "partNames": [
+      "Pan Head Machine Screw M4x10",
+      "Split Lock Washer M4"
+     ]
+    }
+   ],
+   "products": [
+    "VBS-50",
+    "VMX-20",
+    "VRK-1000",
+    "VRK-3000",
+    "VSI-10",
+    "VSI-5"
+   ],
+   "since": 2019,
+   "inherits": [
+    "Wire guard and its bolt pattern",
+    "24 V fan harness and tach wiring",
+    "Airflow and acoustic test fixture"
+   ]
+  },
+  {
+   "id": "IF-COOL-TIM",
+   "name": "Conduction path, 200 mm heatsink",
+   "subsystem": "Cooling",
+   "spec": "200 mm extruded heatsink profile, 40 x 40 mm thermal pad",
+   "parts": [
+    "C004",
+    "C040"
+   ],
+   "partNames": [
+    "Extruded Aluminum Heatsink 200mm",
+    "Silicone Thermal Pad 40x40mm"
+   ],
+   "roles": [
+    {
+     "role": "Heatsink",
+     "parts": [
+      "C004"
+     ],
+     "partNames": [
+      "Extruded Aluminum Heatsink 200mm"
+     ]
+    },
+    {
+     "role": "Interface pad",
+     "parts": [
+      "C040"
+     ],
+     "partNames": [
+      "Silicone Thermal Pad 40x40mm"
+     ]
+    }
+   ],
+   "products": [
+    "VBS-50",
+    "VMX-20",
+    "VRK-1000",
+    "VRK-3000",
+    "VSI-10",
+    "VSI-5"
+   ],
+   "since": 2019,
+   "inherits": [
+    "Extrusion die already paid for",
+    "Pad die-cut and placement drawing",
+    "Thermal soak test and its limits"
+   ]
+  },
+  {
+   "id": "IF-PWR-HB",
+   "name": "Half bridge power block",
+   "subsystem": "Power stage",
+   "spec": "Half bridge module footprint, isolated 6 channel gate drive, 24 VDC",
+   "parts": [
+    "C013",
+    "C014",
+    "C002"
+   ],
+   "partNames": [
+    "Half Bridge IGBT Module 600V 50A",
+    "Half Bridge IGBT Module 1200V 100A",
+    "Isolated Gate Driver Board 6 Channel"
+   ],
+   "roles": [
+    {
+     "role": "Switch",
+     "parts": [
+      "C013",
+      "C014"
+     ],
+     "partNames": [
+      "Half Bridge IGBT Module 600V 50A",
+      "Half Bridge IGBT Module 1200V 100A"
+     ]
+    },
+    {
+     "role": "Gate drive",
+     "parts": [
+      "C002"
+     ],
+     "partNames": [
+      "Isolated Gate Driver Board 6 Channel"
+     ]
+    }
+   ],
+   "products": [
+    "VBS-50",
+    "VMX-20",
+    "VRK-1000",
+    "VRK-3000",
+    "VSI-10",
+    "VSI-5"
+   ],
+   "since": 2019,
+   "inherits": [
+    "Gate driver board and its isolation barrier",
+    "Busbar drill pattern and creepage layout",
+    "Dead time settings and the short circuit test"
+   ]
+  },
+  {
+   "id": "IF-PWR-DCLINK",
+   "name": "450 V DC link",
+   "subsystem": "Power stage",
+   "spec": "450 V DC link, 470 uF can, 10k bleeder",
+   "parts": [
+    "C011",
+    "C012",
+    "C033"
+   ],
+   "partNames": [
+    "Electrolytic DC Link Capacitor 470uF 450V",
+    "Film Capacitor 20uF 800V",
+    "Bleeder Resistor 10k 10W"
+   ],
+   "roles": [
+    {
+     "role": "Link capacitor",
+     "parts": [
+      "C011",
+      "C012"
+     ],
+     "partNames": [
+      "Electrolytic DC Link Capacitor 470uF 450V",
+      "Film Capacitor 20uF 800V"
+     ]
+    },
+    {
+     "role": "Bleeder",
+     "parts": [
+      "C033"
+     ],
+     "partNames": [
+      "Bleeder Resistor 10k 10W"
+     ]
+    }
+   ],
+   "products": [
+    "VMX-20",
+    "VRK-1000",
+    "VRK-3000",
+    "VSI-10",
+    "VSI-5"
+   ],
+   "since": 2019,
+   "inherits": [
+    "Capacitor clamp and terminal pitch",
+    "Bleeder network and the discharge time proof",
+    "Pre-charge sequence in firmware"
+   ]
+  },
+  {
+   "id": "IF-CTRL-DSP",
+   "name": "DSP control spine",
+   "subsystem": "Control",
+   "spec": "DSP control board, 20 pin ribbon, 24 V 60 W auxiliary supply",
+   "parts": [
+    "C001",
+    "C025",
+    "C003"
+   ],
+   "partNames": [
+    "DSP Control Board Rev C",
+    "20 Pin Ribbon Cable 300mm",
+    "Auxiliary Power Supply 24V 60W"
+   ],
+   "roles": [
+    {
+     "role": "Controller",
+     "parts": [
+      "C001"
+     ],
+     "partNames": [
+      "DSP Control Board Rev C"
+     ]
+    },
+    {
+     "role": "Backbone",
+     "parts": [
+      "C025"
+     ],
+     "partNames": [
+      "20 Pin Ribbon Cable 300mm"
+     ]
+    },
+    {
+     "role": "Logic supply",
+     "parts": [
+      "C003"
+     ],
+     "partNames": [
+      "Auxiliary Power Supply 24V 60W"
+     ]
+    }
+   ],
+   "products": [
+    "VBS-50",
+    "VMX-20",
+    "VRK-1000",
+    "VRK-3000",
+    "VSI-10",
+    "VSI-5"
+   ],
+   "since": 2019,
+   "inherits": [
+    "Firmware image and bootloader",
+    "20 pin pin-out to the power stage",
+    "Board test jig and production script"
+   ]
+  },
+  {
+   "id": "IF-CTRL-SENSE",
+   "name": "Sensing loop",
+   "subsystem": "Control",
+   "spec": "100 A hall sensor, NTC 10k thermistor, 8 pin signal connector",
+   "parts": [
+    "C009",
+    "C032",
+    "C010",
+    "C027"
+   ],
+   "partNames": [
+    "Hall Effect Current Sensor 100A",
+    "Precision Shunt Resistor 500A",
+    "NTC Temperature Sensor 10k",
+    "Signal 8 Pin Connector"
+   ],
+   "roles": [
+    {
+     "role": "Current sense",
+     "parts": [
+      "C009",
+      "C032"
+     ],
+     "partNames": [
+      "Hall Effect Current Sensor 100A",
+      "Precision Shunt Resistor 500A"
+     ]
+    },
+    {
+     "role": "Temperature sense",
+     "parts": [
+      "C010"
+     ],
+     "partNames": [
+      "NTC Temperature Sensor 10k"
+     ]
+    },
+    {
+     "role": "Signal path",
+     "parts": [
+      "C027"
+     ],
+     "partNames": [
+      "Signal 8 Pin Connector"
+     ]
+    }
+   ],
+   "products": [
+    "VBS-50",
+    "VMX-20",
+    "VRK-3000",
+    "VSI-10",
+    "VSI-5"
+   ],
+   "since": 2020,
+   "inherits": [
+    "Calibration table and scaling constants",
+    "8 pin signal harness",
+    "Over-current and over-temperature trip logic"
+   ]
+  },
+  {
+   "id": "IF-IO-PANEL",
+   "name": "Front panel and comms",
+   "subsystem": "I/O",
+   "spec": "4.3 in display, RS485 Modbus card, 8 pin signal connector",
+   "parts": [
+    "C008",
+    "C007",
+    "C028",
+    "C027"
+   ],
+   "partNames": [
+    "LCD Display Module 4.3in",
+    "RS485 Modbus Communication Card",
+    "SNMP Ethernet Network Card",
+    "Signal 8 Pin Connector"
+   ],
+   "roles": [
+    {
+     "role": "Display",
+     "parts": [
+      "C008"
+     ],
+     "partNames": [
+      "LCD Display Module 4.3in"
+     ]
+    },
+    {
+     "role": "Fieldbus",
+     "parts": [
+      "C007",
+      "C028"
+     ],
+     "partNames": [
+      "RS485 Modbus Communication Card",
+      "SNMP Ethernet Network Card"
+     ]
+    },
+    {
+     "role": "Signal path",
+     "parts": [
+      "C027"
+     ],
+     "partNames": [
+      "Signal 8 Pin Connector"
+     ]
+    }
+   ],
+   "products": [
+    "VMX-20",
+    "VRK-1000",
+    "VRK-3000",
+    "VSI-10",
+    "VSI-5"
+   ],
+   "since": 2019,
+   "inherits": [
+    "Modbus register map",
+    "Screen layout and translations",
+    "Cut-out and bezel drawing"
+   ]
+  },
+  {
+   "id": "IF-IO-FIELD",
+   "name": "Field wiring entry",
+   "subsystem": "I/O",
+   "spec": "M20 cable gland, 6 pole 30 A terminal block, 35 mm2 grounding lug",
+   "parts": [
+    "C041",
+    "C044",
+    "C006",
+    "C042"
+   ],
+   "partNames": [
+    "Nylon Cable Gland M20",
+    "Rubber Grommet 20mm",
+    "6 Pole Terminal Block 30A",
+    "Copper Grounding Lug 35mm2"
+   ],
+   "roles": [
+    {
+     "role": "Entry",
+     "parts": [
+      "C041",
+      "C044"
+     ],
+     "partNames": [
+      "Nylon Cable Gland M20",
+      "Rubber Grommet 20mm"
+     ]
+    },
+    {
+     "role": "Termination",
+     "parts": [
+      "C006"
+     ],
+     "partNames": [
+      "6 Pole Terminal Block 30A"
+     ]
+    },
+    {
+     "role": "Earth",
+     "parts": [
+      "C042"
+     ],
+     "partNames": [
+      "Copper Grounding Lug 35mm2"
+     ]
+    }
+   ],
+   "products": [
+    "VBS-50",
+    "VMX-20",
+    "VSI-10",
+    "VSI-5"
+   ],
+   "since": 2021,
+   "inherits": [
+    "Entry plate cut-out pattern",
+    "Torque specification and wiring label",
+    "Installer instructions already written"
+   ]
+  },
+  {
+   "id": "IF-ENC-OUTDOOR",
+   "name": "Outdoor sealed envelope",
+   "subsystem": "Enclosure",
+   "spec": "IP65 outdoor envelope, 10 mm EPDM strip gasket, M20 gland entries",
+   "parts": [
+    "U008",
+    "U010",
+    "U012",
+    "C045",
+    "C041"
+   ],
+   "partNames": [
+    "Die Cast IP65 Enclosure 5kW",
+    "Die Cast IP65 Enclosure 10kW",
+    "Outdoor Steel Cabinet 50kWh",
+    "EPDM Strip Gasket 10mm 1m",
+    "Nylon Cable Gland M20"
+   ],
+   "roles": [
+    {
+     "role": "Envelope",
+     "parts": [
+      "U008",
+      "U010",
+      "U012"
+     ],
+     "partNames": [
+      "Die Cast IP65 Enclosure 5kW",
+      "Die Cast IP65 Enclosure 10kW",
+      "Outdoor Steel Cabinet 50kWh"
+     ]
+    },
+    {
+     "role": "Seal",
+     "parts": [
+      "C045"
+     ],
+     "partNames": [
+      "EPDM Strip Gasket 10mm 1m"
+     ]
+    },
+    {
+     "role": "Penetrations",
+     "parts": [
+      "C041"
+     ],
+     "partNames": [
+      "Nylon Cable Gland M20"
+     ]
+    }
+   ],
+   "products": [
+    "VBS-50",
+    "VSI-10",
+    "VSI-5"
+   ],
+   "since": 2022,
+   "inherits": [
+    "Gasket groove profile",
+    "Gland pattern and drip path",
+    "IP65 spray test report"
+   ]
+  },
+  {
+   "id": "IF-ESS-MOD",
+   "name": "5 kWh module bay",
+   "subsystem": "Energy storage",
+   "spec": "5 kWh LFP module bay, 150 A DC contactor, 200 A copper busbar",
+   "parts": [
+    "U014",
+    "C018",
+    "C031"
+   ],
+   "partNames": [
+    "LFP Battery Module 5kWh",
+    "DC Contactor 150A",
+    "Copper Busbar 200A"
+   ],
+   "roles": [
+    {
+     "role": "Module",
+     "parts": [
+      "U014"
+     ],
+     "partNames": [
+      "LFP Battery Module 5kWh"
+     ]
+    },
+    {
+     "role": "Disconnect",
+     "parts": [
+      "C018"
+     ],
+     "partNames": [
+      "DC Contactor 150A"
+     ]
+    },
+    {
+     "role": "Collection",
+     "parts": [
+      "C031"
+     ],
+     "partNames": [
+      "Copper Busbar 200A"
+     ]
+    }
+   ],
+   "products": [
+    "VBS-50"
+   ],
+   "since": 2024,
+   "inherits": [
+    "Bay pitch and module rails",
+    "Contactor pre-charge and interlock",
+    "Busbar torque and insulation scheme"
+   ]
+  }
+ ]
+}

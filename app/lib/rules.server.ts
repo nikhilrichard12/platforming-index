@@ -6,6 +6,7 @@ import {
   ActivityDetail,
   ActivitySource,
   Decision,
+  DecisionKind,
   DecisionSource,
   ReasonKind,
   Rule,
@@ -100,13 +101,17 @@ export function blockingRules(partName: string, product: string): Rule[] {
 export interface RecordInput {
   description: string;
   product: string;
-  decision: "reuse" | "exception";
+  decision: DecisionKind;
   matchedPart?: string;
   suggestedPn?: string;
   reasonKind?: ReasonKind;
   reasonText?: string;
   role?: string;
   source: DecisionSource;
+  /** An interface decision names the boundary and the needs it settles. */
+  interfaceId?: string;
+  interfaceName?: string;
+  covers?: string[];
 }
 
 export interface RecordResult {
@@ -128,6 +133,9 @@ export function record(input: RecordInput): RecordResult {
     matchedPart: input.matchedPart,
     suggestedPn: input.suggestedPn,
     decision: input.decision,
+    interfaceId: input.interfaceId,
+    interfaceName: input.interfaceName,
+    covers: input.covers,
     reasonKind: input.decision === "exception" ? input.reasonKind : undefined,
     reasonText: input.reasonText?.trim() || undefined,
     role: input.role,

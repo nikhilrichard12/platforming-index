@@ -73,12 +73,22 @@ export class Kit {
   readonly pieces: KitPiece[] = [];
   private target: THREE.Group = this.group;
   private readonly cache = new Map<Shade, THREE.MeshToonMaterial>();
-  private readonly edgeMat = new THREE.LineBasicMaterial({ color: EDGE_BASE.clone() });
+  private readonly edgeMat: THREE.LineBasicMaterial;
 
+  /**
+   * `tint` pulls every shade towards one token colour, for a stage where the
+   * colour carries meaning. The grey ramp still does the shading, so a tinted
+   * model reads as the same drawing in a different ink.
+   */
   constructor(
     private readonly ramp: THREE.DataTexture,
-    private readonly rim = RIM_BASE_DEFAULT
-  ) {}
+    private readonly rim = RIM_BASE_DEFAULT,
+    private readonly tint?: string
+  ) {
+    this.edgeMat = new THREE.LineBasicMaterial({
+      color: tint ? new THREE.Color(mixHex(TOKEN.line2, tint, 0.55)) : EDGE_BASE.clone(),
+    });
+  }
 
   /** Everything built inside `fn` is one piece, and travels `offset` when exploded. */
   piece(offset: [number, number, number], fn: () => void) {
@@ -94,7 +104,10 @@ export class Kit {
   private material(shade: Shade): THREE.MeshToonMaterial {
     const hit = this.cache.get(shade);
     if (hit) return hit;
-    const mat = new THREE.MeshToonMaterial({ color: GREY[shade], gradientMap: this.ramp });
+    const mat = new THREE.MeshToonMaterial({
+      color: this.tint ? mixHex(GREY[shade], this.tint, 0.62) : GREY[shade],
+      gradientMap: this.ramp,
+    });
     // Warm orange rim light: a fresnel term added in the toon fragment shader.
     const rim = { value: this.rim };
     mat.onBeforeCompile = (shader) => {

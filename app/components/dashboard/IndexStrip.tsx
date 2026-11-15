@@ -5,7 +5,7 @@ import Badge from "@/components/ui/Badge";
 import CountUp from "@/components/ui/CountUp";
 import ScoreNote from "./BallparkNote";
 import ScoreGauge from "./ScoreGauge";
-import { FUNCTION_ICON } from "@/components/ui/FunctionIcons";
+import { FUNCTION_ICON, IconInterface } from "@/components/ui/FunctionIcons";
 import { ComputedIndex, scoreMethod } from "@/lib/index";
 import { GROUPING_LABEL, GroupingId } from "@/lib/grouping";
 import { FUNCTION_IDENTITY, FUNCTIONS } from "@/lib/roles";
@@ -31,6 +31,7 @@ export default function IndexStrip({
   matcherGroups,
   reviewedGroups,
   comparableGap,
+  reuse,
 }: {
   data: VoltaraData & { index: ComputedIndex };
   /** What the score was measured from, printed under the badge. */
@@ -46,6 +47,14 @@ export default function IndexStrip({
   reviewedGroups?: number;
   /** The reviewed grouping's price gap, recomputed the way the matcher's is. */
   comparableGap?: string;
+  /** How much of a new product starts from an interface that already exists. */
+  reuse?: {
+    concept: string;
+    needs: number;
+    startFromSomethingBuilt: number;
+    onInterface: number;
+    newThinking: number;
+  };
 }) {
   const idx = data.index;
   const [open, setOpen] = useState(false);
@@ -148,8 +157,13 @@ export default function IndexStrip({
           </div>
         </div>
 
-        {/* The four dimensions, across the whole width */}
-        <div className="mt-5 grid grid-cols-2 gap-x-8 gap-y-4 lg:grid-cols-4">
+        {/* The four dimensions, across the whole width, and beside them the
+            one figure the formula does not read. */}
+        <div
+          className={`mt-5 grid grid-cols-2 gap-x-8 gap-y-4 ${
+            reuse ? "lg:grid-cols-5" : "lg:grid-cols-4"
+          }`}
+        >
           {idx.dimensions.map((d) => (
             <div key={d.name} title={`${d.basis} (${d.source})`}>
               <div className="flex items-baseline justify-between gap-3">
@@ -164,6 +178,35 @@ export default function IndexStrip({
               </div>
             </div>
           ))}
+
+          {reuse && (
+            <div
+              title={`${reuse.concept}: ${reuse.onInterface} needs land on an interface Voltara already has, ${reuse.newThinking} need new thinking (sample concept)`}
+            >
+              <div className="flex items-baseline gap-2">
+                <span className="shrink-0 text-text-2">
+                  <IconInterface size={14} />
+                </span>
+                <span className="text-[12px] leading-tight text-text-2">
+                  Start from what exists
+                </span>
+              </div>
+              <div className="mt-1 h-[3px] w-full bg-line">
+                <div
+                  className="h-full bg-positive"
+                  style={{
+                    width: `${Math.round((100 * reuse.startFromSomethingBuilt) / Math.max(1, reuse.needs))}%`,
+                  }}
+                />
+              </div>
+              <p className="mt-1 text-[11px] leading-tight text-text-3">
+                <span className="tabular-nums text-text-2">
+                  {reuse.startFromSomethingBuilt} of {reuse.needs}
+                </span>{" "}
+                needs. Sample concept, not in the score.
+              </p>
+            </div>
+          )}
         </div>
       </div>
 

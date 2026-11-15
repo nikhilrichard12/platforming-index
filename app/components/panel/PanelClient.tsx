@@ -6,12 +6,16 @@ import Badge from "@/components/ui/Badge";
 import Field from "@/components/ui/Field";
 import { Button, PrimaryButton } from "@/components/ui/Button";
 import MatchCard from "./MatchCard";
+import InterfaceCards, { NewThinkingCard } from "./InterfaceCards";
+import PartsYouBuy, { StageLegend } from "./PartsYouBuy";
 import type { ProductStageHandle } from "./ProductStage";
 import {
   ASK_FLOOR,
   PlanResult,
+  PlanSummary,
   PlannedNeed,
   SAMPLE_CONCEPT,
+  interfaceLine,
 } from "@/lib/plan";
 import { ReasonKind, reasonLabel } from "@/lib/rules";
 import {
@@ -21,8 +25,11 @@ import {
   PageContext,
   TEST_PROFILE,
   panelQuestions,
+  planSubject,
   productFromTitle,
   readStored,
+  stageCounts,
+  stageItemsFor,
   textKey,
   writeStored,
 } from "@/lib/panel";
@@ -62,6 +69,12 @@ export default function PanelClient({ data }: { data: VoltaraData }) {
   const overrideRequest = useRef(0);
   const stage = useRef<ProductStageHandle>(null);
 
+  /** Interfaces adopted and needs proposed on this page, this search. */
+  const [adopted, setAdopted] = useState<string[]>([]);
+  const [proposed, setProposed] = useState<string[]>([]);
+  const [settled, setSettled] = useState<string[]>([]);
+  const [recording, setRecording] = useState("");
+
   const [declining, setDeclining] = useState(false);
   const [reasonKind, setReasonKind] = useState<ReasonKind | "">("");
   const [reasonText, setReasonText] = useState("");
@@ -82,19 +95,29 @@ export default function PanelClient({ data }: { data: VoltaraData }) {
 
   const product = plan?.product.name ?? "";
 
-  // A new result opens on the first need that matched a part.
-  const firstMatched = plan ? Math.max(0, plan.needs.findIndex((n) => n.part)) : 0;
-  const cardIndex = picked && picked.search === search ? picked.index : firstMatched;
+  // A result opens on the whole page: every need it raised, drawn together.
+  // Picking a row, or the switcher, steps down to one part.
+  const cardIndex = picked && picked.search === search ? picked.index : -1;
   const override = ov && ov.search === search ? ov.need : null;
 
   // ONE current part drives the header line, the match card and the 3D view,
   // so the three cannot disagree. The switcher changes it; so does a new search.
-  const need: PlannedNeed | null = override ?? (plan ? plan.needs[cardIndex] ?? null : null);
+  const need: PlannedNeed | null =
+    override ?? (plan && cardIndex >= 0 ? plan.needs[cardIndex] ?? null : null);
   const currentPart = need?.part ? data.parts.find((p) => p.name === need.part) : undefined;
   const partGroupId = currentPart?.id;
-  // The 3D view shows that part alone: its own model if it has one, else a plain
-  // shape for its type. With nothing searched it shows the whole inverter.
-  const subject = useMemo(() => subjectFor(currentPart), [currentPart]);
+
+  // The stage draws what this page needs, and nothing else: one shape per
+  // need, coloured by what it landed on. Stepping into a need shows that part
+  // alone; with no page read it shows the whole inverter.
+  const items = useMemo(
+    () => (plan ? stageItemsFor(plan.needs, data.parts) : []),
+    [plan, data.parts]
+  );
+  const counts = useMemo(() => stageCounts(items), [items]);
+  const partSubject = useMemo(() => subjectFor(currentPart), [currentPart]);
+  const pageSubject = useMemo(() => planSubject(items), [items]);
+  const subject = partSubject ?? pageSubject;
   const activeTab: PartKey | null = PART_KEYS.find((k) => HIGHLIGHT_PARTS[k].partId === currentPart?.id) ?? null;
 
   // Each result is a new search: it replaces the plan, drops any override and
@@ -104,6 +127,9 @@ export default function PanelClient({ data }: { data: VoltaraData }) {
     setSearch((s) => s + 1);
     setDeclining(false);
     setNote("");
+    setAdopted([]);
+    setProposed([]);
+    setSettled([]);
   }, []);
 
   /* ---------- which card ---------- */
@@ -235,7 +261,7 @@ export default function PanelClient({ data }: { data: VoltaraData }) {
         setBusy(false);
       }
     },
-    []
+    [applyPlan]
   );
 
   // Context arrives from the extension by message, or from the query string
@@ -293,6 +319,66 @@ export default function PanelClient({ data }: { data: VoltaraData }) {
         ...extra,
       }),
     });
+  }
+
+  /**
+   * Designing to an interface is a decision about the boundary, not about one
+   * part, so it is recorded once and settles every need it covers.
+   */
+  async function adopt(iface: PlanSummary["interfaces"][number]) {
+    setRecording(iface.id);
+    try {
+      await fetch("/api/part-decision", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-pi-source": "extension" },
+        body: JSON.stringify({
+          description: iface.spec,
+          product: product || ctx.title || "This page",
+          decision: "interface_adopted",
+          interfaceId: iface.id,
+          interfaceName: iface.name,
+          covers: iface.needs,
+          role: TEST_PROFILE.role,
+          source: "extension",
+        }),
+      });
+      setAdopted((a) => [...new Set([...a, iface.id])]);
+      setSettled((s) => [...new Set([...s, ...iface.needs])]);
+      setNote(
+        `Designing to ${iface.name}. ${iface.needs.length} ${
+          iface.needs.length === 1 ? "need" : "needs"
+        } settled, and the brackets, harness and tests come with it.`
+      );
+    } catch {
+      setError("That decision could not be recorded.");
+    } finally {
+      setRecording("");
+    }
+  }
+
+  /** A need with nothing behind it, named so the next product can find it. */
+  async function propose(n: PlannedNeed) {
+    setRecording(n.need);
+    try {
+      await fetch("/api/part-decision", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-pi-source": "extension" },
+        body: JSON.stringify({
+          description: n.need,
+          product: product || ctx.title || "This page",
+          decision: "interface_proposed",
+          covers: [n.need],
+          role: TEST_PROFILE.role,
+          source: "extension",
+        }),
+      });
+      setProposed((p) => [...new Set([...p, n.need])]);
+      setNote(`Proposed ${n.need} as a new interface. The next product will find it.`);
+    } catch {
+      setError("That proposal could not be recorded.");
+    } finally {
+      setRecording("");
+    }
   }
 
   async function reuse(n: PlannedNeed) {
@@ -397,6 +483,8 @@ export default function PanelClient({ data }: { data: VoltaraData }) {
   const line1 = plan ? plan.product.name : ctx.title || askName || "No product yet";
   const line2 = need
     ? `Looking for ${need.part ?? need.need}`
+    : plan
+    ? `${plan.summary.total} needs read from this page`
     : busy
     ? "Reading the page"
     : "Tell the panel what you are working on";
@@ -442,8 +530,14 @@ export default function PanelClient({ data }: { data: VoltaraData }) {
         </div>
       </div>
 
-      {/* 2) the 3D product, about 55% of the panel */}
-      <div className="relative min-h-[168px] flex-[0_1_55%]">
+      {/* 2) what this page needs, drawn: one shape per need, nothing else */}
+      {plan && (
+        <p className="shrink-0 text-[12px] leading-snug text-text">
+          {interfaceLine(plan.summary)}
+        </p>
+      )}
+
+      <div className="relative min-h-[140px] flex-[0_1_30%]">
         <div className="absolute inset-0">
           <ProductStage
             ref={stage}
@@ -453,52 +547,77 @@ export default function PanelClient({ data }: { data: VoltaraData }) {
         </div>
       </div>
 
-      {/* 3) the match card, one at a time */}
-      <div className="shrink-0 space-y-1">
-        {error && <p className="text-[12px] text-risk">{error}</p>}
+      {plan && items.length > 0 && (
+        <div className="shrink-0">
+          <StageLegend counts={counts} />
+        </div>
+      )}
 
-        {need && (
+      {/* 3) the layers: interfaces first, then the parts already bought */}
+      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pb-2">
+        {error && <p className="text-[12px] text-risk">{error}</p>}
+        {note && <p className="bg-panel p-2 text-[12px] leading-snug text-text-2">{note}</p>}
+
+        {plan && (
           <>
-            {plan && (
-              <div className="flex items-center justify-between gap-2">
-                <p className="min-w-0 truncate text-[12px] text-text-2">
-                  {plan.summary.covered} of {plan.summary.total} needs already exist
-                </p>
-                {stale && (
-                  <button
-                    type="button"
-                    onClick={() => check(ctx, { force: true })}
-                    className="h-[22px] shrink-0 rounded-full border border-line-2 bg-panel-2 px-3 text-[11px] text-text transition-colors hover:border-text-2"
-                  >
-                    Check page again
-                  </button>
-                )}
-              </div>
+            {stale && (
+              <button
+                type="button"
+                onClick={() => check(ctx, { force: true })}
+                className="h-[22px] rounded-full border border-line-2 bg-panel-2 px-3 text-[11px] text-text transition-colors hover:border-text-2"
+              >
+                Check page again
+              </button>
             )}
-            <MatchCard
-              need={need}
-              index={plan ? cardIndex : 0}
-              total={plan ? plan.needs.length : 1}
-              partGroupId={partGroupId}
-              note={note}
-              declining={declining}
-              reasonKind={reasonKind}
-              reasonText={reasonText}
-              onPrev={() => showCard(cardIndex - 1)}
-              onNext={() => showCard(cardIndex + 1)}
-              onReuse={() => reuse(need)}
-              onToggleDecline={() => setDeclining((d) => !d)}
-              onReasonKind={setReasonKind}
-              onReasonText={setReasonText}
-              onSendException={() => sendException(need)}
+
+            <InterfaceCards
+              interfaces={plan.summary.interfaces}
+              adopted={adopted}
+              busy={recording}
+              onAdopt={adopt}
+            />
+
+            <NewThinkingCard
+              needs={plan.needs.filter((n) => n.landing === "new")}
+              proposed={proposed}
+              busy={recording}
+              onPropose={propose}
+            />
+
+            <PartsYouBuy
+              needs={plan.needs}
+              settled={settled}
+              selected={need?.need}
+              onPick={(n) => showCard(plan.needs.indexOf(n))}
             />
           </>
         )}
 
-        {busy && !need && <p className="bg-panel p-3 text-[13px] text-text-2">Reading the page.</p>}
+        {/* the part card, once a reader steps into one */}
+        {need && (
+          <MatchCard
+            need={need}
+            index={plan ? Math.max(0, cardIndex) : 0}
+            total={plan ? plan.needs.length : 1}
+            partGroupId={partGroupId}
+            note=""
+            declining={declining}
+            reasonKind={reasonKind}
+            reasonText={reasonText}
+            onPrev={() => showCard(Math.max(0, cardIndex) - 1)}
+            onNext={() => showCard(Math.max(0, cardIndex) + 1)}
+            onReuse={() => reuse(need)}
+            onToggleDecline={() => setDeclining((d) => !d)}
+            onReasonKind={setReasonKind}
+            onReasonText={setReasonText}
+            onSendException={() => sendException(need)}
+          />
+        )}
+
+        {busy && !plan && <p className="bg-panel p-3 text-[13px] text-text-2">Reading the page.</p>}
 
         {/* nothing readable: ask instead of showing an empty panel */}
-        {!need && !busy && (
+        {!plan && !busy && (
           <div className="space-y-2 bg-panel p-3">
             <p className="text-[14px] text-text">What product are you working on?</p>
             {chips.length > 0 && (

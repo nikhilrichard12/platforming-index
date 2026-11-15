@@ -2,12 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { loadVoltaraData } from "@/lib/voltaraData.server";
 import { matchCandidates } from "@/lib/matcher";
 import { corsHeaders, preflight } from "@/lib/cors";
-import { blockingRules, logActivity } from "@/lib/rules.server";
+import { logActivity } from "@/lib/rules.server";
 import { callerOf } from "@/lib/sources.server";
-import { originFromText, sourceFrom } from "@/lib/origin";
+import { planNeeds } from "@/lib/planner.server";
 import {
   NEED_CAP,
-  PLAN_FLOOR,
   PLAN_NOTE,
   PlanResult,
   PlannedNeed,
@@ -15,7 +14,6 @@ import {
   keepFragment,
   splitFragments,
   splitNeeds,
-  statusFor,
   summarize,
 } from "@/lib/plan";
 
@@ -81,52 +79,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const planned: PlannedNeed[] = needs.map((need) => {
-    const best = matchCandidates(data, need, 0, 1)[0] ?? null;
-    const confidence = best?.confidence ?? 0;
-
-    if (!best || confidence < PLAN_FLOOR) {
-      return { need, status: "new part needed", confidence };
-    }
-
-    // The same rules an engineer would meet at design time.
-    const blocked = blockingRules(best.name, name);
-    const row = {
-      need,
-      confidence,
-      part: best.name,
-      partNumber: best.bestRow.pn,
-      price: best.minPrice,
-      supplier: best.bestRow.supplier,
-      origin: best.bestRow.origin,
-      po: best.bestRow.po,
-      products: best.products,
-      partNumberCount: best.partNumberCount,
-    };
-
-    if (blocked.length > 0) {
-      // A rule about origin is answered by the same part from a compliant
-      // supplier, so the concept does not have to carry a new part number.
-      const originRule = blocked.find((r) => r.kind === "compliance_or_origin");
-      const wanted = originRule ? originFromText(originRule.text) : null;
-      const part = data.parts.find((p) => p.name === best.name);
-      const complianceSource =
-        wanted && part ? sourceFrom(part, wanted) ?? undefined : undefined;
-
-      return {
-        ...row,
-        status: "blocked by rule",
-        complianceSource,
-        rule: {
-          id: blocked[0].id,
-          text: blocked[0].text,
-          kind: blocked[0].kind,
-        },
-      };
-    }
-
-    return { ...row, status: statusFor(best.products) };
-  });
+  const planned: PlannedNeed[] = planNeeds(name, needs);
 
   const summary = summarize(planned);
   const result: PlanResult = {

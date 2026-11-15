@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { corsHeaders, preflight } from "@/lib/cors";
-import { DecisionSource, REASON_KINDS, ReasonKind, reasonLabel } from "@/lib/rules";
+import {
+  DECISION_KINDS,
+  DecisionKind,
+  Decision,
+  DecisionSource,
+  REASON_KINDS,
+  Rule,
+  ReasonKind,
+  reasonLabel,
+} from "@/lib/rules";
 import { listDecisions, logActivity, record } from "@/lib/rules.server";
 import { callerOf } from "@/lib/sources.server";
 
@@ -19,6 +28,21 @@ function reasonSuffix(kind?: string) {
   return kind ? ` (${reasonLabel(kind)})` : "";
 }
 
+/** What the log says this decision did, in words a person reads. */
+function summaryFor(result: { decision: Decision; rule: Rule | null }): string {
+  const d = result.decision;
+  switch (d.decision) {
+    case "reuse":
+      return `Reused ${d.suggestedPn ?? "an existing part"} for ${d.product}`;
+    case "interface_adopted":
+      return `Designing ${d.product} to ${d.interfaceName ?? d.interfaceId ?? "an existing interface"}, settling ${d.covers?.length ?? 0} needs`;
+    case "interface_proposed":
+      return `Proposed a new interface for ${d.description} on ${d.product}`;
+    default:
+      return `Exception on ${d.matchedPart ?? "a part"}${reasonSuffix(d.reasonKind)}, rule ${result.rule?.id ?? "not created"}`;
+  }
+}
+
 export async function POST(req: NextRequest) {
   const headers = corsHeaders(req.headers.get("origin"));
   let body: Record<string, unknown> = {};
@@ -28,10 +52,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "bad_json" }, { status: 400, headers });
   }
 
-  const decision = body.decision;
-  if (decision !== "reuse" && decision !== "exception") {
+  const decision = body.decision as DecisionKind;
+  if (!DECISION_KINDS.includes(decision)) {
     return NextResponse.json(
-      { error: "decision must be reuse or exception" },
+      { error: `decision must be one of ${DECISION_KINDS.join(", ")}` },
       { status: 400, headers }
     );
   }
@@ -59,12 +83,23 @@ export async function POST(req: NextRequest) {
     reasonText: body.reasonText ? String(body.reasonText) : undefined,
     role: body.role ? String(body.role) : undefined,
     source: (body.source as DecisionSource) ?? "dashboard",
+    interfaceId: body.interfaceId ? String(body.interfaceId) : undefined,
+    interfaceName: body.interfaceName ? String(body.interfaceName) : undefined,
+    covers: Array.isArray(body.covers) ? body.covers.map(String) : undefined,
   });
+
+  const d = result.decision;
+  const tool =
+    d.decision === "interface_adopted"
+      ? "adopt_interface"
+      : d.decision === "interface_proposed"
+        ? "propose_interface"
+        : "record_decision";
 
   const caller = callerOf(req);
   logActivity({
     ...caller,
-    tool: "record_decision",
+    tool,
     product: result.decision.product || undefined,
     detail: {
       description: result.decision.description,
@@ -74,10 +109,7 @@ export async function POST(req: NextRequest) {
       reasonKind: result.decision.reasonKind,
       ruleId: result.rule?.id,
     },
-    summary:
-      result.decision.decision === "reuse"
-        ? `Reused ${result.decision.suggestedPn ?? "an existing part"} for ${result.decision.product}`
-        : `Exception on ${result.decision.matchedPart ?? "a part"}${reasonSuffix(result.decision.reasonKind)}, rule ${result.rule?.id ?? "not created"}`,
+    summary: summaryFor(result),
   });
 
   return NextResponse.json(

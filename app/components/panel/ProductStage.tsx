@@ -120,7 +120,7 @@ class Engine {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     this.renderer.setClearColor(0x000000, 0);
 
-    this.rig = buildRig(undefined);
+    this.rig = buildRig(null);
     this.scene.add(this.rig.root);
     this.scene.add(new THREE.AmbientLight(0xffffff, 0.95));
     const key = new THREE.DirectionalLight(0xffffff, 2.3);
@@ -444,7 +444,7 @@ class Engine {
     this.rig.dispose();
     this.subject = subject;
     this.rigKey = subject?.key ?? "";
-    this.rig = buildRig(subject?.part);
+    this.rig = buildRig(subject);
     this.scene.add(this.rig.root);
     this.measureRig();
     this.S.open = this.closedSteps();

@@ -1,0 +1,55 @@
+{
+ "scene": "procurement",
+ "what": "Procurement writes a supplier change note.",
+ "page": "procurement.txt",
+ "product": "SN-2211 supplier change note",
+ "expect": {
+  "needs": 6,
+  "onInterface": 2,
+  "onPart": 3,
+  "newThinking": 1,
+  "line": "5 of 6 needs start from something Voltara already built. 1 need new thinking.",
+  "interfaces": [
+   "IF-COOL-120"
+  ],
+  "landings": [
+   {
+    "need": "Axial fan, 120 mm 24 VDC",
+    "landing": "interface",
+    "interface": "IF-COOL-120",
+    "part": "Axial Fan 120mm 24VDC"
+   },
+   {
+    "need": "Wire fan guard, 120 mm",
+    "landing": "interface",
+    "interface": "IF-COOL-120",
+    "part": "Wire Fan Guard 120mm"
+   },
+   {
+    "need": "Pan head machine screw, M4 x 10",
+    "landing": "part",
+    "interface": null,
+    "part": "Pan Head Machine Screw M4x10"
+   },
+   {
+    "need": "Split lock washer, M4",
+    "landing": "part",
+    "interface": null,
+    "part": "Split Lock Washer M4"
+   },
+   {
+    "need": "Nylon cable tie, 150 mm",
+    "landing": "part",
+    "interface": null,
+    "part": "Nylon Cable Tie 150mm"
+   },
+   {
+    "need": "Second source qualification plan",
+    "landing": "new",
+    "interface": null,
+    "part": null
+   }
+  ]
+ },
+ "note": "Expected values are what POST /api/plan-product returns for this page text. Interfaces are curated sample data."
+}

@@ -13,6 +13,26 @@
  */
 
 export type DecisionSource = "dashboard" | "extension" | "mcp";
+
+/**
+ * What an engineer decided. Reuse and exception are about one part. The two
+ * interface kinds are about the boundary a product designs to, which is the
+ * thing that actually carries into the next generation: adopting one settles
+ * every need it covers, proposing one leaves something for the next product
+ * to find. Neither changes the index score.
+ */
+export type DecisionKind =
+  | "reuse"
+  | "exception"
+  | "interface_adopted"
+  | "interface_proposed";
+
+export const DECISION_KINDS: DecisionKind[] = [
+  "reuse",
+  "exception",
+  "interface_adopted",
+  "interface_proposed",
+];
 export type ReasonKind =
   | "compliance_or_origin"
   | "customer_requirement"
@@ -37,11 +57,16 @@ export interface Decision {
   product: string;
   matchedPart?: string;
   suggestedPn?: string;
-  decision: "reuse" | "exception";
+  decision: DecisionKind;
   reasonKind?: ReasonKind;
   reasonText?: string;
   role?: string;
   source: DecisionSource;
+  /** Set when the decision is about an interface rather than a part. */
+  interfaceId?: string;
+  interfaceName?: string;
+  /** The needs an adopted interface covers, or the need a proposal came from. */
+  covers?: string[];
 }
 
 export type ActivitySource = "agent" | "extension" | "dashboard";
@@ -72,9 +97,12 @@ export interface ActivityDetail {
   needsChecked?: number;
   needsCovered?: number;
   newPartsNeeded?: number;
-  decision?: "reuse" | "exception";
+  decision?: DecisionKind;
   reasonKind?: ReasonKind;
   ruleId?: string;
+  /** Set when the decision was about an interface. */
+  interfaceId?: string;
+  interfaceName?: string;
 }
 
 export interface Activity {
@@ -96,6 +124,8 @@ const ACTION_LABEL: Record<string, string> = {
   check_part: "Part check",
   plan_product: "Page check",
   record_decision: "Decision",
+  adopt_interface: "Interface adopted",
+  propose_interface: "Interface proposed",
   get_rules: "Rules read",
   get_index: "Index read",
   open_dashboard: "Dashboard opened",
