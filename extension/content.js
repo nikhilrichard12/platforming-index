@@ -592,11 +592,82 @@ function mainText() {
   return visibleText(main);
 }
 
+/* What the person wrote beats what the page answered. On a chat page the
+   assistant's reply is long prose; the question is in the box they typed in.
+   Remember the draft as it is typed and the last message they sent. */
+let draftText = "";
+let sentText = "";
+try {
+  sentText = sessionStorage.getItem("pi:lastPrompt") || "";
+} catch (e) {}
+
+function fieldText(el) {
+  if (!el) return "";
+  if (typeof el.value === "string") return el.value;
+  if (el.isContentEditable) return el.innerText || "";
+  return "";
+}
+
+function commitDraft() {
+  const text = draftText.trim();
+  if (text.length < 15) return;
+  sentText = text;
+  try {
+    sessionStorage.setItem("pi:lastPrompt", text);
+  } catch (e) {}
+}
+
+document.addEventListener(
+  "input",
+  (e) => {
+    const el = e.target;
+    if (el && el.type === "password") return;
+    const value = fieldText(el);
+    if (!value.trim() && draftText.trim().length >= 15) commitDraft();
+    draftText = value;
+    // The panel follows the draft as it is written.
+    if (typeof sendContext === "function") sendContext(false);
+  },
+  true
+);
+document.addEventListener(
+  "keydown",
+  (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      draftText = fieldText(e.target) || draftText;
+      commitDraft();
+      draftText = "";
+      setTimeout(() => sendContext(true), 400);
+    }
+  },
+  true
+);
+document.addEventListener(
+  "click",
+  (e) => {
+    if (e.target && e.target.closest && e.target.closest("button") && draftText.trim().length >= 15) {
+      commitDraft();
+      draftText = "";
+      setTimeout(() => sendContext(true), 400);
+    }
+  },
+  true
+);
+
+function writtenText() {
+  if (draftText.trim().length >= 15) return draftText.trim();
+  // Only trust the remembered message while it is still on this page.
+  if (sentText && document.body && document.body.innerText.includes(sentText.slice(0, 40))) {
+    return sentText;
+  }
+  return "";
+}
+
 function collectContext() {
   return {
     url: location.href,
     title: (document.querySelector("h1")?.textContent || document.title || "").trim(),
-    text: mainText(),
+    text: (writtenText() || mainText()).slice(0, PAGE_TEXT_CAP),
     selection: String(window.getSelection?.() ?? "").trim().slice(0, PAGE_TEXT_CAP),
   };
 }
