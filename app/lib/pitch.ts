@@ -77,15 +77,25 @@ export const PLATFORMING = {
 
 /* ---------- screen 3: where the engineer already works ---------- */
 
-/** A clip the deck plays, by the file it is waiting for. */
+/**
+ * A clip the deck plays. The recorded ones carry the size they were filmed
+ * at, so a screen can give the frame the video's own shape rather than a
+ * shape of its own that would crop or letterbox it.
+ */
 export const CLIPS = {
   plugin: {
     src: "/pitch/clips/plugin.mp4",
     label: "Plugin on Velocity AI Studio",
+    /** ffprobe of public/pitch/clips/plugin.mp4: 1126x1080, 21.8s, no audio. */
+    width: 1126,
+    height: 1080,
   },
   dashboard: {
     src: "/pitch/clips/dashboard.mp4",
     label: "Survey to dashboard",
+    /** Not recorded yet; the frame falls back to 16:9 until it is. */
+    width: 16,
+    height: 9,
   },
 } as const;
 
@@ -113,7 +123,10 @@ export const MATCHING = {
   rowB: "SL5-2214B",
   sameLine: "Same fan. Two products. Two part numbers.",
   terms:
-    "Our formula. Type: is it the same kind of thing. Ratings: do the numbers agree. Wording: does the rest match.",
+    "The method is Fellegi-Sunter record linkage, 1969: compare field by field, weight the fields, two thresholds, and a human review band between them. The same method behind census matching and product matching across web shops. We applied it to part descriptions.",
+  /** Where the method comes from. The weights themselves are ours. */
+  methodSource:
+    "Fellegi and Sunter, A Theory for Record Linkage, 1969. Multi-component Similarity Method, ACM SAC 2015.",
   rules: "A different type scores 0. One rating that disagrees caps it at 0.30.",
   rulesCheck: "lib/similarity.ts",
   blindTitle: "Tested blind",
@@ -174,39 +187,82 @@ export const SMARTER = {
   source: "Decisions are recorded by the check and read back by lib/rules.ts.",
 } as const;
 
-/* ---------- screen 7: how we got here ---------- */
+/* ---------- screen 7: what Velocity AI Studio changed ---------- */
 
-export interface TimelineBeat {
-  who: string;
-  body: string;
+export interface VelocityColumn {
+  title: string;
+  /** The lines of the column, in order. */
+  lines: string[];
+  /** A line that is struck through on arrival, with its badge beside it. */
+  struck?: string;
+  badge?: string;
+  /** A second, smaller line under the first block. */
+  small?: string;
+  /** A picture under the column, cropped into public/pitch/velocity. */
+  image?: { src: string; alt: string; from: string };
+  /** The middle column is the one the screen is about. */
+  accent?: boolean;
 }
 
 /**
- * The four turns that shaped the product. The mentors are named as they
- * named themselves to us; docs/CONTEXT.md lines 13 to 21 record the
- * conversations and that two of the article's authors were mentors here.
+ * Screen 7, word for word.
+ *
+ * Every line here was written by the team about work recorded in
+ * docs/velocity: the 21-source library, the folder-grounded research answer,
+ * the evidence synthesis with its NOT IN SOURCES list, and the concept the
+ * Voltara persona was developed in. The pictures are crops of the screenshots
+ * in docs/velocity/screens, named below by the file they came from, so a
+ * judge can go and look at the original.
  */
-export const TIMELINE: TimelineBeat[] = [
-  {
-    who: "Velocity AI Studio",
-    body: "Research: why platforming stalls, who else does this, what an index needs.",
-  },
-  {
-    who: "Andrew Cecola",
-    body: "Start with the ballpark, get leadership to care.",
-  },
-  {
-    who: "Alex Gallard",
-    body: "A part is standardization; a proven design is platforming.",
-  },
-  {
-    who: "BK",
-    body: "How do you know two parts are the same? So we tested it.",
-  },
-];
-
-export const TIMELINE_SOURCE =
-  "Mentor conversations, November 13 to 15. docs/CONTEXT.md lines 13 to 21.";
+export const VELOCITY = {
+  title: "How Velocity AI Studio shaped this",
+  header:
+    "21 sources in one team library. Every figure cited, anything unsupported marked NOT IN SOURCES.",
+  columns: [
+    {
+      title: "Validated the problem",
+      lines: [
+        "Kearney PERLab surveyed 100 manufacturers. About half say they platform at scale. Only a minority of those describe a true common core with modules.",
+      ],
+      small:
+        "Wärtsilä engines: unique components from nearly 7,000 to under 4,000. Supplier-published case.",
+      image: {
+        src: "/pitch/velocity/validated.png",
+        alt: "The folder-grounded research answer, with its evidence table",
+        from: "docs/velocity/screens/12-research-energy-answer.png",
+      },
+    },
+    {
+      title: "Changed our decisions",
+      accent: true,
+      struck: "We planned to claim: companies with duplicate parts fail to platform.",
+      badge: "NOT IN SOURCES",
+      lines: [
+        "Velocity found no data measuring both at the same companies. We dropped the claim.",
+        "Velocity flagged weighting and validation risk in our scoring. The score is now computed from data and tested blind.",
+      ],
+      image: {
+        src: "/pitch/velocity/not-in-sources.png",
+        alt: "The NOT IN SOURCES passage of the evidence synthesis",
+        from: "docs/velocity/screens/09-canvas-evidence-synthesis-not-in-sources.png",
+      },
+    },
+    {
+      title: "Built into the product",
+      lines: [
+        "The plugin runs on Velocity. An engineer writes in a research chat and the panel answers.",
+        "The Voltara persona was developed in a Velocity concept, with every invented value labeled fictional.",
+      ],
+      image: {
+        src: "/pitch/velocity/plugin-on-velocity.png",
+        alt: "The panel answering beside the Velocity research chat",
+        from: "A still from public/pitch/clips/plugin.mp4",
+      },
+    },
+  ] as VelocityColumn[],
+  close:
+    "Andrew Cecola: start with the ballpark. Alex Gallard: a proven design is platforming, a part is standardization. BK: prove two parts are the same.",
+} as const;
 
 /* ---------- screen 8: why Kearney ---------- */
 
@@ -321,6 +377,8 @@ export const SCREENS: ScreenMeta[] = [
       "One rating that disagrees caps the whole score at nought point three.",
       "Above nought point eight five we merge. Below nought point six they are different parts.",
       "In between, a person looks.",
+      "This is not something we invented. It is Fellegi-Sunter record linkage, from 1969, the method behind census matching.",
+      "The three-term version is the Multi-component Similarity Method, ACM SAC 2015. We applied it to part descriptions.",
       "We tested it blind on all 252 part numbers against a hand labelled key the matcher never reads.",
       "99.8 percent of the merges were correct.",
       "One mistake, and we will name it: a two input board merged with a three input board.",
@@ -368,17 +426,20 @@ export const SCREENS: ScreenMeta[] = [
   },
   {
     n: 7,
-    id: "process",
-    title: "How we got here",
+    id: "velocity",
+    title: "How Velocity AI Studio shaped this",
     steps: 4,
-    targetSeconds: 25,
-    rubric: ["Research and use of Velocity AI", "Final pitch"],
+    targetSeconds: 30,
+    rubric: ["Research and use of Velocity AI"],
     script: [
-      "How we got here.",
-      "Velocity AI Studio research: why platforming stalls, who else does this, what an index needs.",
-      "Andrew Cecola told us to start with the ballpark and get leadership to care.",
-      "Alex Gallard drew the line: a part is standardization, a proven design is platforming.",
-      "BK asked how we know two parts are the same. So we tested it.",
+      "Our research ran in Velocity AI Studio, on a 21 source team library.",
+      "Every figure cited. Anything the sources do not support, marked NOT IN SOURCES.",
+      "It validated the problem. About half say they platform at scale, and only a minority of those describe a true common core.",
+      "It changed a decision. We planned to claim that companies with duplicate parts fail to platform.",
+      "Velocity found no data measuring both at the same companies, so we dropped the claim.",
+      "It flagged weighting and validation risk in our scoring, so the score is computed from data and tested blind.",
+      "And it is in the product. The plugin runs on Velocity.",
+      "The mentors did the rest.",
     ],
   },
   {

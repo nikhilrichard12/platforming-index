@@ -39,7 +39,7 @@ export default function ScreenKnows({ bundle, step }: ScreenProps) {
         <div className="grid shrink-0 grid-cols-2 gap-6">
           {[a, b].map((r, i) => (
             <Reveal key={r?.pn ?? i} show delay={i * 90}>
-              <div className="bg-panel px-5 py-3">
+              <div className="bg-panel px-5 py-2">
                 <div className="flex items-baseline justify-between gap-4">
                   <span className="font-mono text-[12px] text-text-3">
                     {r?.pn ?? "row not in the parts file"}
@@ -60,8 +60,8 @@ export default function ScreenKnows({ bundle, step }: ScreenProps) {
         </p>
 
         {/* Beat 2: the formula, and the rules that override it. */}
-        <Reveal show={step >= 1} className="mt-6 shrink-0">
-          <p className="flex flex-wrap items-baseline gap-x-3 text-[32px] font-light leading-none text-text">
+        <Reveal show={step >= 1} className="mt-4 shrink-0">
+          <p className="flex flex-wrap items-baseline gap-x-3 text-[28px] font-light leading-none text-text">
             <span>Similarity</span>
             <span className="text-text-3">=</span>
             <span className="tabular-nums">{WEIGHTS.type.toFixed(2)}</span>
@@ -76,9 +76,12 @@ export default function ScreenKnows({ bundle, step }: ScreenProps) {
             <span className="text-text-3">×</span>
             <span>Wording</span>
           </p>
-          <p className="mt-3 max-w-[1000px] text-[17px] leading-snug text-text-2">
+          <p className="mt-3 max-w-[1120px] text-[16px] leading-snug text-text-2">
             {MATCHING.terms}
           </p>
+          <div className="mt-1">
+            <Source>{MATCHING.methodSource}</Source>
+          </div>
           <p className="mt-3 text-[17px] leading-snug text-text">
             {MATCHING.rules}
           </p>
@@ -89,7 +92,7 @@ export default function ScreenKnows({ bundle, step }: ScreenProps) {
 
         {/* Beat 3: four real comparisons on the track. */}
         <Reveal show={step >= 2} className="mt-4 shrink-0">
-          <div className="relative mx-[6px] h-[136px]">
+          <div className="relative mx-[6px] h-[122px]">
             {markers.map((m, i) => {
               // Three label rows, so two scores close together never share a
               // line, and the label hangs on the side that keeps it inside.
@@ -103,12 +106,12 @@ export default function ScreenKnows({ bundle, step }: ScreenProps) {
               return (
                 <div
                   key={m.key}
-                  className="absolute top-0 z-10 h-[86px] w-0"
+                  className="absolute top-0 z-10 h-[72px] w-0"
                   style={{ left: pct(m.score) }}
                 >
                   <p
                     className="absolute flex items-baseline gap-2 whitespace-nowrap bg-surface px-1 leading-none"
-                    style={{ ...lean, top: tier * 26 }}
+                    style={{ ...lean, top: tier * 22 }}
                   >
                     <span
                       className="text-[17px] font-light tabular-nums"
@@ -121,7 +124,7 @@ export default function ScreenKnows({ bundle, step }: ScreenProps) {
                   </p>
                   <span
                     className="absolute left-0 block w-px -translate-x-1/2"
-                    style={{ background: m.tone, top: tier * 26 + 22, bottom: 0 }}
+                    style={{ background: m.tone, top: tier * 22 + 20, bottom: 0 }}
                   />
                   <span
                     className="absolute bottom-0 left-0 block h-[11px] w-[11px] -translate-x-1/2 -translate-y-[5px] rounded-full"

@@ -29,7 +29,7 @@ import ScreenPlugin from "./screens/ScreenPlugin";
 import ScreenKnows from "./screens/ScreenKnows";
 import ScreenCare from "./screens/ScreenCare";
 import ScreenSmarter from "./screens/ScreenSmarter";
-import ScreenProcess from "./screens/ScreenProcess";
+import ScreenVelocity from "./screens/ScreenVelocity";
 import ScreenModel from "./screens/ScreenModel";
 import ScreenClose from "./screens/ScreenClose";
 
@@ -74,9 +74,9 @@ export interface ScreenProps {
 /**
  * The nine screens, in the order they are presented: the problem, what the
  * word means, the plugin, how the matching works, how a client is brought to
- * care, what the product accumulates, how we got here, why Kearney, and the
- * core with the ask. The order here and the order in SCREENS are the same
- * list seen twice, so they move together.
+ * care, what the product accumulates, what Velocity changed, why Kearney, and
+ * the core with the ask. The order here and in SCREENS is the same list
+ * seen twice, so they move together.
  */
 const COMPONENTS = [
   ScreenProblem,
@@ -85,7 +85,7 @@ const COMPONENTS = [
   ScreenKnows,
   ScreenCare,
   ScreenSmarter,
-  ScreenProcess,
+  ScreenVelocity,
   ScreenModel,
   ScreenClose,
 ];

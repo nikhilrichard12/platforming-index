@@ -90,7 +90,10 @@ export default function Clip({
     <video
       ref={ref}
       src={src}
-      className={`block h-full w-full object-cover ${className}`}
+      // Contain, not cover: a screen that has given the frame the video's own
+      // shape gets the same picture either way, and a screen that has not
+      // loses a black bar rather than a third of the recording.
+      className={`block h-full w-full object-contain ${className}`}
       muted
       playsInline
       loop={loop}
