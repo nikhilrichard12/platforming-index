@@ -6,13 +6,12 @@ import Badge from "@/components/ui/Badge";
 import Field from "@/components/ui/Field";
 import { Button, PrimaryButton } from "@/components/ui/Button";
 import MatchCard from "./MatchCard";
-import InterfaceCards, { NewThinkingCard } from "./InterfaceCards";
+import InterfaceCards, { InterfaceCardData, NewThinkingCard } from "./InterfaceCards";
 import PartsYouBuy, { StageLegend } from "./PartsYouBuy";
-import type { ProductStageHandle } from "./ProductStage";
+import type { InterfaceStageHandle, StageCluster } from "./InterfaceStage";
 import {
   ASK_FLOOR,
   PlanResult,
-  PlanSummary,
   PlannedNeed,
   SAMPLE_CONCEPT,
   interfaceLine,
@@ -25,25 +24,23 @@ import {
   PageContext,
   TEST_PROFILE,
   panelQuestions,
-  planSubject,
+  partsOfProduct,
   productFromTitle,
   readStored,
+  resolveProduct,
   stageCounts,
   stageItemsFor,
+  stageLabelFor,
   textKey,
   writeStored,
 } from "@/lib/panel";
-import {
-  HIGHLIGHT_PARTS,
-  PART_KEYS,
-  PartKey,
-  resolveHeroParts,
-} from "@/lib/models/product";
-import { subjectFor } from "@/lib/models/parts";
-import { VoltaraData } from "@/lib/voltaraData";
+import { shellFor } from "@/lib/models/productScene";
+import { PlatformInterface } from "@/lib/interfaces";
+import { shortRole } from "@/lib/roles";
+import { PRODUCT_MASTER, VoltaraData } from "@/lib/voltaraData";
 
 // Three.js is large and only runs in the browser, so it loads on its own.
-const ProductStage = dynamic(() => import("./ProductStage"), {
+const InterfaceStage = dynamic(() => import("./InterfaceStage"), {
   ssr: false,
   loading: () => <div className="h-full w-full bg-panel" />,
 });
@@ -53,7 +50,14 @@ interface ChatMessage {
   content: string;
 }
 
-export default function PanelClient({ data }: { data: VoltaraData }) {
+export default function PanelClient({
+  data,
+  interfaces,
+}: {
+  data: VoltaraData;
+  /** The interfaces the company already has, curated sample data. */
+  interfaces: PlatformInterface[];
+}) {
   const [ctx, setCtx] = useState<PageContext>(EMPTY_CONTEXT);
   const [plan, setPlan] = useState<PlanResult | null>(null);
   const [busy, setBusy] = useState(false);
@@ -65,9 +69,10 @@ export default function PanelClient({ data }: { data: VoltaraData }) {
   const [search, setSearch] = useState(0);
   const [picked, setPicked] = useState<{ search: number; index: number } | null>(null);
   const [ov, setOv] = useState<{ search: number; need: PlannedNeed } | null>(null);
-  const [replayNonce, setReplayNonce] = useState(0);
   const overrideRequest = useRef(0);
-  const stage = useRef<ProductStageHandle>(null);
+  const stage = useRef<InterfaceStageHandle>(null);
+  /** An interface the reader is pointing at, on the stage or on a card. */
+  const [hovered, setHovered] = useState<string | null>(null);
 
   /** Interfaces adopted and needs proposed on this page, this search. */
   const [adopted, setAdopted] = useState<string[]>([]);
@@ -90,38 +95,81 @@ export default function PanelClient({ data }: { data: VoltaraData }) {
   const [thinking, setThinking] = useState(false);
   const answerRef = useRef<HTMLDivElement>(null);
 
-  // Raises if the data no longer says what the 3D models were drawn from.
-  const heroParts = useMemo(() => resolveHeroParts(data.parts), [data.parts]);
-
   const product = plan?.product.name ?? "";
 
-  // A result opens on the whole page: every need it raised, drawn together.
-  // Picking a row, or the switcher, steps down to one part.
+  // A result opens on the whole product. Picking a row steps down to one part.
   const cardIndex = picked && picked.search === search ? picked.index : -1;
   const override = ov && ov.search === search ? ov.need : null;
-
-  // ONE current part drives the header line, the match card and the 3D view,
-  // so the three cannot disagree. The switcher changes it; so does a new search.
   const need: PlannedNeed | null =
     override ?? (plan && cardIndex >= 0 ? plan.needs[cardIndex] ?? null : null);
   const currentPart = need?.part ? data.parts.find((p) => p.name === need.part) : undefined;
   const partGroupId = currentPart?.id;
 
-  // The stage draws what this page needs, and nothing else: one shape per
-  // need, coloured by what it landed on. Stepping into a need shows that part
-  // alone; with no page read it shows the whole inverter.
   const items = useMemo(
     () => (plan ? stageItemsFor(plan.needs, data.parts) : []),
     [plan, data.parts]
   );
   const counts = useMemo(() => stageCounts(items), [items]);
-  const partSubject = useMemo(() => subjectFor(currentPart), [currentPart]);
-  const pageSubject = useMemo(() => planSubject(items), [items]);
-  const subject = partSubject ?? pageSubject;
-  const activeTab: PartKey | null = PART_KEYS.find((k) => HIGHLIGHT_PARTS[k].partId === currentPart?.id) ?? null;
 
-  // Each result is a new search: it replaces the plan, drops any override and
-  // replays the 3D sequence.
+  /* ---------- one product, and the interfaces lit on it ---------- */
+
+  const matched = useMemo(() => plan?.summary.interfaces ?? [], [plan]);
+
+  // Which product this page is about: the one it names, or the one that
+  // shares the most interfaces with what it needs.
+  const shown = useMemo(() => {
+    const text = `${ctx.title} ${ctx.selection || ctx.text || ""}`;
+    return resolveProduct(
+      text,
+      PRODUCT_MASTER.map((p) => ({ id: p.id, name: p.name })),
+      matched,
+      (id) => partsOfProduct(data.parts, id).length
+    );
+  }, [ctx.title, ctx.text, ctx.selection, matched, data.parts]);
+
+  const productParts = useMemo(
+    () => (shown ? partsOfProduct(data.parts, shown.id) : []),
+    [shown, data.parts]
+  );
+
+  /** One card per matched interface, with the parts this product carries. */
+  const cards = useMemo<(InterfaceCardData & { partIds: string[] })[]>(() => {
+    const full = new Map(interfaces.map((i) => [i.id, i]));
+    const here = new Set(productParts.map((p) => p.id));
+    return matched.map((m) => {
+      const source = full.get(m.id);
+      const partIds = (source?.parts ?? []).filter((id) => here.has(id));
+      return {
+        id: m.id,
+        name: m.name,
+        subsystem: m.subsystem,
+        spec: m.spec,
+        products: m.products,
+        since: m.since,
+        inherits: m.inherits,
+        needs: m.needs,
+        partIds,
+        partNames: partIds.map(
+          (id) => data.parts.find((p) => p.id === id)?.name ?? id
+        ),
+      };
+    });
+  }, [matched, interfaces, productParts, data.parts]);
+
+  /** Only an interface with parts in this product can light on the stage. */
+  const stageClusters = useMemo<StageCluster[]>(
+    () =>
+      cards
+        .filter((c) => c.partIds.length > 0)
+        .map((c) => ({
+          id: c.id,
+          partIds: c.partIds,
+          label: stageLabelFor(c),
+        })),
+    [cards]
+  );
+
+  // Each result is a new search: it replaces the plan and drops any override.
   const applyPlan = useCallback((next: PlanResult | null) => {
     setPlan(next);
     setSearch((s) => s + 1);
@@ -130,6 +178,7 @@ export default function PanelClient({ data }: { data: VoltaraData }) {
     setAdopted([]);
     setProposed([]);
     setSettled([]);
+    setHovered(null);
   }, []);
 
   /* ---------- which card ---------- */
@@ -141,48 +190,6 @@ export default function PanelClient({ data }: { data: VoltaraData }) {
     setPicked({ search, index: Math.max(0, Math.min(plan.needs.length - 1, i)) });
     setDeclining(false);
     setNote("");
-    setReplayNonce((n) => n + 1);
-  }
-
-  /**
-   * The switcher is a manual override for demos. The header line, the card and
-   * the 3D view all follow it, and the next search on the page puts it back.
-   */
-  async function pickPart(key: PartKey) {
-    const part = heroParts[key];
-    const request = ++overrideRequest.current;
-    const forSearch = search;
-    const i = plan?.needs.findIndex((n) => n.part === part.name) ?? -1;
-
-    if (plan && i >= 0) {
-      // The page already asked about this part: use its card.
-      setOv(null);
-      setPicked({ search: forSearch, index: i });
-    } else {
-      try {
-        const res = await fetch("/api/plan-product", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "x-pi-source": "extension" },
-          // quiet: looking at a part by hand leaves no entry in the activity log
-          body: JSON.stringify({
-            product_name: product || ctx.title || "This page",
-            needs: [part.name],
-            quiet: true,
-          }),
-        });
-        const result = (await res.json()) as PlanResult;
-        if (!res.ok || !result.needs[0]) throw new Error("no result");
-        if (request !== overrideRequest.current) return; // a newer pick came first
-        setOv({ search: forSearch, need: result.needs[0] });
-        setError("");
-      } catch {
-        if (request === overrideRequest.current) setError("That part could not be checked.");
-        return;
-      }
-    }
-    setDeclining(false);
-    setNote("");
-    setReplayNonce((n) => n + 1);
   }
 
   /* ---------- reading the page ---------- */
@@ -197,7 +204,12 @@ export default function PanelClient({ data }: { data: VoltaraData }) {
         // A stored result is only the right answer if the page still says the
         // same thing. A chat keeps its address when a new answer arrives.
         const stored = readStored<PlanResult>(context.url);
-        if (stored && stored.textKey === key) {
+        if (
+          stored &&
+          stored.textKey === key &&
+          // Results saved before interfaces existed lack this field; recheck those.
+          Array.isArray(stored.plan?.summary?.interfaces)
+        ) {
           applyPlan(stored.plan);
           setChips([]);
           setStale(true);
@@ -325,7 +337,7 @@ export default function PanelClient({ data }: { data: VoltaraData }) {
    * Designing to an interface is a decision about the boundary, not about one
    * part, so it is recorded once and settles every need it covers.
    */
-  async function adopt(iface: PlanSummary["interfaces"][number]) {
+  async function adopt(iface: InterfaceCardData) {
     setRecording(iface.id);
     try {
       await fetch("/api/part-decision", {
@@ -343,6 +355,7 @@ export default function PanelClient({ data }: { data: VoltaraData }) {
         }),
       });
       setAdopted((a) => [...new Set([...a, iface.id])]);
+      stage.current?.pulse(iface.id);
       setSettled((s) => [...new Set([...s, ...iface.needs])]);
       setNote(
         `Designing to ${iface.name}. ${iface.needs.length} ${
@@ -382,7 +395,6 @@ export default function PanelClient({ data }: { data: VoltaraData }) {
   }
 
   async function reuse(n: PlannedNeed) {
-    stage.current?.reassemble(); // the part snaps back in, the model reassembles
     await record(n, "reuse");
     setNote(`Reusing ${n.partNumber} for ${product}. Recorded.`);
   }
@@ -493,7 +505,7 @@ export default function PanelClient({ data }: { data: VoltaraData }) {
 
   return (
     <div className="relative flex h-dvh flex-col gap-2 overflow-hidden bg-surface px-3 pb-0 pt-3">
-      {/* 1) header strip: two lines, then the part switcher */}
+      {/* 1) header strip: what the page is, and what it is about */}
       <div className="shrink-0">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
@@ -507,53 +519,58 @@ export default function PanelClient({ data }: { data: VoltaraData }) {
           <Badge>Sample data</Badge>
         </div>
 
-        <div className="mt-2 flex gap-1" role="group" aria-label="Parts to show">
-          {PART_KEYS.map((k) => {
-            const on = activeTab === k;
-            return (
-              <button
-                key={k}
-                type="button"
-                aria-pressed={on}
-                title={HIGHLIGHT_PARTS[k].name}
-                onClick={() => pickPart(k)}
-                className={`h-[26px] min-w-0 flex-1 truncate border px-2 text-[12px] transition-colors ${
-                  on
-                    ? "border-text bg-transparent text-text"
-                    : "border-line bg-panel-2 text-text-2 hover:text-text"
-                }`}
-              >
-                {HIGHLIGHT_PARTS[k].short}
-              </button>
-            );
-          })}
-        </div>
       </div>
 
-      {/* 2) what this page needs, drawn: one shape per need, nothing else */}
+      {/* 2) one product, with the interfaces this page lands on lit */}
       {plan && (
         <p className="shrink-0 text-[12px] leading-snug text-text">
           {interfaceLine(plan.summary)}
         </p>
       )}
 
-      <div className="relative min-h-[140px] flex-[0_1_30%]">
+      {plan && shown && !shown.named && (
+        <p className="shrink-0 text-[12px] text-text-3">
+          Closest existing product: {shown.id}
+        </p>
+      )}
+
+      <div className="relative h-[360px] shrink-0">
         <div className="absolute inset-0">
-          <ProductStage
-            ref={stage}
-            subject={subject}
-            playNonce={search + replayNonce}
-          />
+          {plan && shown && productParts.length > 0 ? (
+            <InterfaceStage
+              ref={stage}
+              productId={shown.id}
+              parts={productParts}
+              clusters={stageClusters}
+              shell={shellFor(shown.id)}
+              hovered={hovered}
+              onHover={setHovered}
+              onSelect={(id) => stage.current?.pulse(id)}
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-panel px-6 text-center">
+              <p className="text-[12px] leading-snug text-text-3">
+                {busy ? "Reading the page" : "No page read yet."}
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
-      {plan && items.length > 0 && (
+      {/* 3) the word itself, always on screen */}
+      <p className="shrink-0 text-[12px] leading-snug text-text-2">
+        An interface is a group of parts that connect the same way across
+        products. Design to it and you inherit everything already built around
+        it.
+      </p>
+
+      {plan && items.length > 0 && stageClusters.length === 0 && (
         <div className="shrink-0">
           <StageLegend counts={counts} />
         </div>
       )}
 
-      {/* 3) the layers: interfaces first, then the parts already bought */}
+      {/* 4) the layers: interfaces first, then the parts already bought */}
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pb-2">
         {error && <p className="text-[12px] text-risk">{error}</p>}
         {note && <p className="bg-panel p-2 text-[12px] leading-snug text-text-2">{note}</p>}
@@ -571,18 +588,23 @@ export default function PanelClient({ data }: { data: VoltaraData }) {
             )}
 
             <InterfaceCards
-              interfaces={plan.summary.interfaces}
+              interfaces={cards}
               adopted={adopted}
               busy={recording}
+              hovered={hovered}
               onAdopt={adopt}
+              onHover={setHovered}
+              onSelect={(id) => stage.current?.pulse(id)}
             />
 
-            <NewThinkingCard
-              needs={plan.needs.filter((n) => n.landing === "new")}
-              proposed={proposed}
-              busy={recording}
-              onPropose={propose}
-            />
+            {cards.length === 0 && (
+              <NewThinkingCard
+                needs={plan.needs.filter((n) => n.landing === "new")}
+                proposed={proposed}
+                busy={recording}
+                onPropose={propose}
+              />
+            )}
 
             <PartsYouBuy
               needs={plan.needs}
@@ -672,74 +694,83 @@ export default function PanelClient({ data }: { data: VoltaraData }) {
         )}
       </div>
 
-      {/* 4) the assistant */}
-      <div className="relative -mx-3 mt-auto shrink-0 border-t border-line bg-panel px-3 pb-3 pt-2">
-        {answerOpen && lastPair.length > 0 && (
-          <div className="absolute bottom-full left-3 right-3 z-20 mb-2 bg-panel-2 p-3 shadow-none">
-            <div className="flex items-start justify-between gap-2">
-              <p className="min-w-0 flex-1 text-[12px] text-text">{lastPair[0]?.content}</p>
-              <button
-                type="button"
-                onClick={() => setAnswerOpen(false)}
-                aria-label="Close answer"
-                className="shrink-0 text-[12px] text-text-2 transition-colors hover:text-text"
-              >
-                Close
-              </button>
+      {/* 5) the assistant: one bar, and a sheet when it is wanted */}
+      <div className="relative -mx-3 mt-auto shrink-0 border-t border-line bg-panel">
+        <button
+          type="button"
+          onClick={() => setAnswerOpen((v) => !v)}
+          aria-expanded={answerOpen}
+          className="flex h-12 w-full items-center justify-between gap-3 px-3 text-left"
+        >
+          <span className="min-w-0 truncate text-[12px]">
+            <span className="font-semibold text-text">Assistant</span>{" "}
+            <span className="text-text-3">
+              {thinking ? "Thinking" : `Answering for ${shortRole(TEST_PROFILE.role)}`}
+            </span>
+          </span>
+          <span className="shrink-0 text-[12px] text-text-2">
+            {answerOpen ? "Close" : "Ask"}
+          </span>
+        </button>
+
+        {answerOpen && (
+          <div className="absolute bottom-full left-0 right-0 z-30 max-h-[60vh] overflow-y-auto border-t border-line bg-panel px-3 pb-3 pt-3">
+            {lastPair.length > 0 && (
+              <div className="mb-3 bg-panel-2 p-3">
+                <p className="text-[12px] text-text">{lastPair[0]?.content}</p>
+                <div
+                  ref={answerRef}
+                  className="mt-2 max-h-[30vh] overflow-y-auto border-t border-line pt-2"
+                >
+                  <p className="text-[12px] leading-relaxed text-text-2">
+                    {lastPair[1]?.content || (thinking ? "Thinking" : "")}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div className="flex flex-wrap gap-1">
+              {panelQuestions(product).map((q) => (
+                <button
+                  key={q}
+                  type="button"
+                  onClick={() => ask(q)}
+                  title={q}
+                  className="max-w-full truncate border border-line bg-panel-2 px-2 py-[3px] text-[11px] text-text-2 transition-colors hover:border-line-2 hover:text-text"
+                >
+                  {q}
+                </button>
+              ))}
             </div>
-            <div ref={answerRef} className="mt-2 max-h-[30vh] overflow-y-auto border-t border-line pt-2">
-              <p className="text-[12px] leading-relaxed text-text-2">
-                {lastPair[1]?.content || (thinking ? "Thinking" : "")}
-              </p>
+
+            <div className="mt-2 flex items-center gap-2">
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") ask(input);
+                }}
+                placeholder="Ask about this page"
+                className="h-[30px] min-w-0 flex-1 rounded-field border border-line-2 bg-transparent px-2 text-[13px] text-text placeholder:text-text-3 focus:outline-none"
+              />
+              <Button onClick={() => ask(input)} disabled={thinking}>
+                Send
+              </Button>
             </div>
+
+            <a
+              href="/dashboard"
+              target="_blank"
+              rel="noreferrer"
+              className="mt-2 inline-block text-[12px] text-text-2 underline-offset-4 transition-colors hover:text-text hover:underline"
+            >
+              See more in dashboard
+            </a>
           </div>
         )}
-
-        <div className="flex items-baseline justify-between gap-3">
-          <p className="min-w-0 truncate text-[12px]">
-            <span className="font-semibold text-text">Assistant</span>{" "}
-            <span className="text-text-3">Answering for {TEST_PROFILE.role}</span>
-          </p>
-          <a
-            href="/dashboard"
-            target="_blank"
-            rel="noreferrer"
-            className="shrink-0 text-[12px] text-text-2 underline-offset-4 transition-colors hover:text-text hover:underline"
-          >
-            See more in dashboard
-          </a>
-        </div>
-
-        <div className="mt-2 flex flex-wrap gap-1">
-          {panelQuestions(product).map((q) => (
-            <button
-              key={q}
-              type="button"
-              onClick={() => ask(q)}
-              title={q}
-              className="max-w-full truncate border border-line bg-panel-2 px-2 py-[3px] text-[11px] text-text-2 transition-colors hover:border-line-2 hover:text-text"
-            >
-              {q}
-            </button>
-          ))}
-        </div>
-
-        <div className="mt-2 flex items-center gap-2">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") ask(input);
-            }}
-            placeholder="Ask about this page"
-            className="h-[30px] min-w-0 flex-1 rounded-field border border-line-2 bg-transparent px-2 text-[13px] text-text placeholder:text-text-3 focus:outline-none"
-          />
-          <Button onClick={() => ask(input)} disabled={thinking}>
-            Send
-          </Button>
-        </div>
       </div>
+
     </div>
   );
 }

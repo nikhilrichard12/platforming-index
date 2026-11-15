@@ -1,17 +1,19 @@
 {
  "scene": "procurement",
- "what": "Procurement writes a supplier change note.",
+ "what": "Procurement writes a supplier change note for the VMX-20 cabinet fan.",
  "page": "procurement.txt",
- "product": "SN-2211 supplier change note",
+ "product": "VMX-20",
+ "title": "VMX-20 supplier change note",
  "expect": {
-  "needs": 6,
-  "onInterface": 2,
-  "onPart": 3,
-  "newThinking": 1,
-  "line": "5 of 6 needs start from something Voltara already built. 1 need new thinking.",
-  "interfaces": [
+  "productOnStage": "VMX-20",
+  "interfacesLit": [
    "IF-COOL-120"
   ],
+  "needs": 5,
+  "onInterface": 2,
+  "onPart": 2,
+  "newThinking": 1,
+  "line": "4 of 5 needs start from something Voltara already built. 1 need new thinking.",
   "landings": [
    {
     "need": "Axial fan, 120 mm 24 VDC",
@@ -38,12 +40,6 @@
     "part": "Split Lock Washer M4"
    },
    {
-    "need": "Nylon cable tie, 150 mm",
-    "landing": "part",
-    "interface": null,
-    "part": "Nylon Cable Tie 150mm"
-   },
-   {
     "need": "Second source qualification plan",
     "landing": "new",
     "interface": null,
@@ -51,5 +47,5 @@
    }
   ]
  },
- "note": "Expected values are what POST /api/plan-product returns for this page text. Interfaces are curated sample data."
+ "note": "The page names its product, so the stage draws that one. Expected values are what POST /api/plan-product returns for this page text. Interfaces are curated sample data."
 }

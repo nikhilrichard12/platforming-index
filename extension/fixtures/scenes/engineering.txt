@@ -1,24 +1,23 @@
 Partsmith PLM
 
-Programs / StorLine / VBS-30 / Thermal design brief
+Programs / RackLine / VRK-3000 / Power stage brief
 
-Cooling module for the VBS-30 outdoor cabinet
+Half bridge power stage for the VRK-3000 refresh
 
-Target is 30 kW continuous in a sealed outdoor enclosure, ambient to 45 C.
-The thermal path drives the rest of the design, so this brief fixes it first
-and leaves the power stage to the electrical brief.
+The refresh keeps today's rating and the same chassis, so the power stage is
+the only part of the design that moves. This brief fixes what the
+stage is built from before layout starts.
 
-What the module needs:
+What the stage needs:
 
-- Cooling fan, axial, 120 mm 24 VDC
-- Fan guard, wire, 120 mm
-- Extruded aluminum heatsink, 200 mm
-- Silicone thermal pad, 40 x 40 mm
-- Temperature sensor, NTC 10k
-- Liquid cooling cold plate
-- Variable speed fan controller, 4 pin PWM
+- Half bridge IGBT module, 600 V 50 A
+- Isolated gate driver board, 6 channel
+- DC link capacitor, electrolytic, 470 uF 450 V
+- Bleeder resistor, 10k 10 W
+- Film capacitor, 20 uF 800 V
+- SiC half bridge evaluation module
 
-Open questions for review: whether the cabinet can take the 120 mm frame
-without a new bracket, and whether the cold plate is worth its service burden.
+Open question for review: whether the refresh can hold the existing gate
+drive and busbar layout, or whether the SiC study forces a new one.
 
 Last edited by R. Mandal

@@ -1,63 +1,58 @@
 {
  "scene": "engineering",
- "what": "Engineering writes a cooling module brief for a new outdoor cabinet.",
+ "what": "Engineering writes a half bridge power stage brief for the VRK-3000 refresh.",
  "page": "engineering.txt",
- "product": "VBS-30 Thermal design brief",
+ "product": "VRK-3000",
+ "title": "VRK-3000 power stage brief",
  "expect": {
-  "needs": 7,
-  "onInterface": 5,
-  "onPart": 0,
-  "newThinking": 2,
-  "line": "5 of 7 needs start from something Voltara already built. 2 need new thinking.",
-  "interfaces": [
-   "IF-COOL-120",
-   "IF-COOL-TIM",
-   "IF-CTRL-SENSE"
+  "productOnStage": "VRK-3000",
+  "interfacesLit": [
+   "IF-PWR-DCLINK",
+   "IF-PWR-HB"
   ],
+  "needs": 6,
+  "onInterface": 3,
+  "onPart": 2,
+  "newThinking": 1,
+  "line": "5 of 6 needs start from something Voltara already built. 1 need new thinking.",
   "landings": [
    {
-    "need": "Cooling fan, axial, 120 mm 24 VDC",
-    "landing": "interface",
-    "interface": "IF-COOL-120",
-    "part": "Axial Fan 120mm 24VDC"
-   },
-   {
-    "need": "Fan guard, wire, 120 mm",
-    "landing": "interface",
-    "interface": "IF-COOL-120",
-    "part": "Wire Fan Guard 120mm"
-   },
-   {
-    "need": "Extruded aluminum heatsink, 200 mm",
-    "landing": "interface",
-    "interface": "IF-COOL-TIM",
-    "part": "Extruded Aluminum Heatsink 200mm"
-   },
-   {
-    "need": "Silicone thermal pad, 40 x 40 mm",
-    "landing": "interface",
-    "interface": "IF-COOL-TIM",
-    "part": "Silicone Thermal Pad 40x40mm"
-   },
-   {
-    "need": "Temperature sensor, NTC 10k",
-    "landing": "interface",
-    "interface": "IF-CTRL-SENSE",
-    "part": "NTC Temperature Sensor 10k"
-   },
-   {
-    "need": "Liquid cooling cold plate",
-    "landing": "new",
+    "need": "Half bridge IGBT module, 600 V 50 A",
+    "landing": "part",
     "interface": null,
-    "part": null
+    "part": "Half Bridge IGBT Module 600V 50A"
    },
    {
-    "need": "Variable speed fan controller, 4 pin PWM",
+    "need": "Isolated gate driver board, 6 channel",
+    "landing": "interface",
+    "interface": "IF-PWR-HB",
+    "part": "Isolated Gate Driver Board 6 Channel"
+   },
+   {
+    "need": "DC link capacitor, electrolytic, 470 uF 450 V",
+    "landing": "interface",
+    "interface": "IF-PWR-DCLINK",
+    "part": "Electrolytic DC Link Capacitor 470uF 450V"
+   },
+   {
+    "need": "Bleeder resistor, 10k 10 W",
+    "landing": "interface",
+    "interface": "IF-PWR-DCLINK",
+    "part": "Bleeder Resistor 10k 10W"
+   },
+   {
+    "need": "Film capacitor, 20 uF 800 V",
+    "landing": "part",
+    "interface": null,
+    "part": "Film Capacitor 20uF 800V"
+   },
+   {
+    "need": "SiC half bridge evaluation module",
     "landing": "new",
     "interface": null,
     "part": null
    }
   ]
  },
- "note": "Expected values are what POST /api/plan-product returns for this page text. Interfaces are curated sample data."
+ "note": "The page names its product, so the stage draws that one. Expected values are what POST /api/plan-product returns for this page text. Interfaces are curated sample data."
 }

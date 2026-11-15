@@ -87,13 +87,11 @@ export default function MatchCard({
 }) {
   const blocked = need.status === "blocked by rule";
 
+  // Arrows, no counter: the position in a list is not the point, the part is.
   const arrows =
     total > 1 ? (
       <div className="ml-auto flex items-center gap-2">
         <Arrow dir="left" label="Previous match" onClick={onPrev} disabled={index === 0} />
-        <span className="text-[12px] tabular-nums text-text-2">
-          {index + 1} of {total}
-        </span>
         <Arrow dir="right" label="Next match" onClick={onNext} disabled={index === total - 1} />
       </div>
     ) : null;
@@ -168,7 +166,7 @@ export default function MatchCard({
           {need.part && !blocked && (
             <>
               <PrimaryButton onClick={onReuse}>Reuse</PrimaryButton>
-              <Button onClick={onToggleDecline}>Can&apos;t reuse</Button>
+              <Button onClick={onToggleDecline}>Decline</Button>
             </>
           )}
           {arrows}

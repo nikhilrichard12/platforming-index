@@ -152,3 +152,81 @@ export function planSubject(items: StageItem[]): StageSubject | null {
     plan: items,
   };
 }
+
+/* ---------- which product the page is about ---------- */
+
+export interface ResolvedProduct {
+  id: string;
+  name: string;
+  /** True when the page named it; false when it is the closest match. */
+  named: boolean;
+}
+
+/** "VRK-3000", "vrk3000" and "RackLine 3 kVA" all name the same product. */
+function mentions(text: string, product: { id: string; name: string }): boolean {
+  const loose = product.id.replace(/-/g, "-?");
+  if (new RegExp(`\\b${loose}\\b`, "i").test(text)) return true;
+  // The family and its rating: "RackLine 3 kVA", "StorLine 50 kWh".
+  const words = product.name.split(/\s+/).slice(0, 3).join(" ");
+  return words.length > 6 && text.toLowerCase().includes(words.toLowerCase());
+}
+
+/**
+ * The product this page is about. Named on the page if it says so; otherwise
+ * the existing product that shares the most interfaces with what the page
+ * needs, which the panel labels as the closest one rather than pretending.
+ */
+export function resolveProduct(
+  text: string,
+  products: { id: string; name: string }[],
+  matchedInterfaces: { products: string[] }[],
+  partsByProduct?: (id: string) => number
+): ResolvedProduct | null {
+  if (products.length === 0) return null;
+
+  for (const product of products) {
+    if (mentions(text, product)) {
+      return { id: product.id, name: product.name, named: true };
+    }
+  }
+
+  const score = (id: string) =>
+    matchedInterfaces.filter((i) => i.products.includes(id)).length;
+  const best = [...products].sort(
+    (a, b) =>
+      score(b.id) - score(a.id) ||
+      (partsByProduct?.(b.id) ?? 0) - (partsByProduct?.(a.id) ?? 0) ||
+      a.id.localeCompare(b.id)
+  )[0];
+  return { id: best.id, name: best.name, named: false };
+}
+
+/** Every part a product carries, as the stage draws them. */
+export function partsOfProduct(
+  parts: { id: string; name: string; rows: { products: string[] }[] }[],
+  productId: string
+): { id: string; name: string }[] {
+  return parts
+    .filter((p) => p.rows.some((r) => r.products.includes(productId)))
+    .map((p) => ({ id: p.id, name: p.name }));
+}
+
+/**
+ * The line beside a lit cluster. It says what kind of boundary this is and
+ * how long the company has been building to it.
+ */
+export function stageLabelFor(iface: {
+  subsystem: string;
+  products: string[];
+  since: number | null;
+}): string {
+  const n = iface.products.length;
+  return `${iface.subsystem} interface. On ${n} ${n === 1 ? "product" : "products"}${
+    iface.since ? ` since ${iface.since}` : ""
+  }.`;
+}
+
+/** What an interface gives a product that designs to it, in one line. */
+export function inheritLine(inherits: string[]): string {
+  return `You inherit: ${inherits.map((x) => x.toLowerCase()).join(", ")}.`;
+}

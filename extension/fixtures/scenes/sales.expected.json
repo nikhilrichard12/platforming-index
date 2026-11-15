@@ -1,38 +1,21 @@
 {
  "scene": "sales",
- "what": "Sales writes a custom variant request for a top account.",
+ "what": "Sales writes an outdoor variant request for a top account on the VBS-50.",
  "page": "sales.txt",
- "product": "SunLine 10 kW custom variant",
+ "product": "VBS-50",
+ "title": "VBS-50 outdoor variant request",
  "expect": {
-  "needs": 7,
-  "onInterface": 5,
+  "productOnStage": "VBS-50",
+  "interfacesLit": [
+   "IF-IO-FIELD",
+   "IF-ENC-OUTDOOR"
+  ],
+  "needs": 6,
+  "onInterface": 4,
   "onPart": 0,
   "newThinking": 2,
-  "line": "5 of 7 needs start from something Voltara already built. 2 need new thinking.",
-  "interfaces": [
-   "IF-IO-PANEL",
-   "IF-ENC-OUTDOOR",
-   "IF-IO-FIELD"
-  ],
+  "line": "4 of 6 needs start from something Voltara already built. 2 need new thinking.",
   "landings": [
-   {
-    "need": "LCD display module, 4.3 in",
-    "landing": "interface",
-    "interface": "IF-IO-PANEL",
-    "part": "LCD Display Module 4.3in"
-   },
-   {
-    "need": "RS485 Modbus communication card",
-    "landing": "interface",
-    "interface": "IF-IO-PANEL",
-    "part": "RS485 Modbus Communication Card"
-   },
-   {
-    "need": "Signal 8 pin connector on the front face",
-    "landing": "interface",
-    "interface": "IF-IO-PANEL",
-    "part": "Signal 8 Pin Connector"
-   },
    {
     "need": "IP65 outdoor enclosure, 10 mm EPDM gasket",
     "landing": "interface",
@@ -44,6 +27,18 @@
     "landing": "interface",
     "interface": "IF-IO-FIELD",
     "part": "Nylon Cable Gland M20"
+   },
+   {
+    "need": "6 pole terminal block, 30 A",
+    "landing": "interface",
+    "interface": "IF-IO-FIELD",
+    "part": "6 Pole Terminal Block 30A"
+   },
+   {
+    "need": "Copper grounding lug, 35 mm2",
+    "landing": "interface",
+    "interface": "IF-IO-FIELD",
+    "part": null
    },
    {
     "need": "Branded bezel in the account colour",
@@ -59,5 +54,5 @@
    }
   ]
  },
- "note": "Expected values are what POST /api/plan-product returns for this page text. Interfaces are curated sample data."
+ "note": "The page names its product, so the stage draws that one. Expected values are what POST /api/plan-product returns for this page text. Interfaces are curated sample data."
 }
