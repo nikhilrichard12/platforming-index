@@ -1,11 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { UserProfile, EMPTY_PROFILE, Role } from "@/lib/types";
 import { loadProfile } from "@/lib/profile";
 import { buildSystemPrompt } from "@/lib/agent/buildSystemPrompt";
 import { roleViewFor } from "@/lib/roleViews";
-import { shortRole } from "@/lib/roles";
+import { FUNCTION_IDENTITY, shortRole } from "@/lib/roles";
+import { FUNCTION_ICON } from "@/components/ui/FunctionIcons";
+import { FunctionName, functionFor } from "@/lib/survey";
 import { VoltaraData } from "@/lib/voltaraData";
 import { SurveyFile } from "@/lib/survey";
 import { Decision, Rule } from "@/lib/rules";
@@ -139,13 +141,12 @@ export default function DashboardClient({
   const [live, setLive] = useState<boolean | null>(null);
   const [showPrompt, setShowPrompt] = useState(false);
   const [copied, setCopied] = useState<number | null>(null);
+  /** Clicking a function on the index block reads the same score as them. */
+  const [roleOverride, setRoleOverride] = useState<Role | "">("");
   const [source, setSource] = useState<SourceHit | null>(null);
   const [rules, setRules] = useState<Rule[]>([]);
   const [decisions, setDecisions] = useState<Decision[]>([]);
   const [alignment, setAlignment] = useState<AlignmentDecision[]>([]);
-  const [inventoryFilter, setInventoryFilter] = useState<
-    "all" | "shared" | "core" | "review"
-  >("all");
   const threadRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -187,7 +188,12 @@ export default function DashboardClient({
   const index = computeIndex(data, applyAlignment(survey, alignment), decisions);
   const liveData = { ...data, index };
 
-  const role = (profile.role || "CEO") as Role;
+  const role = (roleOverride || profile.role || "CEO") as Role;
+  // Stable between renders, so the orbit does not restart on every poll.
+  const viewProfile = useMemo(() => ({ ...profile, role }), [profile, role]);
+  const fn = functionFor(role) ?? "CEO";
+  const identity = FUNCTION_IDENTITY[fn];
+  const FnIcon = FUNCTION_ICON[fn];
   const view = roleViewFor(role);
   const kpis = view.kpis(data);
   const systemPrompt = buildSystemPrompt(profile, liveData, survey, rules);
@@ -235,11 +241,6 @@ export default function DashboardClient({
     await refresh();
   }
 
-  function showParts(filter: "review" | "shared" | "core") {
-    setInventoryFilter(filter);
-    setTab("inventory");
-  }
-
   async function ask(question: string) {
     if (busy || !question.trim()) return;
     const next: ChatMessage[] = [...messages, { role: "user", content: question }];
@@ -285,6 +286,7 @@ export default function DashboardClient({
           parent="Voltara Power Systems"
           section="Platforming Index"
           title={`${shortRole(role)} view`}
+          titleIcon={<FnIcon size={24} />}
         />
 
         <Tabs
@@ -304,9 +306,27 @@ export default function DashboardClient({
           <div className="min-h-0 overflow-y-auto pb-10 pr-1">
             {tab === "summary" && (
               <div className="space-y-5">
-                <IndexStrip data={liveData} basis={basis} />
+                <IndexStrip
+                  data={liveData}
+                  basis={basis}
+                  meaning={identity.meaning(data, index.score)}
+                  fn={fn}
+                  onFunction={(f: FunctionName) =>
+                    setRoleOverride(FUNCTION_IDENTITY[f].role)
+                  }
+                />
                 <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
-                  {kpis.map((k, i) => (
+                  {[
+                    {
+                      label: `Your unit: ${identity.unit}`,
+                      value: identity.figure(data, index.score).value,
+                      source: identity.figure(data, index.score).source,
+                      question: `What does ${identity.figure(data, index.score).value} ${identity.unit} mean for ${shortRole(role)}?`,
+                      answer: () => "",
+                      icon: true,
+                    },
+                    ...kpis.slice(0, 3),
+                  ].map((k, i) => (
                     <button
                       key={k.label}
                       type="button"
@@ -316,7 +336,8 @@ export default function DashboardClient({
                     >
                       <Tile className="h-full">
                         <div className="flex h-full min-h-[104px] flex-col justify-between gap-4">
-                          <p className="text-[14px] font-semibold leading-snug text-text">
+                          <p className="flex items-start gap-2 text-[14px] font-semibold leading-snug text-text">
+                            {"icon" in k && <FnIcon size={16} />}
                             {k.label}
                           </p>
                           <div className="text-right">
@@ -352,7 +373,6 @@ export default function DashboardClient({
             {tab === "inventory" && (
               <PartsTab
                 data={data}
-                initialFilter={inventoryFilter}
                 onAsk={ask}
                 onTag={(po) => setSource(data.rowsByPo[po] ?? null)}
               />
@@ -362,13 +382,11 @@ export default function DashboardClient({
               <AlignmentTab
                 data={data}
                 survey={survey}
-                profile={{ ...profile, role }}
+                profile={viewProfile}
                 alignment={alignment}
                 onDecide={decide}
                 onUndo={undo}
                 onAsk={ask}
-                onJump={showParts}
-                onTag={(po) => setSource(data.rowsByPo[po] ?? null)}
                 onReset={resetDemo}
               />
             )}
@@ -383,7 +401,12 @@ export default function DashboardClient({
                       <Sparkle />
                       Assistant
                     </h2>
-                    <Badge>Answering for {shortRole(role)}</Badge>
+                    <Badge>
+                      <span className="flex items-center gap-[6px]">
+                        <FnIcon size={12} />
+                        Answering for {shortRole(role)}
+                      </span>
+                    </Badge>
                   </div>
                   <button
                     type="button"

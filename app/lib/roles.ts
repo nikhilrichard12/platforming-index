@@ -123,3 +123,99 @@ const SHORT_NAME: Record<Role, string> = {
 export function shortRole(role: Role | ""): string {
   return role ? SHORT_NAME[role] : "";
 }
+
+/* ---------- what each function carries ---------- */
+
+import { FunctionName } from "./survey";
+import { VoltaraData, usd } from "./voltaraData";
+
+export interface FunctionFigure {
+  /** The headline number, already formatted. */
+  value: string;
+  /** Where it came from, in words. */
+  source: string;
+}
+
+export interface FunctionIdentity {
+  function: FunctionName;
+  /** The role this function reads the dashboard as. */
+  role: Role;
+  /** How this function counts complexity. */
+  unit: string;
+  /** The one figure that matters to them, in their own unit. */
+  figure: (data: VoltaraData, score: number) => FunctionFigure;
+  /** The same score, said in their unit. */
+  meaning: (data: VoltaraData, score: number) => string;
+}
+
+export const FUNCTIONS: FunctionName[] = [
+  "CEO",
+  "CFO",
+  "Engineering",
+  "Supply chain",
+  "Sales",
+];
+
+export const FUNCTION_IDENTITY: Record<FunctionName, FunctionIdentity> = {
+  CEO: {
+    function: "CEO",
+    role: "CEO",
+    unit: "index points",
+    figure: (_d, score) => ({
+      value: `${score} of 100`,
+      source: "Parts list and survey",
+    }),
+    meaning: (d, score) =>
+      `For the CEO, ${score} means ${score} of 100 and step ${d.index.step} of three.`,
+  },
+  CFO: {
+    function: "CFO",
+    role: "CFO / Finance",
+    unit: "dollars a year",
+    figure: (d) => ({
+      value: usd(d.summary.yearlyPriceGapUsd),
+      source: "Purchase history",
+    }),
+    meaning: (d, score) =>
+      `For Finance, ${score} means ${usd(d.summary.yearlyPriceGapUsd)} a year.`,
+  },
+  Engineering: {
+    function: "Engineering",
+    role: "Engineering / R&D",
+    unit: "engineering hours a year",
+    figure: (d) => ({
+      value: d.summary.sustainingHoursPerYear.toLocaleString("en-US"),
+      source: "Product master",
+    }),
+    meaning: (d, score) =>
+      `For Engineering, ${score} means ${d.summary.sustainingHoursPerYear.toLocaleString(
+        "en-US"
+      )} sustaining hours a year.`,
+  },
+  "Supply chain": {
+    function: "Supply chain",
+    role: "Supply Chain / Procurement",
+    unit: "suppliers and part numbers",
+    figure: (d) => ({
+      value: `${d.summary.suppliers} and ${
+        d.summary.partNumbers - d.summary.realParts
+      }`,
+      source: "Purchase history",
+    }),
+    meaning: (d, score) =>
+      `For Supply chain, ${score} means ${d.summary.suppliers} suppliers and ${
+        d.summary.partNumbers - d.summary.realParts
+      } duplicate part numbers.`,
+  },
+  Sales: {
+    function: "Sales",
+    role: "Sales / Commercial",
+    unit: "weeks of lead time",
+    figure: (d) => ({
+      value: `${d.summary.leadTimeWeeksMin} to ${d.summary.leadTimeWeeksMax}`,
+      source: "Product master",
+    }),
+    meaning: (d, score) =>
+      `For Sales, ${score} means ${d.summary.leadTimeWeeksMin} to ${d.summary.leadTimeWeeksMax} weeks of lead time.`,
+  },
+};

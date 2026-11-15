@@ -5,7 +5,10 @@ import Badge from "@/components/ui/Badge";
 import CountUp from "@/components/ui/CountUp";
 import ScoreNote from "./BallparkNote";
 import ScoreGauge from "./ScoreGauge";
+import { FUNCTION_ICON } from "@/components/ui/FunctionIcons";
 import { ComputedIndex, scoreMethod } from "@/lib/index";
+import { FUNCTION_IDENTITY, FUNCTIONS } from "@/lib/roles";
+import { FunctionName } from "@/lib/survey";
 import { VoltaraData } from "@/lib/voltaraData";
 
 const STEPS = ["Cut cost today", "Consolidate duplicates", "Common core, modules"];
@@ -19,10 +22,17 @@ const STEPS = ["Cut cost today", "Consolidate duplicates", "Common core, modules
 export default function IndexStrip({
   data,
   basis,
+  meaning,
+  fn,
+  onFunction,
 }: {
   data: VoltaraData & { index: ComputedIndex };
   /** What the score was measured from, printed under the badge. */
   basis?: string;
+  /** The same score said in this reader's unit. */
+  meaning?: string;
+  fn?: FunctionName;
+  onFunction?: (f: FunctionName) => void;
 }) {
   const idx = data.index;
   const [open, setOpen] = useState(false);
@@ -46,6 +56,17 @@ export default function IndexStrip({
             <p className="text-[17px] leading-snug text-text">
               Sharing parts, not yet a platform
             </p>
+            {meaning && fn && (
+              <p className="mt-2 flex items-center gap-2 text-[13px] text-text-2">
+                <span className="text-text-2">
+                  {(() => {
+                    const Mark = FUNCTION_ICON[fn];
+                    return <Mark size={15} />;
+                  })()}
+                </span>
+                {meaning}
+              </p>
+            )}
             {basis && <p className="mt-1 text-[12px] text-text-3">{basis}</p>}
             <ScoreNote avoided={idx.avoided} />
 
@@ -93,6 +114,35 @@ export default function IndexStrip({
           ))}
         </div>
       </div>
+
+      {/* The same score, in five units */}
+      {onFunction && (
+        <div className="border-t border-line px-6 py-3">
+          <p className="text-[12px] text-text-3">Same score, five units</p>
+          <div className="mt-2 flex flex-wrap gap-x-6 gap-y-2">
+            {FUNCTIONS.map((f) => {
+              const Mark = FUNCTION_ICON[f];
+              const id = FUNCTION_IDENTITY[f];
+              const figure = id.figure(data, idx.score);
+              return (
+                <button
+                  key={f}
+                  type="button"
+                  onClick={() => onFunction(f)}
+                  title={`Read the dashboard as ${f}`}
+                  className={`flex items-center gap-2 text-left transition-colors ${
+                    f === fn ? "text-text" : "text-text-2 hover:text-text"
+                  }`}
+                >
+                  <Mark size={15} />
+                  <span className="text-[12px] tabular-nums">{figure.value}</span>
+                  <span className="text-[12px] text-text-3">{id.unit}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* How the score works */}
       <button

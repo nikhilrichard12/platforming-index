@@ -78,6 +78,22 @@ Shared components live in `app/components/ui/`.
   Measured badge under it. The arc sweeps and the number counts once on load,
   and again only if the score moves. Reduced motion draws the filled arc and
   prints the score.
+- **Function identity** (`lib/roles.ts`, `components/ui/FunctionIcons.tsx`):
+  five marks drawn on a 24 grid with 1.5px strokes, in the same family as the
+  step icons. CEO a target, CFO a dollar, Engineering a gear, Supply chain
+  three linked nodes, Sales a clock. Each function also carries a unit and one
+  real headline figure, so the same score can be said five ways. The mark
+  appears before the page title, in the assistant badge, on the first KPI
+  tile, on its planet in the orbit and in the five units row.
+- **Orbit** (`components/dashboard/OrbitView.tsx`): the score as a filled
+  accent disc at the centre, four tilted ellipses around it in thin accent
+  strokes fading outward, and one planet per function on the ring that counts
+  how many open questions it is apart from the group. Planets fly in from the
+  outer ring on load, then drift slowly along their own ellipse; hovering one
+  stops it. Ring labels sit at the right of each ellipse with a `panel`
+  knockout so a passing planet never buries them. A decision replays the
+  flight inward and counts the centre score up. Reduced motion places every
+  planet and holds.
 - **Alignment cards**: one card per split question. Title, a `risk` "Split"
   badge and the count of distinct answers; the answers grouped by answer with
   the functions as chips (the reader's own marked "You"); a `risk` left rule on
@@ -158,6 +174,10 @@ Shared components live in `app/components/ui/`.
   control rises out of the arithmetic rather than being credited points. The
   counter beside the score, "Part numbers avoided", is what moves on every
   single decision.
+- The same score, said five ways. A function's unit is never translated into
+  another function's unit: Finance reads dollars a year, Engineering reads
+  hours, Sales reads weeks. The index is the one number they share, which is
+  the point of the orbit.
 - Two levels, never confused. A ballpark comes from 8 answers and is always a
   range with a `warn` badge, named constants and visible arithmetic. A measured
   index comes from a parts list, carries a `positive` "Measured" badge and the

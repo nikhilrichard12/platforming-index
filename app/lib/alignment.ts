@@ -150,3 +150,62 @@ export function costSentence(
       return `${s.uniqueParts} of ${s.realParts} parts exist on one product only. Each one is a difference somebody believed a customer would pay for.`;
   }
 }
+
+/* ---------- how far each function sits from the group ---------- */
+
+export const RING_LABELS = ["Aligned", "1 apart", "2 apart", "3 apart"];
+
+/** The answer most of the group gave, ignoring nobody and no one in particular. */
+function commonAnswer(answers: string[]): string {
+  const counts = new Map<string, number>();
+  answers.forEach((a) => counts.set(a, (counts.get(a) ?? 0) + 1));
+  return (
+    [...counts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? ""
+  );
+}
+
+export interface RingResult {
+  /** How many open questions this function is apart from the group. */
+  ring: number;
+  /** Which question ids they are apart on. */
+  apart: string[];
+}
+
+/**
+ * A function's distance from the group: the number of still open questions
+ * where its answer is not the group's answer. "Nobody", "No" and "Not sure"
+ * always count as apart, because declining to take a position is not the same
+ * as agreeing with one.
+ */
+export function computeRings(
+  questions: { id: string; answers: Record<string, string> }[],
+  functions: string[],
+  decided: string[] = []
+): Record<string, RingResult> {
+  const out: Record<string, RingResult> = {};
+  functions.forEach((f) => (out[f] = { ring: 0, apart: [] }));
+
+  for (const q of questions) {
+    if (decided.includes(q.id)) continue;
+    const group = commonAnswer(functions.map((f) => q.answers[f] ?? ""));
+    for (const f of functions) {
+      const a = q.answers[f] ?? "";
+      if (a !== group || WEAK_ANSWER.test(a.trim())) {
+        out[f].ring += 1;
+        out[f].apart.push(q.id);
+      }
+    }
+  }
+  return out;
+}
+
+/** Which decision would close this function's biggest open gap. */
+export function nextDecisionFor(
+  apart: string[],
+  decided: string[]
+): AlignmentQuestionId | null {
+  const order: AlignmentQuestionId[] = ["ownership", "measured", "variants"];
+  return (
+    order.find((id) => apart.includes(id) && !decided.includes(id)) ?? null
+  );
+}
