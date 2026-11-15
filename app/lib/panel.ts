@@ -38,6 +38,19 @@ export interface StoredPlan<T> {
   title: string;
   product: string;
   plan: T;
+  /**
+   * What the page said when this was checked. A chat keeps one address while
+   * its answers change, so the address alone cannot say whether a stored result
+   * still describes what is on screen.
+   */
+  textKey?: string;
+}
+
+/** A short fingerprint of the text the panel read, to tell whether a page has changed. */
+export function textKey(text: string): string {
+  let h = 5381;
+  for (let i = 0; i < text.length; i++) h = ((h << 5) + h + text.charCodeAt(i)) | 0;
+  return `${text.length}:${(h >>> 0).toString(36)}`;
 }
 
 export function readStored<T>(url: string): StoredPlan<T> | null {

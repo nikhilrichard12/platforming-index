@@ -46,12 +46,52 @@ function endColor(products: number) {
   return products >= 2 ? TOKEN.text2 : TOKEN.text3;
 }
 
+/** Where each part's cluster sits, and how many squares land in it. */
+function clusterLayout(parts: Part[], width: number, stageH: number) {
+  // Clusters, largest sharing first, so the common core lands at the top.
+  const ordered = [...parts].sort(
+    (a, b) => b.products - a.products || b.rows.length - a.rows.length
+  );
+  const gridCols = stageH <= COMPACT_STAGE_H ? Math.min(6, Math.max(3, ordered.length)) : 12;
+  const gridRows = Math.ceil(ordered.length / gridCols);
+  const colW = width / gridCols;
+  // The clusters start just under the product labels. The start blocks sit in
+  // the same band, which is only ever occupied by one of the two states.
+  const top = LABEL_H + 6;
+  const rowH = (stageH - top) / gridRows;
+
+  const list: Cluster[] = ordered.map((part, i) => ({
+    part,
+    cx: (i % gridCols) * colW + colW / 2,
+    cy: top + Math.floor(i / gridCols) * rowH + rowH / 2,
+    count: part.rows.length,
+  }));
+  const byPn = new Map<string, Cluster>();
+  list.forEach((c) => c.part.rows.forEach((r) => byPn.set(r.pn, c)));
+  return { list, byPn };
+}
+
+/** A square's seat inside its cluster, so a cluster reads as a block. */
+function seat(cluster: Cluster, n: number) {
+  const cols = Math.ceil(Math.sqrt(cluster.count));
+  const rows = Math.ceil(cluster.count / cols);
+  return {
+    ox: (n % cols) * CLUSTER_PITCH - ((cols - 1) * CLUSTER_PITCH) / 2,
+    oy: Math.floor(n / cols) * CLUSTER_PITCH - ((rows - 1) * CLUSTER_PITCH) / 2,
+  };
+}
+
 /**
  * Start: one square per part number, blocked and tinted by the product that
- * carries it. End: one cluster per real part, its footprint the number of part
- * numbers that merged into it.
+ * carries it, or sitting in the groups a previous pass left. End: one cluster
+ * per real part, its footprint the number of part numbers that merged into it.
  */
-function buildLayout(parts: Part[], width: number, compact: boolean): Layout {
+function buildLayout(
+  parts: Part[],
+  width: number,
+  compact: boolean,
+  from?: Part[]
+): Layout {
   const stageH = compact ? COMPACT_STAGE_H : STAGE_H;
   const products = PRODUCT_MASTER.map((p) => p.id);
   const byProduct = new Map<string, { part: Part; pn: string }[]>(
@@ -76,25 +116,12 @@ function buildLayout(parts: Part[], width: number, compact: boolean): Layout {
     count: byProduct.get(id)?.length ?? 0,
   }));
 
-  // Clusters, largest sharing first, so the common core lands at the top.
-  const ordered = [...parts].sort(
-    (a, b) => b.products - a.products || b.rows.length - a.rows.length
-  );
-  const gridCols = compact ? Math.min(6, Math.max(3, ordered.length)) : 12;
-  const gridRows = Math.ceil(ordered.length / gridCols);
-  const colW = width / gridCols;
-  // The clusters start just under the product labels. The start blocks sit in
-  // the same band, which is only ever occupied by one of the two states.
-  const top = LABEL_H + 6;
-  const rowH = (stageH - top) / gridRows;
-
-  const clusters: Cluster[] = ordered.map((part, i) => ({
-    part,
-    cx: (i % gridCols) * colW + colW / 2,
-    cy: top + Math.floor(i / gridCols) * rowH + rowH / 2,
-    count: part.rows.length,
-  }));
+  const end = clusterLayout(parts, width, stageH);
+  const clusters = end.list;
   const clusterOf = new Map(clusters.map((c) => [c.part.id, c]));
+  /** The groups the squares are coming from, when this is a second pass. */
+  const start = from ? clusterLayout(from, width, stageH) : null;
+  const startPlaced = new Map<string, number>();
 
   const squares: Square[] = [];
   const placed = new Map<string, number>();
@@ -107,24 +134,35 @@ function buildLayout(parts: Part[], width: number, compact: boolean): Layout {
       const n = placed.get(item.part.id) ?? 0;
       placed.set(item.part.id, n + 1);
 
-      const cols = Math.ceil(Math.sqrt(cluster.count));
-      const rows = Math.ceil(cluster.count / cols);
-      const ox = (n % cols) * CLUSTER_PITCH - ((cols - 1) * CLUSTER_PITCH) / 2;
-      const oy = Math.floor(n / cols) * CLUSTER_PITCH - ((rows - 1) * CLUSTER_PITCH) / 2;
+      const { ox, oy } = seat(cluster, n);
+
+      // A second pass starts where the first one left this square: inside the
+      // group the matcher put it in.
+      const home = start?.byPn.get(item.pn);
+      let sx: number;
+      let sy: number;
+      if (home) {
+        const m = startPlaced.get(home.part.id) ?? 0;
+        startPlaced.set(home.part.id, m + 1);
+        const s = seat(home, m);
+        sx = home.cx + s.ox - SQ / 2;
+        sy = home.cy + s.oy - SQ / 2;
+      } else {
+        // Compact runs as one block: at 400px there is no room to column by
+        // product, and the point is the merge, not the grouping.
+        sx = compact ? (flat % flatCols) * CELL : g.x + (i % COLS) * CELL;
+        sy = compact
+          ? LABEL_H + Math.floor(flat / flatCols) * CELL
+          : LABEL_H + Math.floor(i / COLS) * CELL;
+      }
 
       squares.push({
         key: item.pn,
         partId: item.part.id,
-        tint: g.tint,
+        tint: home ? endColor(home.part.products) : g.tint,
         endColor: endColor(item.part.products),
-        // Compact runs as one block: at 400px there is no room to column by
-        // product, and the point is the merge, not the grouping.
-        sx: compact
-          ? (flat % flatCols) * CELL
-          : g.x + (i % COLS) * CELL,
-        sy: compact
-          ? LABEL_H + Math.floor(flat / flatCols) * CELL
-          : LABEL_H + Math.floor(i / COLS) * CELL,
+        sx,
+        sy,
         ex: cluster.cx + ox - SQ / 2,
         ey: cluster.cy + oy - SQ / 2,
       });
@@ -140,16 +178,20 @@ function buildLayout(parts: Part[], width: number, compact: boolean): Layout {
 export default function PartMergeAnimation({
   data,
   parts,
+  from,
   compact = false,
   title,
   note,
   footnote,
   tail,
+  showReplay = true,
   onOpenPart,
 }: {
   data: VoltaraData;
   /** Which parts merge. Defaults to the whole parts list. */
   parts?: Part[];
+  /** The grouping the squares start in, for a second pass over the same rows. */
+  from?: Part[];
   /** Narrow variant for the side panel: one block, shorter stage, no labels. */
   compact?: boolean;
   title?: string;
@@ -157,6 +199,8 @@ export default function PartMergeAnimation({
   footnote?: string;
   /** The line that fades in when the count lands. */
   tail?: string;
+  /** False when a parent panel carries the Replay control. */
+  showReplay?: boolean;
   onOpenPart: (partId: string) => void;
 }) {
   const merging = parts ?? data.parts;
@@ -180,8 +224,8 @@ export default function PartMergeAnimation({
   }, []);
 
   const layout = useMemo(
-    () => (width > 0 ? buildLayout(merging, width, compact) : null),
-    [merging, width, compact]
+    () => (width > 0 ? buildLayout(merging, width, compact, from) : null),
+    [merging, width, compact, from]
   );
 
   const play = useCallback(() => {
@@ -221,7 +265,9 @@ export default function PartMergeAnimation({
       scale: 1,
       backgroundColor: per((s) => s.tint),
     });
-    const total = merging.reduce((n, p) => n + p.rows.length, 0);
+    const total = from
+      ? from.length
+      : merging.reduce((n, p) => n + p.rows.length, 0);
     if (countRef.current) countRef.current.textContent = String(total);
 
     const counter = { value: total };
@@ -268,7 +314,7 @@ export default function PartMergeAnimation({
       );
 
     tlRef.current = tl;
-  }, [layout, reduced, merging]);
+  }, [layout, reduced, merging, from]);
 
   // Plays once when the tab opens, then waits for Replay.
   const started = useRef(false);
@@ -286,7 +332,9 @@ export default function PartMergeAnimation({
   );
 
   const core = data.summary.coreCandidates;
-  const startCount = merging.reduce((n, p) => n + p.rows.length, 0);
+  const startCount = from
+    ? from.length
+    : merging.reduce((n, p) => n + p.rows.length, 0);
 
   return (
     <AnimationPanel
@@ -295,7 +343,7 @@ export default function PartMergeAnimation({
         note ??
         "Every square is one part number in the parts list, grouped by product."
       }
-      onReplay={play}
+      onReplay={showReplay ? play : undefined}
       footnote={
         footnote ??
         "Hover a cluster for the part it became. Click one to open its row below."
@@ -311,7 +359,7 @@ export default function PartMergeAnimation({
           {startCount}
         </span>
         <span className="text-[13px] text-text-2">
-          {done ? "real parts" : "part numbers"}
+          {done ? "real parts" : from ? "groups" : "part numbers"}
         </span>
         <span
           className={`text-[13px] text-text-3 transition-opacity duration-500 ${
@@ -328,7 +376,7 @@ export default function PartMergeAnimation({
         style={{ height: stageH }}
       >
         {/* Product labels, visible while the squares are still blocked by product */}
-        {!compact &&
+        {!compact && !from &&
           layout?.groups.map((g) => (
           <span
             key={g.id}

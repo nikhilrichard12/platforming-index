@@ -111,7 +111,8 @@ Shared components live in `app/components/ui/`.
   right staggered by row while each cost counts up; the end state is the whole
   chart. A footer row totals the gap across every shared part. Hovering a row
   shows the two orders behind it with their suppliers, origins and PO tags.
-- **AnimationPanel**: the shell every animated panel shares. Title, optional 12px text-3 note, a control slot on the right, the stage, and a Replay pill. Same `panel` fill and square corners as every other block, so motion is the only thing that marks it out.
+- **AnimationPanel**: the shell every animated panel shares. Title, optional 12px text-3 note, a control slot on the right, the stage, and a Replay pill. Same `panel` fill and square corners as every other block, so motion is the only thing that marks it out. A panel nested inside another drops its own Replay, so one stage never carries two.
+- **MatchExplainer**: how two part numbers get compared, in five beats left to right — the two rows arrive, their words fly into the Type, Ratings and Wording lanes, matching chips connect with a tick or a risk cross, the three weighted meters pour into one score bar marked at 0.60 and 0.85, and a verdict badge lands. `autoplay` cycles the examples and ends on the whole parts list; `step` lets a parent hold one beat; `compact` shortens the stage. Every figure on the stage comes from `similarity()` on the two descriptions.
 - **CountUp**: a number that counts to its new value over 700ms when the value changes. Renders the figure outright on first paint, so the server HTML and a reader with reduced motion both show the real number. Used for the index score and the four dimension scores.
 - **Merge panel** (`252 become 60`, top of Parts): 252 7px squares, one per part number, blocked and tinted by product in six tints walked from text-3 to text-2. They travel to 60 clusters on a 12 by 5 grid, staggered 6ms by start position so the motion reads as a wave left to right. Cluster footprint is the number of part numbers merged. Core candidates land in accent, two-to-four in text-2, unique in text-3. About 5 seconds, once per tab open.
 - **Exploded view** (Summary): an isometric stack, one diamond slab per layer, parts drawn as small outlined diamonds on the slab surface. Stroke 1.1px on slabs, 1.5px on blocks, no fills except an 88% `surface` wash so a slab occludes what sits behind it. Accent for five or more products, text for two to four, text-3 for unique. Assembled sits centred in the same frame the exploded stack fills, so the panel never changes height.
@@ -124,12 +125,42 @@ Shared components live in `app/components/ui/`.
   per part number as an editable field, and every constant with its source.
   One accent action, "Get the measured index"; the tab header steps back to an
   outline button on this screen so orange still appears once.
-- **Side panel** (`/panel`, 400px): the extension's page, with its own small
-  header instead of the TopBar. Top to bottom: who is looking, the headline,
-  the part numbers converging, one card per need with Reuse and Can't reuse,
-  the rules that apply, the product drawn from this page, the score, the last
-  decisions, and the assistant docked at the foot. Every block is the
-  dashboard's component at panel width, never a second implementation.
+- **Side panel** (`/panel`, 400 to 600px): the extension's page, one panel
+  height with no scrolling. Top to bottom: a two line header (the product, then
+  the part being looked for) with the Sample data badge and a three item part
+  switcher; the 3D product view at about 55% of the height; one match card at a
+  time with prev and next arrows, Reuse and Can't reuse (the decline reason
+  picker replaces the buttons in place); the assistant with three suggested
+  questions as chips, a one line input and a "See more in dashboard" link. An
+  answer opens as a short overlay above the assistant and closes with "Close".
+  The score, the decisions list and the part-number merge animation live on the
+  dashboard only.
+- **Product stage** (`components/panel/ProductStage.tsx`, models in
+  `lib/models/`): the 3D view shows the part being looked at, alone, and nothing
+  else. Procedural Three.js, toon shading, thin edge lines, an accent rim light,
+  background `panel`. Twelve parts in voltara_parts.json have a component in the
+  SunLine 5 kW inverter model (`TWINS`) and show that component. Every other
+  part shows a plain shape chosen from its name and category (`parts.ts`), so
+  something always appears. The caption says which: "Illustrative model of this
+  part. Not CAD." or "Generic shape for this type of part. Not CAD." With
+  nothing searched, the whole inverter rests assembled and turning.
+  - **One part everywhere**: the header line, the match card and the 3D view are
+    all driven by one current part. The three-tab switcher is a manual override
+    that changes all three; the next search on the page puts it back.
+  - **Exploded** separates the part's own pieces (capacitor cans lift off their
+    base, a fuse comes apart into caps, tube and element).
+  - **Callout**: a 1px accent line from a label with the part's name to the top
+    of the part, re-projected every frame.
+  - **Sequence** on load and on every new search: assembled and turning, the
+    pieces part with a stagger, then the callout fades in. anime.js timelines.
+  - **Camera**: fitted to the part's bounding box every frame, from the angle it
+    is being seen at, so it fills about 80% of the view and stays centred even
+    for a long thin part. Drag to rotate with damping; zoom and pan are off.
+    Idle rotation resumes three seconds after a drag.
+  - **Layout inside the stage**: label top left, Replay and the Assembled and
+    Exploded toggle bottom, caption as one line below the canvas. Rendering
+    stops when the panel is hidden; with reduced motion nothing moves by
+    itself, and a drag still turns it.
 - **New product tab**: a name field beside a tall concept textarea, one text link ("Load sample concept") on the left of the row and the single accent button ("Check against the core") on the right. The answer is a 17px light headline, two supporting lines, then the standard table: need, status badge, matched part, best price, PO tag. Status badges read `positive` in core, `neutral` shared and unique, `warn` for blocked and for new part needed, because both of those end in a new part number.
 - **ActivityTable**: the standard table with a 2px left rule per row, transparent at rest and `accent` for one second on a row that arrived since the last poll. The Source column carries a `positive` badge when the check came from the panel or the extension, and a `neutral` badge when it came from this dashboard. 20 rows on Connections, 3 on Decisions.
 - Sidebar (when used): black, small text-3 group labels, 14px nav items, active item gets a surface-colored row.
@@ -223,10 +254,17 @@ Shared components live in `app/components/ui/`.
   matcher compares head nouns, so a fan guard is never offered in place of a
   fan. With nothing in the same category the card says "No approved alternative
   yet. Request a new part and note the rule." in all three surfaces.
-- The index score responds to use. Complexity control starts at 50 and gains 2
-  points per recorded reuse; an exception with a reason changes nothing. The
-  strip carries that sentence under the read so a moving number is never a
-  surprise. Reset restores the starting values.
+- The index score responds to use. Every dimension is a ratio of two numbers
+  in the data: a recorded reuse retires a part number and Complexity control
+  follows, while an exception with a reason changes nothing. The strip carries
+  that sentence under the read so a moving number is never a surprise. Reset
+  restores the starting values.
+- The score is only as good as the matching underneath it, and the index block
+  says so: "Matcher found 80 parts from 252 part numbers. Engineer review
+  confirmed 60", with a toggle that reads the whole page from either grouping.
+  Switching recomputes every figure that depends on grouping and names which
+  grouping is showing. The chain is printed in the disclosure: part numbers →
+  matcher → engineer review → index.
 - Connections is one column, not two. The sources table needs the full content
   width to keep its five headers readable.
 - Nothing on Connections pretends to call a real system. "Sync now" re-reads the

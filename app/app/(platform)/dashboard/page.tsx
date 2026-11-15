@@ -1,4 +1,10 @@
-import { loadSurvey, loadVoltaraData } from "@/lib/voltaraData.server";
+import {
+  loadMatcherEval,
+  loadMatcherGrouping,
+  loadReviewQueue,
+  loadSurvey,
+  loadVoltaraData,
+} from "@/lib/voltaraData.server";
 import { loadSources } from "@/lib/sources.server";
 import DashboardClient from "@/components/dashboard/DashboardClient";
 
@@ -22,6 +28,9 @@ export default function DashboardPage() {
     <DashboardClient
       data={data}
       survey={loadSurvey()}
+      evaluation={loadMatcherEval()}
+      grouping={loadMatcherGrouping()}
+      reviewQueue={loadReviewQueue()}
       basis={`From ${basis}.`}
     />
   );

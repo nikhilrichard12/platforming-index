@@ -1,4 +1,5 @@
 import { ReasonKind } from "./rules";
+import { SAME } from "./similarity";
 
 /**
  * The concept check. Before a part number exists, a product is still a list of
@@ -22,8 +23,12 @@ export const NEED_STATUSES: NeedStatus[] = [
   "new part needed",
 ];
 
-/** Below this the matcher is guessing, so the need counts as a new part. */
-export const PLAN_FLOOR = 0.35;
+/**
+ * A need only counts as existing when the matcher is confident. The same
+ * threshold lib/similarity.ts calls "same", so a plan never claims coverage
+ * the part check would send to a person.
+ */
+export const PLAN_FLOOR = SAME;
 
 export interface PlannedNeed {
   need: string;
@@ -186,7 +191,12 @@ const BARE_RATING = /^\d+(?:\.\d+)?\s*[a-z]{1,9}$/i;
 function itemsInSentence(sentence: string): string[] {
   const parts = sentence.split(CLAUSE);
   const tail = parts.length > 1 ? parts.slice(1).join(" ") : sentence;
-  return tail.split(/,| and (?=[a-z0-9])/i);
+  // "a 600 V, 50 A module" is one rating written with a comma, not two parts.
+  // Hide a comma between two ratings from the split, then put it back.
+  const guarded = tail.replace(/(\d\s?[a-z%]{1,5}),(\s*\d)/gi, "$1\u0001$2");
+  return guarded
+    .split(/,| and (?=[a-z0-9])/i)
+    .map((piece) => piece.replace(/\u0001/g, ","));
 }
 
 /**
@@ -275,7 +285,11 @@ export function looksLikeComponent(fragment: string): boolean {
   return UNIT.test(f) || RATING.test(f);
 }
 
-/** Nothing useful survived, so ask rather than show an empty panel. */
+/**
+ * Fewer needs than this is usually a page that is not a requirements list, so
+ * the panel asks instead. A page with fewer still shows its result when at
+ * least one need matched a part the company already buys.
+ */
 export const ASK_FLOOR = 3;
 
 /** How many needs one page may contribute. */
