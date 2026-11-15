@@ -7,7 +7,7 @@ import ScoreNote from "./BallparkNote";
 import ScoreGauge from "./ScoreGauge";
 import { FUNCTION_ICON, IconInterface } from "@/components/ui/FunctionIcons";
 import { ComputedIndex, scoreMethod } from "@/lib/index";
-import { GROUPING_LABEL, GroupingId } from "@/lib/grouping";
+import { GroupingId } from "@/lib/grouping";
 import { FUNCTION_IDENTITY, FUNCTIONS } from "@/lib/roles";
 import { FunctionName } from "@/lib/survey";
 import { VoltaraData } from "@/lib/voltaraData";
@@ -26,11 +26,8 @@ export default function IndexStrip({
   meaning,
   fn,
   onFunction,
-  grouping,
-  onGrouping,
   matcherGroups,
   reviewedGroups,
-  comparableGap,
   reuse,
 }: {
   data: VoltaraData & { index: ComputedIndex };
@@ -40,13 +37,16 @@ export default function IndexStrip({
   meaning?: string;
   fn?: FunctionName;
   onFunction?: (f: FunctionName) => void;
-  /** Which grouping of the part numbers every figure on the page is read from. */
+  /**
+   * The Matcher only / After review switch is gone, so the page is always read
+   * from the reviewed grouping. The dashboard still sends these three; they are
+   * accepted so it keeps compiling, and not used.
+   */
   grouping?: GroupingId;
   onGrouping?: (id: GroupingId) => void;
+  comparableGap?: string;
   matcherGroups?: number;
   reviewedGroups?: number;
-  /** The reviewed grouping's price gap, recomputed the way the matcher's is. */
-  comparableGap?: string;
   /** How much of a new product starts from an interface that already exists. */
   reuse?: {
     concept: string;
@@ -93,40 +93,14 @@ export default function IndexStrip({
             <ScoreNote avoided={idx.avoided} />
 
             {/* Where the parts count came from: a matcher, then a person. */}
-            {onGrouping && matcherGroups && reviewedGroups && (
+            {matcherGroups && reviewedGroups && (
               <div className="mt-3 border-t border-line pt-3">
-                <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-                  <p className="text-[13px] leading-snug text-text-2">
-                    Matcher found {matcherGroups} parts from{" "}
-                    {data.summary.partNumbers} part numbers. Engineer review
-                    confirmed {reviewedGroups}.
-                  </p>
-                  <div className="flex shrink-0">
-                    {(["matcher", "reviewed"] as GroupingId[]).map((id) => (
-                      <button
-                        key={id}
-                        type="button"
-                        aria-pressed={grouping === id}
-                        onClick={() => onGrouping(id)}
-                        className={`-ml-px border px-3 py-[5px] text-[12px] transition-colors first:ml-0 ${
-                          grouping === id
-                            ? "z-10 border-text bg-transparent text-text"
-                            : "border-line bg-panel-2 text-text-2 hover:text-text"
-                        }`}
-                      >
-                        {GROUPING_LABEL[id]}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                <p className="text-[13px] leading-snug text-text-2">
+                  Matcher found {matcherGroups} parts from {data.summary.partNumbers} part numbers.
+                  Engineer review confirmed {reviewedGroups}.
+                </p>
                 <p className="mt-2 text-[12px] leading-relaxed text-text-3">
-                  {grouping === "matcher"
-                    ? `Every figure here is read from the matcher's own ${matcherGroups} groups, with no key and no person. Prices and gaps are recomputed from the rows in each group${
-                        comparableGap
-                          ? `: the same arithmetic on the reviewed grouping gives ${comparableGap}`
-                          : ""
-                      }.`
-                    : `Every figure here is read from the ${reviewedGroups} groups an engineer confirmed.`}
+                  Every figure here is read from the {reviewedGroups} groups an engineer confirmed.
                 </p>
               </div>
             )}
