@@ -1,5 +1,5 @@
 /**
- * Platforming Index content script.
+ * PlatInform content script.
  *
  * Watches the requisition description on the host page and, when the
  * description matches a part Voltara already buys, shows the evidence before
@@ -215,9 +215,9 @@ function unmount() {
 function possibleHtml(result) {
   return `
     <style>${STYLE}</style>
-    <div class="card" role="complementary" aria-label="Platforming Index possible match">
+    <div class="card" role="complementary" aria-label="PlatInform possible match">
       <div class="head">
-        <span class="brand"><b>Platforming</b> <span>Index</span></span>
+        <span class="brand"><b>PlatInform</b></span>
         <button class="close" type="button" aria-label="Close">&#215;</button>
       </div>
       <div class="body">
@@ -299,9 +299,9 @@ function cardHtml(result, form) {
 
   return `
     <style>${STYLE}</style>
-    <div class="card" role="complementary" aria-label="Platforming Index part check">
+    <div class="card" role="complementary" aria-label="PlatInform part check">
       <div class="head">
-        <span class="brand"><b>Platforming</b> <span>Index</span></span>
+        <span class="brand"><b>PlatInform</b></span>
         <button class="close" type="button" aria-label="Close">&#215;</button>
       </div>
       <div class="body">

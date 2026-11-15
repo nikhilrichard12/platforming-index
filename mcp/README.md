@@ -1,4 +1,4 @@
-# Platforming Index MCP server
+# PlatInform MCP server
 
 The reuse decision happens while an engineer designs, not when procurement
 raises a part number. Every team runs a different NPD or PLM system, but every
@@ -8,7 +8,7 @@ from inside whatever tool the engineer is already using.
 The Chrome extension in `extension/` stays as the backup path for teams
 without an agent.
 
-This server holds no data. It calls the Platforming Index app, which owns the
+This server holds no data. It calls the PlatInform app, which owns the
 parts data, the rules, and the index.
 
 ## Build and run
@@ -96,6 +96,6 @@ A sample transcript of all five steps is in
   agent can speak the answer without parsing anything.
 - Every `check_part` answer ends with "A match is a suggestion until
   engineering confirms fit."
-- An exception never lowers the Platforming Index score. Complexity a rule
+- An exception never lowers the PlatInform score. Complexity a rule
   requires is not complexity anyone chose.
 - Sample company and sample data throughout.

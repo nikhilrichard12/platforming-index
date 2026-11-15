@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /**
- * Platforming Index MCP server.
+ * PlatInform MCP server.
  *
  * The reuse decision happens while an engineer designs, not when procurement
  * raises a part number. Every team runs a different NPD or PLM system but
  * every team now runs an agent, so the check is delivered here: any agent can
  * call it from inside whatever tool the engineer is already using.
  *
- * This server holds no data. It calls the Platforming Index app, which owns
+ * This server holds no data. It calls the PlatInform app, which owns
  * the parts data, the rules, and the index.
  */
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -373,7 +373,7 @@ server.registerTool(
   {
     title: "Record what the engineer decided",
     description:
-      "Call this when the engineer accepts or declines a suggested part. If they decline, ask why and pass the reason. A declined suggestion becomes a rule for that product and that part, so nobody is asked the same question again. Declining never lowers the Platforming Index score.",
+      "Call this when the engineer accepts or declines a suggested part. If they decline, ask why and pass the reason. A declined suggestion becomes a rule for that product and that part, so nobody is asked the same question again. Declining never lowers the PlatInform score.",
     inputSchema: {
       description: z.string().describe("The component the engineer asked for."),
       product: productField,
@@ -412,7 +412,7 @@ server.registerTool(
       return reply(
         `Recorded. New rule ${res.rule.id} for ${productId}: "${res.rule.text}" applies to ${res.rule.appliesToPart}. ` +
           `Anyone checking that part for ${productId} now sees this rule instead of the suggestion. ` +
-          `The Platforming Index score does not drop: complexity a rule requires is not complexity anyone chose.`,
+          `The Complexity Index does not drop: complexity a rule requires is not complexity anyone chose.`,
         res
       );
     }
@@ -452,7 +452,7 @@ server.registerTool(
 server.registerTool(
   "get_index",
   {
-    title: "Get the Platforming Index score",
+    title: "Get the Complexity Index",
     description:
       "Call this when someone asks how the product line is doing overall, how complex it is, or how far along platforming is. Returns the score out of 100, what it means, the four dimensions behind it, which of the three steps the company is on, and the headline part and spend numbers.",
     inputSchema: {},
@@ -468,7 +468,7 @@ server.registerTool(
     const dims = res.index.dimensions.map((d) => `  - ${d.name}: ${d.score}. ${d.basis}`).join("\n");
     const s = res.summary;
     return reply(
-      `Platforming Index ${res.index.score} of 100, ${res.index.status}. ${res.read}\n\n` +
+      `Complexity Index ${res.index.score} of 100, ${res.index.status}. ${res.read}\n\n` +
         `Four dimensions, equal weights:\n${dims}\n\n` +
         `Voltara is on step ${res.index.step} of three: ${res.steps[res.index.step - 1]}.\n\n` +
         `Behind it: ${s.partNumbers} part numbers describe ${s.realParts} real parts, ${s.sharedParts} of them shared across products and ${s.coreCandidates} in five or more. ` +
@@ -490,7 +490,7 @@ server.registerTool(
   async () => {
     const url = `${BASE}/dashboard`;
     return reply(
-      `${url}\n\nThe dashboard shows the Platforming Index with its four dimensions, the four numbers that matter to your function, the yearly price gap by part, every part with its duplicate part numbers, where the functions disagree, and the rules and decisions recorded so far.`,
+      `${url}\n\nThe dashboard shows the Complexity Index with its four dimensions, the four numbers that matter to your function, the yearly price gap by part, every part with its duplicate part numbers, where the functions disagree, and the rules and decisions recorded so far.`,
       { url }
     );
   }
