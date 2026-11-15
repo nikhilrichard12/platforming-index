@@ -2,15 +2,13 @@
 
 Kearney PERLab x UIUC hackathon, team Ladebuggers
 
-## Install the Chrome extension
+## Test the Chrome extension
 
-There is no build step. The folder that contains `manifest.json` is `extension/`.
+PlatInform includes a Chrome extension that checks the page you are reading against the parts a company already buys. To try it, download the project and load the `extension/` folder into Chrome. No build step is required.
 
-1. Zip the `extension/` folder (not needed if you cloned the repo, select `extension/` in step 4).
-2. Go to `chrome://extensions`
-3. Turn on Developer mode (top right)
-4. Click "Load unpacked" and select the unzipped folder
+1. Download the project: on the repository page choose Code, then Download ZIP, and unzip it.
+2. Start the demo app, which the extension connects to at `http://localhost:3000`. From the project folder, run `cd app && npm ci --legacy-peer-deps && npm run dev`.
+3. Open `chrome://extensions`, turn on Developer mode (top right), choose Load unpacked, and select the `extension/` folder.
+4. Open `http://localhost:3000/mock-plm` and click the PlatInform icon in the Chrome toolbar.
 
-Chrome shows a developer mode warning when it restarts. That is expected, just dismiss it.
-
-The extension talks to `http://localhost:3000`, so start the app first: `cd app && npm run dev`
+Chrome displays a developer mode notice when it restarts. This is expected and can be dismissed.
