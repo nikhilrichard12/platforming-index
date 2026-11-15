@@ -28,9 +28,9 @@ import ScreenWhat from "./screens/ScreenWhat";
 import ScreenPlugin from "./screens/ScreenPlugin";
 import ScreenKnows from "./screens/ScreenKnows";
 import ScreenCare from "./screens/ScreenCare";
-import ScreenHook from "./screens/ScreenHook";
-import ScreenModel from "./screens/ScreenModel";
+import ScreenSmarter from "./screens/ScreenSmarter";
 import ScreenProcess from "./screens/ScreenProcess";
+import ScreenModel from "./screens/ScreenModel";
 import ScreenClose from "./screens/ScreenClose";
 
 /** Everything the server read, in the shape every screen reads it. */
@@ -72,10 +72,11 @@ export interface ScreenProps {
 }
 
 /**
- * The nine screens, in the order they are presented. One to five are the
- * rebuilt deck: the problem, what the word means, the plugin, how the
- * matching works, and how a client is brought to care. Six to nine are the
- * screens that were already built, carried until each is rewritten in turn.
+ * The nine screens, in the order they are presented: the problem, what the
+ * word means, the plugin, how the matching works, how a client is brought to
+ * care, what the product accumulates, how we got here, why Kearney, and the
+ * core with the ask. The order here and the order in SCREENS are the same
+ * list seen twice, so they move together.
  */
 const COMPONENTS = [
   ScreenProblem,
@@ -83,9 +84,9 @@ const COMPONENTS = [
   ScreenPlugin,
   ScreenKnows,
   ScreenCare,
-  ScreenHook,
-  ScreenModel,
+  ScreenSmarter,
   ScreenProcess,
+  ScreenModel,
   ScreenClose,
 ];
 

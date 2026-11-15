@@ -61,7 +61,7 @@ export function Reveal({
 }) {
   return (
     <div
-      className={`transition-all duration-500 ease-out ${
+      className={`transition-all duration-[250ms] ease-out ${
         show ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"
       } ${className}`}
       style={{ transitionDelay: show ? `${delay}ms` : "0ms" }}
@@ -100,7 +100,7 @@ export function Typed({
     el.textContent = "";
     const a = animate(state, {
       n: text.length,
-      duration: Math.min(1700, text.length * 36),
+      duration: Math.min(900, text.length * 18),
       ease: "linear",
       modifier: utils.round(0),
       onUpdate: () => {
@@ -133,7 +133,7 @@ export function CountTo({
   value,
   show,
   format = (n) => n.toLocaleString("en-US"),
-  duration = 1100,
+  duration = 550,
   className = "",
 }: {
   value: number;
@@ -183,53 +183,6 @@ export function CountTo({
 }
 
 /**
- * The fan, five blades and a hub, drawn in the accent so the same part reads
- * as the same part wherever it appears. Screen 1 puts one inside each of six
- * products; screen 2 puts one on its own beside the interface it belongs to.
- * The turn is the `pitch-fan-blades` rule in pitch.css.
- */
-export function FanGlyph({
-  cx,
-  cy,
-  r,
-  spin,
-  rim = true,
-}: {
-  cx: number;
-  cy: number;
-  r: number;
-  spin: boolean;
-  /** The ring around the blades, which the cluster picture drops. */
-  rim?: boolean;
-}) {
-  const blade = `M${cx} ${cy} C ${cx + 0.17 * r} ${cy - 0.35 * r} ${
-    cx + 0.39 * r
-  } ${cy - 0.57 * r} ${cx + 0.65 * r} ${cy - 0.61 * r}`;
-  return (
-    <>
-      {rim && <circle cx={cx} cy={cy} r={r} fill="none" stroke="#2F3234" />}
-      <g
-        className={spin ? "pitch-fan-blades" : undefined}
-        style={{ transformOrigin: `${cx}px ${cy}px` }}
-      >
-        {[0, 72, 144, 216, 288].map((a) => (
-          <path
-            key={a}
-            d={blade}
-            fill="none"
-            stroke="#EC5E31"
-            strokeWidth={Math.max(1.4, r * 0.08)}
-            strokeLinecap="round"
-            transform={`rotate(${a} ${cx} ${cy})`}
-          />
-        ))}
-      </g>
-      <circle cx={cx} cy={cy} r={Math.max(2, r * 0.11)} fill="#EC5E31" />
-    </>
-  );
-}
-
-/**
  * An SVG path that draws itself. Used by the flow on screen 5 and the
  * timeline on screen 8, so neither one needs its own animation code.
  */
@@ -237,7 +190,7 @@ export function DrawPath({
   d,
   play,
   delay = 0,
-  duration = 600,
+  duration = 300,
   stroke,
   strokeWidth = 1.4,
 }: {

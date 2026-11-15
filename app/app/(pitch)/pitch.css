@@ -36,36 +36,6 @@ nextjs-portal {
   transform-origin: center center;
 }
 
-/*
- * The fan in the six product icons on screen 1. The group carries its own
- * transform-origin in the viewBox's coordinates, so only the turn is here.
- * The reduced-motion rule in globals.css stops it after one frame.
- */
-@keyframes pitch-fan-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.pitch-fan-blades {
-  animation: pitch-fan-spin 3.6s linear infinite;
-}
-
-/*
- * The Inventory tab's matching diagram, borrowed whole by screen 4. Two
- * things on it belong to the dashboard and not to a deck: the replay control,
- * which a presenter has no use for, and the panel's own closing line, which
- * the screen prints itself at the size a room can read. Both are hidden here
- * rather than in the component, which this branch does not edit.
- */
-.pitch-match button {
-  display: none;
-}
-
-.pitch-match [data-c="foot"] {
-  visibility: hidden;
-}
-
 /* A line drawn by stroke-dashoffset, used on the flow and the timeline. */
 .pitch-draw {
   stroke-dasharray: var(--len);

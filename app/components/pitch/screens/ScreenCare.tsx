@@ -4,8 +4,9 @@ import Badge from "@/components/ui/Badge";
 import OrbitView from "@/components/dashboard/OrbitView";
 import { FUNCTION_PATHS } from "@/components/ui/FunctionIcons";
 import { ALIGNMENT, RingResult } from "@/lib/alignment";
-import { ACCELERATORS, CLIPS, THREE_STEPS } from "@/lib/pitch";
+import { CARE, CLIPS, THREE_STEPS } from "@/lib/pitch";
 import { FUNCTIONS, FUNCTION_IDENTITY } from "@/lib/roles";
+import { PRODUCT_MASTER } from "@/lib/voltaraData";
 import type { ScreenProps } from "../PitchDeck";
 import Clip from "../Clip";
 import { Frame, Reveal, Source } from "../parts";
@@ -18,17 +19,17 @@ const PARKED: Record<string, RingResult> = Object.fromEntries(
 /**
  * Screen 5. How a client is brought to care, in six beats.
  *
- *   0  where this sits: a fourth accelerator beside two we do not name
+ *   0  what the sample company is
  *   1  the three steps, and where the questions came from
  *   2  the survey becoming the dashboard, recorded
  *   3  the orbit, everyone parked on the outer ring
  *   4  they settle onto the ring their own answers put them on
  *   5  two decisions are recorded, they pull in, and the centre counts
  *
- * The two scores are both computed by lib/index.ts on the server, the second
- * from the same survey with the two decisions applied. Nothing on this screen
- * types a score in, which is the whole argument it is making: the parts list
- * is identical on either side of the advance.
+ * Both scores are computed by lib/index.ts on the server, the second from the
+ * same survey with the two decisions applied. Nothing here types a score in,
+ * which is the argument the screen is making: the parts list is identical on
+ * either side of the advance.
  */
 export default function ScreenCare({ bundle, step, active, printing }: ScreenProps) {
   const clip = step === 2;
@@ -38,6 +39,8 @@ export default function ScreenCare({ bundle, step, active, printing }: ScreenPro
   const rings =
     step <= 3 ? PARKED : step === 4 ? bundle.ringsBefore : bundle.ringsAfter;
   const score = decided ? bundle.after.score : bundle.before.score;
+  const s = bundle.data.summary;
+  const products = bundle.products ?? PRODUCT_MASTER.length;
 
   const decisions = [
     { action: ALIGNMENT.ownership.action, choice: bundle.ownerChoice },
@@ -47,52 +50,40 @@ export default function ScreenCare({ bundle, step, active, printing }: ScreenPro
   return (
     <Frame>
       <div className="relative h-full">
-        {/* Beats 1 and 2: where it sits, and what it is. */}
+        {/* Beats 1 and 2: what the company is, and the three steps. */}
         <Layer show={!orbit && !clip}>
           <h1 className="shrink-0 text-[42px] font-light leading-[1.12] text-text">
-            {ACCELERATORS.title}
+            {CARE.title}
           </h1>
 
-          <div className="mt-8 grid shrink-0 grid-cols-3 gap-6">
-            {[0, 1].map((i) => (
-              <div
-                key={i}
-                className="flex h-[150px] items-end border border-line p-5"
-              >
-                <p className="text-[15px] leading-snug text-text-3">
-                  {ACCELERATORS.existing}
-                </p>
-              </div>
-            ))}
-            <div className="flex h-[150px] items-end border border-accent bg-[rgba(236,94,49,0.10)] p-5">
-              <p className="text-[17px] leading-snug text-text">
-                {ACCELERATORS.ours}
-              </p>
-            </div>
-          </div>
+          <p className="mt-10 max-w-[1050px] shrink-0 text-[26px] font-light leading-snug text-text-2">
+            {CARE.sampleLead} {products} power products,{" "}
+            {s.partNumbers.toLocaleString("en-US")} part numbers,{" "}
+            {CARE.sampleTail}
+          </p>
           <div className="mt-2 shrink-0">
-            <Source>{ACCELERATORS.assumption}</Source>
+            <Source>
+              Parts list and purchase history, data/derived/voltara_parts.json
+            </Source>
           </div>
 
-          <div className="mt-auto grid grid-cols-3 gap-6 pb-2">
-            {THREE_STEPS.map((s, i) => (
-              <Reveal key={s.name} show={step >= 1} delay={i * 220}>
+          <div className="mt-auto grid grid-cols-3 gap-8 pb-2">
+            {THREE_STEPS.map((t, i) => (
+              <Reveal key={t.name} show={step >= 1} delay={i * 110}>
                 <div className="h-px w-full bg-line-2" />
-                <p className="mt-5 text-[30px] font-light leading-none text-text">
-                  {s.name}
+                <p className="mt-4 text-[30px] font-light leading-none text-text">
+                  {t.name}
                 </p>
                 <p className="mt-3 text-[19px] leading-snug text-text-2">
-                  {s.line}
+                  {t.line}
                 </p>
-                {s.note && (
-                  <>
-                    <p className="mt-5 text-[14px] leading-snug text-text-3">
-                      {s.note}
-                    </p>
-                    <div className="mt-1">
-                      <Source>{s.noteSource}</Source>
-                    </div>
-                  </>
+                <p className="mt-2 text-[17px] leading-snug text-text-2">
+                  {t.who}
+                </p>
+                {t.note && (
+                  <p className="mt-4 text-[14px] leading-snug text-text-3">
+                    {t.note}
+                  </p>
                 )}
               </Reveal>
             ))}
@@ -102,13 +93,14 @@ export default function ScreenCare({ bundle, step, active, printing }: ScreenPro
         {/* Beat 3: the survey becoming the dashboard. */}
         <Layer show={clip}>
           <h1 className="shrink-0 text-[34px] font-light leading-none text-text">
-            {THREE_STEPS[1].name}: {THREE_STEPS[1].line}
+            {THREE_STEPS[1].name}. {THREE_STEPS[1].who}
           </h1>
           <div className="mt-6 min-h-0 flex-1">
             <Clip
               src={CLIPS.dashboard.src}
               label={CLIPS.dashboard.label}
               play={active && clip && !printing}
+              loop
             />
           </div>
         </Layer>
@@ -116,7 +108,7 @@ export default function ScreenCare({ bundle, step, active, printing }: ScreenPro
         {/* Beats 4 to 6: the same score, said five ways. */}
         <Layer show={orbit}>
           <div className="flex min-h-0 flex-1 items-center gap-10">
-            <div className="w-[760px] shrink-0">
+            <div className="w-[700px] shrink-0">
               <OrbitView
                 score={score}
                 rings={rings}
@@ -155,7 +147,7 @@ export default function ScreenCare({ bundle, step, active, printing }: ScreenPro
                 </p>
                 <p className="mt-3 text-[15px] leading-snug text-text-2">
                   {bundle.before.score} to {bundle.after.score}, from the same{" "}
-                  {bundle.data.summary.partNumbers} part numbers.
+                  {s.partNumbers} part numbers.
                 </p>
                 <div className="mt-2">
                   <Source>
@@ -217,7 +209,7 @@ function Layer({
 }) {
   return (
     <div
-      className={`absolute inset-0 flex flex-col transition-opacity duration-500 ${
+      className={`absolute inset-0 flex flex-col transition-opacity duration-[250ms] ${
         show ? "opacity-100" : "pointer-events-none opacity-0"
       }`}
       aria-hidden={!show}

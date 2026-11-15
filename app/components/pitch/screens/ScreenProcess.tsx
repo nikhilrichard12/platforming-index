@@ -1,106 +1,46 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Badge from "@/components/ui/Badge";
-import { TIMELINE } from "@/lib/pitch";
-import { TOKEN } from "@/lib/anim";
+import { TIMELINE, TIMELINE_SOURCE } from "@/lib/pitch";
 import type { ScreenProps } from "../PitchDeck";
-import { DrawPath, Frame, Reveal, Source } from "../parts";
-
-const RULE_W = 1184;
+import { Frame, Reveal, Source } from "../parts";
 
 /**
- * Screen 8. The timeline draws itself left to right on arrival, so the
- * screen holds one advance and the whole thing is its end state.
+ * Screen 7. The four turns that shaped the product, one per advance.
  *
- * The Velocity band is a stand-in on purpose. What Velocity AI Studio
- * contributed at each turn is not written down anywhere in this repository,
- * and the rule for this deck is that nothing on screen is invented, so the
- * band shows four empty slots and says what belongs in them rather than
- * filling them with a sentence nobody can check.
+ * Three of them are people who told us something we did not know, and the
+ * fourth is the research that started it. They are named as they named
+ * themselves; docs/CONTEXT.md records the conversations.
  */
-export default function ScreenProcess({ printing }: ScreenProps) {
-  // A print has no time to wait for an entrance, so it starts arrived.
-  const [entered, setEntered] = useState(printing);
-  useEffect(() => {
-    const id = requestAnimationFrame(() => setEntered(true));
-    return () => cancelAnimationFrame(id);
-  }, []);
-
-  const n = TIMELINE.length;
-  const slot = RULE_W / n;
-
+export default function ScreenProcess({ step }: ScreenProps) {
   return (
-    <Frame kicker="Process" title="How we got here.">
-      <svg
-        viewBox={`0 0 ${RULE_W} 26`}
-        className="h-[26px] w-full"
-        role="img"
-        aria-label="Friday, two mentor conversations, Saturday"
-      >
-        <DrawPath
-          d={`M0 13 H${RULE_W}`}
-          play
-          duration={900}
-          stroke={TOKEN.line2}
-        />
-        {TIMELINE.map((b, i) => (
-          <circle
-            key={b.when}
-            cx={slot * i + slot / 2}
-            cy={13}
-            r={5}
-            fill={TOKEN.accent}
-            style={{
-              opacity: entered ? 1 : 0,
-              transition: "opacity 400ms ease",
-              transitionDelay: `${300 + i * 180}ms`,
-            }}
-          />
-        ))}
-      </svg>
+    <Frame title="How we got here.">
+      <div className="flex h-full flex-col">
+        <div className="relative my-auto shrink-0">
+          {/* The line the four points sit on. */}
+          <div className="absolute left-0 right-0 top-[7px] h-px bg-line" />
 
-      <div className="mt-7 grid grid-cols-4 gap-8">
-        {TIMELINE.map((b, i) => (
-          <Reveal key={b.when} show={entered} delay={400 + i * 180}>
-            <p className="text-[13px] leading-none text-text-3">{b.when}</p>
-            <h2 className="mt-3 text-[20px] font-extrabold leading-tight text-text">
-              {b.title}
-            </h2>
-            <p className="mt-3 text-[15px] leading-snug text-text-2">{b.body}</p>
-            <div className="mt-3">
-              <Source>{b.source}</Source>
-            </div>
-          </Reveal>
-        ))}
+          <div className="relative grid grid-cols-4 gap-8">
+            {TIMELINE.map((t, i) => (
+              <Reveal key={t.who} show={step >= i}>
+                <span
+                  aria-hidden
+                  className="block h-[15px] w-[15px] rounded-full border border-accent bg-surface"
+                />
+                <p className="mt-6 text-[26px] font-light leading-none text-text">
+                  {t.who}
+                </p>
+                <p className="mt-4 text-[19px] leading-snug text-text-2">
+                  {t.body}
+                </p>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+
+        <div className="shrink-0">
+          <Source>{TIMELINE_SOURCE}</Source>
+        </div>
       </div>
-
-      <Reveal show={entered} delay={1100} className="mt-8 border-t border-line pt-5">
-        <div className="flex items-baseline gap-3">
-          <h3 className="text-[15px] font-semibold text-text">
-            What Velocity AI Studio contributed at each point
-          </h3>
-          <Badge tone="warn">Stand-in</Badge>
-        </div>
-        <div className="mt-4 grid grid-cols-4 gap-8">
-          {TIMELINE.map((b) => (
-            <div
-              key={b.when}
-              className="border border-dashed border-line-2 px-4 py-3"
-            >
-              <p className="text-[13px] leading-none text-text-3">{b.when}</p>
-              <p className="mt-2 text-[14px] text-text-2">To fill in</p>
-            </div>
-          ))}
-        </div>
-        <div className="mt-3">
-          <Source>
-            Not recorded in docs/CONTEXT.md. Research on why platforming fails
-            to stick, the competitor scan and the dimension design go here, from
-            the Velocity session history.
-          </Source>
-        </div>
-      </Reveal>
     </Frame>
   );
 }
