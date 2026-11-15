@@ -1,12 +1,11 @@
 import fs from "fs";
 import path from "path";
+import { derivedDir } from "./dataPaths";
 import { deriveVoltaraData, VoltaraData, VoltaraFile } from "./voltaraData";
 import { SurveyFile } from "./survey";
 import { MatcherEval } from "./similarity";
 import { Grouping, ReviewPair, matcherGrouping, reviewQueue } from "./grouping";
 import { InterfaceFile, PlatformInterface } from "./interfaces";
-
-const DERIVED = path.join(process.cwd(), "..", "data", "derived");
 
 let cached: VoltaraData | null = null;
 let cachedSurvey: SurveyFile | null = null;
@@ -22,7 +21,7 @@ let cachedInterfaces: PlatformInterface[] | null = null;
  */
 export function loadVoltaraData(): VoltaraData {
   if (cached) return cached;
-  const file = path.join(DERIVED, "voltara_parts.json");
+  const file = path.join(derivedDir(), "voltara_parts.json");
   cached = deriveVoltaraData(JSON.parse(fs.readFileSync(file, "utf8")) as VoltaraFile);
   return cached;
 }
@@ -33,7 +32,7 @@ export function loadVoltaraData(): VoltaraData {
  */
 export function loadMatcherEval(): MatcherEval | null {
   if (cachedEval !== undefined) return cachedEval;
-  const file = path.join(DERIVED, "matcher_eval.json");
+  const file = path.join(derivedDir(), "matcher_eval.json");
   cachedEval = fs.existsSync(file)
     ? (JSON.parse(fs.readFileSync(file, "utf8")) as MatcherEval)
     : null;
@@ -63,7 +62,7 @@ export function loadReviewQueue(): ReviewPair[] {
  */
 export function loadInterfaces(): PlatformInterface[] {
   if (cachedInterfaces) return cachedInterfaces;
-  const file = path.join(DERIVED, "voltara_interfaces.json");
+  const file = path.join(derivedDir(), "voltara_interfaces.json");
   cachedInterfaces = fs.existsSync(file)
     ? (JSON.parse(fs.readFileSync(file, "utf8")) as InterfaceFile).interfaces
     : [];
@@ -73,7 +72,7 @@ export function loadInterfaces(): PlatformInterface[] {
 /** Sample survey responses for the alignment view and the system prompt. */
 export function loadSurvey(): SurveyFile {
   if (cachedSurvey) return cachedSurvey;
-  const file = path.join(DERIVED, "voltara_survey.json");
+  const file = path.join(derivedDir(), "voltara_survey.json");
   cachedSurvey = JSON.parse(fs.readFileSync(file, "utf8")) as SurveyFile;
   return cachedSurvey;
 }

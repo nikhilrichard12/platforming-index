@@ -8,18 +8,29 @@
  * so the toolbar badge can say so before anyone opens anything.
  */
 
-const API = "http://localhost:3000";
+/* The PlatInform server. The one line to change to point this extension
+   somewhere else; scripts/package-extension.sh rewrites it when it builds a
+   zip for a deployed server. */
+const PI_SERVER = "http://localhost:3000";
 
-/* Only these hosts are read. Page text goes to PlatInform and
-   nowhere else. Keep in step with host_permissions in manifest.json. */
+/* Servers whose own pages this extension may read, as plain prefixes.
+   package-extension.sh adds the deployed server to this line. */
+const PI_SERVERS = ["http://localhost:3000"];
+
+/* The other hosts it reads. Page text goes to PlatInform and nowhere else.
+   Keep this and PI_SERVERS in step with host_permissions in manifest.json. */
 const ALLOWED = [
-  /^http:\/\/localhost:3000\//,
   /^https:\/\/[^/]+\.atlassian\.net\//,
   /^https:\/\/airtable\.com\//,
   /^https:\/\/kearney-perlab\.growthsignals\.com\//,
 ];
 
-const allowed = (url) => !!url && ALLOWED.some((p) => p.test(url));
+const API = PI_SERVER;
+
+const allowed = (url) =>
+  !!url &&
+  (PI_SERVERS.some((s) => url.startsWith(s + "/")) ||
+    ALLOWED.some((p) => p.test(url)));
 
 async function postJson(path, body) {
   const res = await fetch(API + path, {

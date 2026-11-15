@@ -1,0 +1,49 @@
+{
+  "note": "Where PlatInform gets its data. Sample company, sample data. A source marked Not connected has no connector in this build.",
+  "sources": [
+    {
+      "id": "plm",
+      "name": "Voltara PLM export",
+      "type": "PLM / NPD system",
+      "status": "connected",
+      "feeds": "voltara_boms.csv",
+      "rows": 262,
+      "lastSyncedAt": "2026-11-14T18:49:01.526Z"
+    },
+    {
+      "id": "erp_spend",
+      "name": "ERP purchase history",
+      "type": "ERP",
+      "status": "connected",
+      "feeds": "voltara_spend_cube.csv",
+      "rows": 1109,
+      "lastSyncedAt": "2026-11-14T02:20:00.000Z"
+    },
+    {
+      "id": "product_master",
+      "name": "Product master",
+      "type": "ERP",
+      "status": "connected",
+      "feeds": "voltara_product_master.csv",
+      "rows": 6,
+      "lastSyncedAt": "2026-11-14T02:20:00.000Z"
+    },
+    {
+      "id": "airtable",
+      "name": "Airtable parts base",
+      "type": "NPD workspace",
+      "status": "not_connected",
+      "feeds": null,
+      "rows": null,
+      "lastSyncedAt": null,
+      "wouldNeed": [
+        "Part number",
+        "Description",
+        "Product",
+        "Supplier",
+        "Unit price"
+      ],
+      "note": "Demo build: connector not active."
+    }
+  ]
+}

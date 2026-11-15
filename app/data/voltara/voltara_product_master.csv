@@ -1,0 +1,7 @@
+product_id,product_name,family,launch_year,annual_units,list_price_usd,material_cost_per_unit_usd,gross_margin_pct,lead_time_weeks,sustaining_engineering_hours_per_year,bom_lines,distinct_part_numbers
+VRK-1000,RackLine 1 kVA Rack UPS,Rack UPS,2019,18000,860,482.45,32,3,1800,41,41
+VRK-3000,RackLine 3 kVA Rack UPS,Rack UPS,2020,9500,1340,724.98,34,4,2100,43,43
+VMX-20,ModuLine 20 kW Modular UPS,Modular UPS,2021,1200,4320,2590.52,28,10,3400,45,45
+VSI-5,SunLine 5 kW Solar Inverter,Solar Inverter,2022,14000,930,538.8,30,3,1600,44,44
+VSI-10,SunLine 10 kW Solar Inverter,Solar Inverter,2023,6000,1750,999.07,31,4,1900,46,46
+VBS-50,StorLine 50 kWh Battery Cabinet,Battery Storage,2024,450,24450,16138.05,22,14,2900,43,43

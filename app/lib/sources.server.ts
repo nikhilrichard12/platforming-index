@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { derivedDir, voltaraDir } from "./dataPaths";
 import { ActivitySource } from "./rules";
 
 export interface DataSource {
@@ -19,18 +20,24 @@ interface SourcesFile {
   sources: DataSource[];
 }
 
-const DERIVED = path.join(process.cwd(), "..", "data", "derived");
-const VOLTARA = path.join(process.cwd(), "..", "data", "voltara");
-const FILE = path.join(DERIVED, "sources.json");
+const file = () => path.join(derivedDir(), "sources.json");
+
+/**
+ * The source list once the disk has refused a write, the same arrangement the
+ * decisions store uses. A deployed build syncs in memory; a laptop writes the
+ * file as before.
+ */
+let memory: SourcesFile | null = null;
 
 export function loadSources(): SourcesFile {
-  return JSON.parse(fs.readFileSync(FILE, "utf8")) as SourcesFile;
+  if (memory) return memory;
+  return JSON.parse(fs.readFileSync(file(), "utf8")) as SourcesFile;
 }
 
 /** Data rows in a CSV, not counting the header. */
-function countRows(file: string): number | null {
+function countRows(name: string): number | null {
   try {
-    const text = fs.readFileSync(path.join(VOLTARA, file), "utf8");
+    const text = fs.readFileSync(path.join(voltaraDir(), name), "utf8");
     return text.split("\n").filter((line) => line.trim().length > 0).length - 1;
   } catch {
     return null;
@@ -43,18 +50,27 @@ function countRows(file: string): number | null {
  * this machine. A source with no connector is left alone.
  */
 export function syncSources(ids?: string[]): DataSource[] {
-  const file = loadSources();
+  const current = loadSources();
   const at = new Date().toISOString();
 
-  file.sources = file.sources.map((s) => {
+  current.sources = current.sources.map((s) => {
     if (s.status !== "connected" || !s.feeds) return s;
     if (ids && !ids.includes(s.id)) return s;
     const rows = countRows(s.feeds);
     return { ...s, rows: rows ?? s.rows, lastSyncedAt: at };
   });
 
-  fs.writeFileSync(FILE, JSON.stringify(file, null, 2) + "\n", "utf8");
-  return file.sources;
+  if (memory) {
+    memory = current;
+  } else {
+    try {
+      fs.writeFileSync(file(), JSON.stringify(current, null, 2) + "\n", "utf8");
+    } catch {
+      // Read-only deploy: keep the synced list in this process.
+      memory = current;
+    }
+  }
+  return current.sources;
 }
 
 /** Which caller a request came from, for the activity log. */

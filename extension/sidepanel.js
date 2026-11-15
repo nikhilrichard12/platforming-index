@@ -4,7 +4,10 @@
  * panel and the dashboard stay one codebase.
  */
 
-const API = "http://localhost:3000";
+/* The PlatInform server. scripts/package-extension.sh rewrites this line. */
+const PI_SERVER = "http://localhost:3000";
+
+const API = PI_SERVER;
 const PANEL_READY = "platforming-index:panel-ready";
 const PANEL_CONTEXT = "platforming-index:context";
 

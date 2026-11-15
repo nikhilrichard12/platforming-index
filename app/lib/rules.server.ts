@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { derivedDir } from "./dataPaths";
 import { AlignmentDecision, AlignmentQuestionId } from "./alignment";
 import {
   Activity,
@@ -34,11 +35,30 @@ interface Store {
   alignment: AlignmentDecision[];
 }
 
-const FILE = path.join(process.cwd(), "..", "data", "derived", "decisions.json");
+const file = () => path.join(derivedDir(), "decisions.json");
+
+/**
+ * The store once the disk has refused a write.
+ *
+ * A deployed build runs on a read-only filesystem, so the first write fails
+ * and everything after it lives in this process instead. The demo keeps
+ * working: decisions, rules, the activity log and the reset all behave the
+ * same, they just do not outlive the process. Null means the disk is still in
+ * charge, which is the case on a laptop.
+ */
+let memory: Store | null = null;
+
+const empty = (): Store => ({
+  decisions: [],
+  rules: [],
+  activity: [],
+  alignment: [],
+});
 
 function read(): Store {
+  if (memory) return memory;
   try {
-    const raw = JSON.parse(fs.readFileSync(FILE, "utf8")) as Partial<Store>;
+    const raw = JSON.parse(fs.readFileSync(file(), "utf8")) as Partial<Store>;
     return {
       decisions: raw.decisions ?? [],
       rules: raw.rules ?? [],
@@ -47,13 +67,23 @@ function read(): Store {
     };
   } catch {
     // No file yet, or it was reset. An empty store is the valid starting state.
-    return { decisions: [], rules: [], activity: [], alignment: [] };
+    return empty();
   }
 }
 
 function write(store: Store): void {
-  fs.mkdirSync(path.dirname(FILE), { recursive: true });
-  fs.writeFileSync(FILE, JSON.stringify(store, null, 2) + "\n", "utf8");
+  if (memory) {
+    memory = store;
+    return;
+  }
+  try {
+    fs.mkdirSync(path.dirname(file()), { recursive: true });
+    fs.writeFileSync(file(), JSON.stringify(store, null, 2) + "\n", "utf8");
+  } catch {
+    // Read-only deploy. Hold the store in this process rather than failing the
+    // request: the caller gets the same answer either way.
+    memory = store;
+  }
 }
 
 /** Newest first, capped so the file cannot grow without bound. */
@@ -163,7 +193,7 @@ export function record(input: RecordInput): RecordResult {
 }
 
 export function reset(): void {
-  write({ decisions: [], rules: [], activity: [], alignment: [] });
+  write(empty());
 }
 
 /* ---------- what leadership decided ---------- */
