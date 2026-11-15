@@ -31,6 +31,7 @@ import {
   isComplete,
 } from "@/lib/ballpark";
 import { saveProfile, loadProfile, saveBallpark, loadBallpark } from "@/lib/profile";
+import { shortRole } from "@/lib/roles";
 import PageHeader from "@/components/ui/PageHeader";
 import Tabs from "@/components/ui/Tabs";
 import Field from "@/components/ui/Field";
@@ -257,7 +258,7 @@ export default function IntakePage() {
             <QuestionRow question="Your role" error={errors.role}>
               <ChoiceGroup
                 size="sm"
-                options={opts(ROLES)}
+                options={ROLES.map((r) => ({ value: r, label: shortRole(r) }))}
                 selected={profile.role ? [profile.role] : []}
                 onSelect={(v) => updateProfile("role", v as Role)}
               />

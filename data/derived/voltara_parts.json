@@ -18,7 +18,7 @@
   "leadTimeWeeksMax": 14
  },
  "index": {
-  "score": 26,
+  "score": 28,
   "status": "measured",
   "dimensions": [
    {
@@ -35,8 +35,8 @@
    },
    {
     "name": "Incentives",
-    "score": 0,
-    "basis": "0 of 5 functions carry a target that rewards reuse",
+    "score": 10,
+    "basis": "0.5 of 5 functions carry a target that rewards reuse, counting a partial answer as half",
     "source": "survey"
    },
    {

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Badge from "@/components/ui/Badge";
 import CountUp from "@/components/ui/CountUp";
-import BallparkNote from "./BallparkNote";
+import ScoreNote from "./BallparkNote";
 import { ComputedIndex, scoreMethod } from "@/lib/index";
 import { VoltaraData } from "@/lib/voltaraData";
 
@@ -29,79 +29,67 @@ export default function IndexStrip({
 
   return (
     <div className="bg-panel">
-      <div className="flex flex-col gap-6 px-6 py-5 lg:flex-row lg:items-center lg:gap-10">
-        {/* Score */}
-        <div className="flex shrink-0 items-center gap-4">
-          <div className="flex items-baseline gap-2">
+      <div className="px-6 py-7">
+        {/* Score, centred, with everything it rests on under it */}
+        <div className="text-center">
+          <div className="flex items-baseline justify-center gap-2">
             <CountUp
               value={idx.score}
-              className="text-[56px] font-light leading-none text-text"
+              className="text-[64px] font-light leading-none text-text"
             />
-            <span className="text-[13px] text-text-3">of 100</span>
+            <span className="text-[15px] text-text-3">of 100</span>
           </div>
-          <div className="space-y-1">
+          <div className="mt-3 flex justify-center">
             <Badge tone="positive">Measured</Badge>
-            {basis && <p className="text-[12px] text-text-3">{basis}</p>}
-            <BallparkNote />
-            <p className="text-[12px] text-text-2">
-              Part numbers avoided:{" "}
-              <CountUp value={idx.avoided} className="tabular-nums text-text" />
-            </p>
           </div>
-        </div>
-
-        {/* Read and dimensions */}
-        <div className="min-w-0 flex-1">
-          <p className="text-[15px] text-text">Sharing parts, not yet a platform</p>
-          <p className="mt-1 text-[12px] text-text-3">
-            Every reuse retires a part number, and the score follows the
-            arithmetic. An exception never lowers it.
+          {basis && <p className="mt-2 text-[12px] text-text-3">{basis}</p>}
+          <ScoreNote avoided={idx.avoided} />
+          <p className="mt-3 text-[15px] text-text">
+            Sharing parts, not yet a platform
           </p>
-          <div className="mt-3 grid grid-cols-1 gap-x-8 gap-y-3 sm:grid-cols-2">
-            {idx.dimensions.map((d) => (
-              <div key={d.name} title={`${d.basis} (${d.source})`}>
-                <div className="flex items-baseline justify-between gap-3">
-                  <span className="text-[12px] leading-tight text-text-2">
-                    {d.name}
-                  </span>
-                  <CountUp
-                    value={d.score}
-                    className="shrink-0 text-[12px] tabular-nums text-text-3"
-                  />
-                </div>
-                <div className="mt-1 h-[3px] w-full bg-line">
-                  <div className="h-full bg-text-2" style={{ width: `${d.score}%` }} />
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
 
-        {/* Three steps */}
-        <div className="shrink-0 lg:w-[300px]">
-          <div className="grid grid-cols-3 gap-2">
-            {STEPS.map((s, i) => {
-              const current = i + 1 === idx.step;
-              return (
-                <div
-                  key={s}
-                  className={`border-t pt-2 ${current ? "border-text" : "border-line"}`}
+        {/* The four dimensions, two by two */}
+        <div className="mx-auto mt-6 grid max-w-[640px] grid-cols-1 gap-x-10 gap-y-4 sm:grid-cols-2">
+          {idx.dimensions.map((d) => (
+            <div key={d.name} title={`${d.basis} (${d.source})`}>
+              <div className="flex items-baseline justify-between gap-3">
+                <span className="text-[12px] leading-tight text-text-2">{d.name}</span>
+                <CountUp
+                  value={d.score}
+                  className="shrink-0 text-[12px] tabular-nums text-text-3"
+                />
+              </div>
+              <div className="mt-1 h-[3px] w-full bg-line">
+                <div className="h-full bg-text-2" style={{ width: `${d.score}%` }} />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* The three steps, one row */}
+        <div className="mx-auto mt-7 grid max-w-[640px] grid-cols-3 gap-4">
+          {STEPS.map((s, i) => {
+            const current = i + 1 === idx.step;
+            return (
+              <div
+                key={s}
+                className={`border-t pt-2 ${current ? "border-text" : "border-line"}`}
+              >
+                <p className={`text-[11px] ${current ? "text-text" : "text-text-3"}`}>
+                  Step {i + 1}
+                  {current ? " · now" : ""}
+                </p>
+                <p
+                  className={`mt-1 text-[12px] leading-snug ${
+                    current ? "text-text" : "text-text-2"
+                  }`}
                 >
-                  <p className={`text-[11px] ${current ? "text-text" : "text-text-3"}`}>
-                    Step {i + 1}
-                    {current ? " · now" : ""}
-                  </p>
-                  <p
-                    className={`mt-1 text-[12px] leading-snug ${
-                      current ? "text-text" : "text-text-2"
-                    }`}
-                  >
-                    {s}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
+                  {s}
+                </p>
+              </div>
+            );
+          })}
         </div>
       </div>
 

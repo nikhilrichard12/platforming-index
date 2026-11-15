@@ -9,7 +9,7 @@ import { ballpark, isComplete } from "@/lib/ballpark";
  * the measured score should sit next to what they guessed, so the gap between
  * eight answers and a parts list is visible rather than argued about.
  */
-export default function BallparkNote() {
+export default function ScoreNote({ avoided }: { avoided: number }) {
   const [said, setSaid] = useState<number | null>(null);
 
   useEffect(() => {
@@ -20,6 +20,10 @@ export default function BallparkNote() {
     setSaid(ballpark(answers, loadProfile()).score);
   }, []);
 
-  if (said === null) return null;
-  return <p className="text-[12px] text-text-3">Ballpark said {said}</p>;
+  return (
+    <p className="mt-1 text-[12px] text-text-3">
+      {said !== null && <>Ballpark said {said} · </>}
+      Part numbers avoided: {avoided}
+    </p>
+  );
 }

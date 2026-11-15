@@ -73,6 +73,14 @@ Shared components live in `app/components/ui/`.
 - **IndexStrip**: one slim full-width row above the two-column split. Score at 56px/300 with "of 100" and a Provisional badge, the one-line read and four inline dimension bars, then the three steps with the current one picked out by a white top rule. About 165px tall.
 - **StepStrip**: four or five columns of orange line icon, 20px/800 title, 15px text-2 body, with a thin text-2 arrow between columns. Icons are 56px with 2.6px strokes. Stacks to one column under `md`. Used for the survey overview and again on Connections for the three moments a part number can be born.
 - **Possible match card**: the lighter sibling of the confident card, shown when the best score lands between 0.35 and 0.6. No badge, no tiles, no primary button. A text-2 "Possible match" line, up to three candidates with their part number count and best price, and "Keep typing to narrow it down." in text-3. It suggests, it does not ask for a decision.
+- **Price spread panel** (`components/dashboard/PriceSpreadPanel.tsx`): one row
+  per part, the part name at the left, a hairline price track in the middle
+  with one dot per part number at the price actually paid, and the yearly gap
+  at the right. The cheapest dot is `positive` and sits above the stack; every
+  other dot is text-2. Dots appear at their real prices, hold a second, then
+  slide to the cheapest, row by row, while each gap figure and the total count
+  up. The end state leaves a faint `line-2` tick where each dot started, so a
+  still frame still carries the point. No accent anywhere in this panel.
 - **AnimationPanel**: the shell every animated panel shares. Title, optional 12px text-3 note, a control slot on the right, the stage, and a Replay pill. Same `panel` fill and square corners as every other block, so motion is the only thing that marks it out.
 - **CountUp**: a number that counts to its new value over 700ms when the value changes. Renders the figure outright on first paint, so the server HTML and a reader with reduced motion both show the real number. Used for the index score and the four dimension scores.
 - **Merge panel** (`252 become 60`, top of Parts): 252 7px squares, one per part number, blocked and tinted by product in six tints walked from text-3 to text-2. They travel to 60 clusters on a 12 by 5 grid, staggered 6ms by start position so the motion reads as a wave left to right. Cluster footprint is the number of part numbers merged. Core candidates land in accent, two-to-four in text-2, unique in text-3. About 5 seconds, once per tab open.
@@ -143,6 +151,15 @@ Shared components live in `app/components/ui/`.
   headline. Where both exist the dashboard shows "Ballpark said 33" beside
   the measured score, so the gap between guessing and measuring is on screen
   rather than in an argument.
+- The dashboard is two columns under the tab row: the page scrolls on the
+  left, the assistant holds the right at 420px from the tab row to the bottom
+  of the window, and nothing else sits in that column. The page itself does
+  not scroll; the left column does.
+- The assistant carries a four point mark (`components/ui/Sparkle.tsx`) beside
+  its name and beside every reply. Suggested questions are outline chips above
+  the input, not links in the thread.
+- A role name never shows a slash. `shortRole()` in `lib/roles.ts` is what a
+  reader sees ("CFO view", "Answering for CFO"); the long strings stay as ids.
 - The index score leads the dashboard. It sits above the fold at 1440x900, with the KPI tiles and the top of the chart.
 - `/mock-procurement` is deliberately outside this design system. It is a stand-in for the customer's own software, so it has its own root layout and its own light stylesheet, and nothing in `components/ui/` may leak into it.
 - Evidence tags read as words on screen (Survey, Kearney survey 2026, Product master). Only purchase order tags stay in their raw form, because that is what the buyer searches for.

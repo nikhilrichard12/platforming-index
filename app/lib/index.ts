@@ -109,7 +109,10 @@ export function computeIndex(
     {
       name: "Incentives",
       score: incentives,
-      basis: `${incentiveCredit} of ${targetAnswers.length} functions carry a target that rewards reuse`,
+      basis:
+        incentiveCredit % 1 === 0
+          ? `${incentiveCredit} of ${targetAnswers.length} functions carry a target that rewards reuse`
+          : `${incentiveCredit} of ${targetAnswers.length} functions carry a target that rewards reuse, counting a partial answer as half`,
       source: "survey",
     },
     {

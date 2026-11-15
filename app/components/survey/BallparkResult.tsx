@@ -6,7 +6,7 @@ import Badge from "@/components/ui/Badge";
 import Field from "@/components/ui/Field";
 import Tile from "@/components/ui/Tile";
 import { Button, PrimaryButton } from "@/components/ui/Button";
-import { getRoleConfig } from "@/lib/roles";
+import { getRoleConfig, shortRole } from "@/lib/roles";
 import { UserProfile } from "@/lib/types";
 import { rate, usd } from "@/lib/voltaraData";
 import {
@@ -189,7 +189,7 @@ export default function BallparkResult({
 
       {/* Why it matters to this reader */}
       <p className="text-[15px] leading-relaxed text-text-2">
-        <span className="text-text">{role}.</span> {why}
+        <span className="text-text">{shortRole(role)}.</span> {why}
       </p>
 
       {/* How we got this */}

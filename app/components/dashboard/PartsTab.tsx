@@ -73,9 +73,12 @@ export default function PartsTab({
 
   return (
     <div className="space-y-5">
-      <p className="text-[15px] text-text-2">
-        {s.partNumbers} part numbers, {s.realParts} real parts
-      </p>
+      <div>
+        <p className="text-[15px] text-text-2">Inventory</p>
+        <p className="mt-1 text-[13px] text-text-3">
+          {s.partNumbers} part numbers describe {s.realParts} real parts.
+        </p>
+      </div>
 
       <PartMergeAnimation data={data} onOpenPart={openPart} />
 
