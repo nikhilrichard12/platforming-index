@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { FAN_EXAMPLE, RESEARCH_CITATION, RESEARCH_FIGURES } from "@/lib/pitch";
 import { Part, PRODUCT_MASTER } from "@/lib/voltaraData";
 import type { ScreenProps } from "../PitchDeck";
-import { CountTo, Frame, Reveal, Source, Typed } from "../parts";
+import { CountTo, FanGlyph, Frame, Reveal, Source, Typed } from "../parts";
 
 /**
  * Screen 1. Four beats on black.
@@ -171,7 +171,6 @@ function findFan(parts: Part[]): Part | null {
  * thing that is the same colour in all six.
  */
 function ProductIcon({ spin }: { spin: boolean }) {
-  const blades = [0, 72, 144, 216, 288];
   return (
     <svg width="150" height="92" viewBox="0 0 150 92" aria-hidden="true">
       <rect
@@ -185,24 +184,7 @@ function ProductIcon({ spin }: { spin: boolean }) {
       {[26, 46, 66].map((y) => (
         <line key={y} x1="16" y1={y} x2="66" y2={y} stroke="#2F3234" />
       ))}
-      <circle cx="108" cy="46" r="23" fill="none" stroke="#2F3234" />
-      <g
-        className={spin ? "pitch-fan-blades" : undefined}
-        style={{ transformOrigin: "108px 46px" }}
-      >
-        {blades.map((a) => (
-          <path
-            key={a}
-            d="M108 46 C 112 38 117 33 123 32"
-            fill="none"
-            stroke="#EC5E31"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            transform={`rotate(${a} 108 46)`}
-          />
-        ))}
-      </g>
-      <circle cx="108" cy="46" r="2.6" fill="#EC5E31" />
+      <FanGlyph cx={108} cy={46} r={23} spin={spin} />
     </svg>
   );
 }

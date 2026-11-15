@@ -1,4 +1,9 @@
-import { loadSurvey, loadVoltaraData } from "@/lib/voltaraData.server";
+import {
+  loadInterfaces,
+  loadMatcherEval,
+  loadSurvey,
+  loadVoltaraData,
+} from "@/lib/voltaraData.server";
 import { loadSources } from "@/lib/sources.server";
 import { computeIndex } from "@/lib/index";
 import {
@@ -72,6 +77,8 @@ export default function PitchPage() {
         bomLines: rows("plm"),
         purchaseOrders: rows("erp_spend"),
         products: rows("product_master"),
+        interfaces: loadInterfaces(),
+        matcherEval: loadMatcherEval(),
       }}
     />
   );

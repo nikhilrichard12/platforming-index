@@ -95,6 +95,143 @@ export const FAN_EXAMPLE = {
   source: "data/derived/voltara_parts.json, part C005",
 } as const;
 
+/* ---------- screen 2: what the word means ---------- */
+
+/**
+ * The two definitions screen 2 puts one above the other. The first is struck
+ * through on the second beat; it is the thing people hear when they hear the
+ * word, not a claim this deck makes. The picture under them is drawn from one
+ * real interface, so "an interface" is shown rather than asserted.
+ */
+export const PLATFORMING = {
+  word: "Platforming",
+  heard: "making every product use the same parts.",
+  real: "never losing an interface the company already built.",
+  caption: "Same parts is step one. We built it, tested it, and kept going.",
+  /** The interface the picture is read from, by id. */
+  interfaceId: "IF-COOL-120",
+  /** The one part on the left of the picture, by name. */
+  partName: "Axial Fan 120mm 24VDC",
+  partLabel: "A part",
+  interfaceLabel: "An interface",
+  source: "data/derived/voltara_interfaces.json, IF-COOL-120",
+} as const;
+
+/* ---------- screen 3: where the engineer already works ---------- */
+
+/** A clip the deck plays, by the file it is waiting for. */
+export const CLIPS = {
+  plugin: {
+    src: "/pitch/clips/plugin.mp4",
+    label: "Plugin on Velocity AI Studio, 30 seconds",
+  },
+  dashboard: {
+    src: "/pitch/clips/dashboard.mp4",
+    label: "Survey to dashboard, 45 seconds",
+  },
+} as const;
+
+export interface PluginScene {
+  /** Which function is writing, and the page they are writing on. */
+  who: string;
+  tool: string;
+  crumb: string;
+  heading: string;
+  /** The product the page is about, by its id in the product master. */
+  product: string;
+  /**
+   * The lines the plugin reads off the page. Each one is put through
+   * lib/interfaces.ts at render time against the real interfaces file; no
+   * interface id is written down here, because the point of the screen is
+   * that the matching is done rather than asserted.
+   */
+  needs: string[];
+}
+
+/**
+ * The three pages on screen 3. The tools are the three the panel fixtures
+ * use (extension/fixtures/scenes), the products are real product ids, and
+ * the need lines are written the way the person on that page would write
+ * them. The pages themselves are drawn, not captured, and every frame says
+ * so on it.
+ */
+export const PLUGIN_SCENES: PluginScene[] = [
+  {
+    who: "Engineering",
+    tool: "Partsmith PLM",
+    crumb: "Programs / RackLine / VRK-3000",
+    heading: "Power stage brief",
+    product: "VRK-3000",
+    needs: ["Half bridge IGBT module, 24 VDC gate drive"],
+  },
+  {
+    who: "Sales",
+    tool: "Voltara CRM",
+    crumb: "Accounts / Northwind Utilities / Opportunity 4821",
+    heading: "Outdoor variant request",
+    product: "VBS-50",
+    needs: ["IP65 outdoor enclosure, 10 mm EPDM gasket", "Nylon cable gland, M20"],
+  },
+  {
+    who: "Procurement",
+    tool: "OrderDesk",
+    crumb: "Purchasing / Supplier notes / SN-2211",
+    heading: "Supplier change note",
+    product: "VMX-20",
+    needs: ["Axial fan, 120 mm 24 VDC", "Wire fan guard, 120 mm"],
+  },
+];
+
+export const PLUGIN = {
+  title: "Where the engineer already works.",
+  gallery: "The same panel, three functions",
+  /** On every drawn frame, so a judge never takes one for a screenshot. */
+  tag: "Illustration of the intended experience",
+  close: "It reads the page. It answers from what the company already built.",
+} as const;
+
+/* ---------- screen 4: what happens after the matcher ---------- */
+
+/**
+ * The step after matching descriptions. It is not built, and the screen says
+ * so in those words. The citation is the one the inventory diagram already
+ * carries in components/dashboard/MatchingPanel.tsx.
+ */
+export const MATCH_NEXT = {
+  line: "Next: datasheets and drawings.",
+  citation:
+    "Anthropic, Testing Claude on real-world electronics design, Nov 9 2026",
+  planned:
+    "Planned, not built. Nothing in this prototype reads a datasheet or a drawing yet.",
+} as const;
+
+/* ---------- screen 5: the three steps, and who is in the room ---------- */
+
+/**
+ * The accelerator row. The two grey tiles stand for accelerators PERLab
+ * already sells; they are not named, drawn or branded, and the count is our
+ * framing rather than a figure from docs/CONTEXT.md, which the screen says.
+ */
+export const ACCELERATORS = {
+  title: "A fourth accelerator.",
+  existing: "Existing accelerator",
+  ours: "Platforming Index",
+  assumption:
+    "Our framing. docs/CONTEXT.md does not list PERLab's accelerators, and none are named or drawn here.",
+} as const;
+
+export const THREE_STEPS = [
+  {
+    name: "Ballpark",
+    line: "8 questions, 2 minutes.",
+    note: "Questions shaped with a mentor who runs these conversations with clients.",
+    noteSource:
+      "PERLab mentor, November 13, docs/CONTEXT.md lines 15 to 21. Eight questions is lib/ballpark.ts; two minutes is our estimate.",
+  },
+  { name: "Measured", line: "Upload the parts list.", note: null, noteSource: null },
+  { name: "Sustained", line: "The plugin.", note: null, noteSource: null },
+] as const;
+
 /* ---------- the business model, every number named ---------- */
 
 export interface Band {
@@ -327,6 +464,88 @@ export const SCREENS: ScreenMeta[] = [
   },
   {
     n: 2,
+    id: "what",
+    title: "What platforming is",
+    steps: 4,
+    targetSeconds: 25,
+    rubric: ["Final pitch"],
+    script: [
+      "Platforming is not making every product use the same parts.",
+      "That is parts reuse. It is step one, and most companies stop there.",
+      "Platforming is never losing an interface you already built.",
+      "A fan is a part.",
+      "A fan with its guard, its bolt pattern, its harness and its test fixture is an interface.",
+      "Voltara has carried that one on six products since 2019.",
+      "We built it, we tested it, and we kept going.",
+    ],
+  },
+  {
+    n: 3,
+    id: "plugin",
+    title: "The plugin",
+    steps: 3,
+    targetSeconds: 60,
+    rubric: ["Deliverable", "Technical feasibility"],
+    script: [
+      "This is where the work actually happens.",
+      "An engineer writing a brief. A sales rep writing a variant request. A buyer writing a supplier change.",
+      "None of them open our dashboard.",
+      "So the plugin goes to them. It sits in the browser, on the page they are already on.",
+      "It reads the page and pulls out what the product needs.",
+      "Then it answers in the company's own interfaces.",
+      "Engineering asks for a half bridge IGBT module on the 3 kVA rack. The panel lights the half bridge power block.",
+      "Sales asks for an outdoor battery cabinet. The outdoor envelope and the field wiring entry, both already built.",
+      "Procurement changes the supplier on the 120 millimetre fan. That fan is the cooling interface on six products.",
+      "Same panel, three functions.",
+      "Those three are illustrations. The plugin itself is real, and you just watched it.",
+    ],
+  },
+  {
+    n: 4,
+    id: "knows",
+    title: "How it knows",
+    steps: 4,
+    targetSeconds: 70,
+    rubric: ["Technical feasibility"],
+    script: [
+      "No company has a list of its own interfaces. We have to find them, and we start in the parts list.",
+      "Two rows. Two part numbers. The same fan.",
+      "We read each description into three terms. What kind of thing it is, its ratings, and the words left over.",
+      "Type is half the score, because a fan is never a fan guard.",
+      "That gives one number, and the number lands in one of three zones.",
+      "Same part. Different part. Or not enough to tell, which goes to a person.",
+      "A 120 millimetre fan against an 80 millimetre fan sits low, because one rating disagrees and that caps the whole score.",
+      "The line that says only SEE DWG scores low too. Nobody could tell from that text, and neither can we.",
+      "We graded it blind against a hand labelled key the matcher never reads.",
+      "99.8 percent of the merges it made were right. One was wrong, and we name it: a dual input board merged with a triple input board.",
+      "It found 82 percent of the duplicates on its own. The rest went to a person.",
+      "Next is datasheets and drawings. That step is planned, not built.",
+    ],
+  },
+  {
+    n: 5,
+    id: "care",
+    title: "How you get them to care",
+    steps: 6,
+    targetSeconds: 60,
+    rubric: ["Commercial potential", "Deliverable"],
+    script: [
+      "Kearney sells accelerators. This is a fourth one.",
+      "It runs in three steps.",
+      "Ballpark: eight questions, two minutes, no data at all.",
+      "Those questions were shaped with a mentor who runs these conversations with clients.",
+      "Measured: upload the parts list and the purchase history.",
+      "Sustained: the plugin, running where parts actually get chosen.",
+      "Here is the survey turning into the dashboard.",
+      "And here is why leadership cares.",
+      "Each function sits on a ring. The further out, the more questions they answer differently from everyone else.",
+      "Leadership makes two decisions. Name one owner. Set one complexity target.",
+      "Everyone pulls in and the score moves.",
+      "No part changed. Nobody redesigned anything. They agreed.",
+    ],
+  },
+  {
+    n: 6,
     id: "hook",
     title: "Hook",
     steps: 2,
@@ -338,75 +557,6 @@ export const SCREENS: ScreenMeta[] = [
       "Watch what happens when you ask which of those are actually the same part.",
       "Sixty. The other 192 are duplicates under a different name and number.",
       "Voltara is made up. The pattern is not.",
-    ],
-  },
-  {
-    n: 3,
-    id: "answer",
-    title: "The answer",
-    steps: 3,
-    targetSeconds: 35,
-    rubric: ["Commercial potential"],
-    script: [
-      "The Platforming Index is a fourth accelerator.",
-      "It runs in three steps, and each one has a different user.",
-      "Ballpark. Eight questions, two minutes, no data. It gets leadership in the room.",
-      "Measured. We read the parts list and the purchase history and show where the money sits.",
-      "Sustained. A check lives where engineers pick parts, so the gain does not leak back.",
-      "Leadership, then the Kearney team with the client, then the client's engineers.",
-    ],
-  },
-  {
-    n: 4,
-    id: "demo",
-    title: "Live demo",
-    steps: 1,
-    targetSeconds: 150,
-    rubric: ["Deliverable"],
-    script: [
-      "Three things, quickly.",
-      "First the ballpark. Eight questions about your company, no data.",
-      "Here is the score, the range, and the arithmetic with your own numbers in it.",
-      "Now the measured dashboard. Same four dimensions, computed from 252 part numbers and 1,109 purchase orders.",
-      "This is the price spread. One capacitor, three suppliers, three prices.",
-      "Ask the assistant anything. Every answer carries the purchase order it came from.",
-      "Last, the panel. This is a product page in the customer's own system, not ours.",
-      "The engineer types what they need. The panel finds the part already in stock and the price already paid.",
-      "They press Reuse. A part number never gets created, and the score moves.",
-      "Back to the deck.",
-    ],
-  },
-  {
-    n: 5,
-    id: "how",
-    title: "How it works",
-    steps: 3,
-    targetSeconds: 40,
-    rubric: ["Technical feasibility"],
-    script: [
-      "Four boxes.",
-      "The parts list and the purchase history go in. The matcher groups the same part under different numbers.",
-      "The index scores it. The check sits at the point of choice.",
-      "Nobody sets the score. Every dimension is a ratio of two numbers in the data.",
-      "Twenty three of sixty parts are used by five or more products. Two of five functions name the same owner.",
-      "Half a function out of five carries a target. Sixty real parts across 252 part numbers.",
-      "Average the four. Twenty eight.",
-      "And we are clear about what is real. The code is real. The company is sample data.",
-    ],
-  },
-  {
-    n: 6,
-    id: "orbit",
-    title: "Same score, five units",
-    steps: 3,
-    targetSeconds: 30,
-    rubric: ["Deliverable"],
-    script: [
-      "The same score, said five ways.",
-      "Each function sits on a ring. The further out, the more questions they answer differently from everyone else.",
-      "Now leadership makes two decisions. Name one owner. Set one complexity target.",
-      "Everyone pulls in, and the score goes from 28 to 66.",
-      "No part changed. Nobody redesigned anything. They agreed.",
     ],
   },
   {

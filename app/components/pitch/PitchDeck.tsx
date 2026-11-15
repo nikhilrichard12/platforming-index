@@ -11,6 +11,8 @@ import { flushSync } from "react-dom";
 import Badge from "@/components/ui/Badge";
 import { ComputedIndex } from "@/lib/index";
 import { RingResult } from "@/lib/alignment";
+import { PlatformInterface } from "@/lib/interfaces";
+import { MatcherEval } from "@/lib/similarity";
 import { VoltaraData } from "@/lib/voltaraData";
 import {
   POSITIONS,
@@ -21,12 +23,12 @@ import {
   positionOf,
 } from "@/lib/pitch";
 
-import ScreenHook from "./screens/ScreenHook";
 import ScreenProblem from "./screens/ScreenProblem";
-import ScreenAnswer from "./screens/ScreenAnswer";
-import ScreenDemo from "./screens/ScreenDemo";
-import ScreenHow from "./screens/ScreenHow";
-import ScreenOrbit from "./screens/ScreenOrbit";
+import ScreenWhat from "./screens/ScreenWhat";
+import ScreenPlugin from "./screens/ScreenPlugin";
+import ScreenKnows from "./screens/ScreenKnows";
+import ScreenCare from "./screens/ScreenCare";
+import ScreenHook from "./screens/ScreenHook";
 import ScreenModel from "./screens/ScreenModel";
 import ScreenProcess from "./screens/ScreenProcess";
 import ScreenClose from "./screens/ScreenClose";
@@ -45,6 +47,10 @@ export interface PitchBundle {
   bomLines: number | null;
   purchaseOrders: number | null;
   products: number | null;
+  /** The interfaces the company already has, for screens 2 and 3. */
+  interfaces: PlatformInterface[];
+  /** How the matcher scored when graded blind, for screen 4. */
+  matcherEval: MatcherEval | null;
 }
 
 export interface ScreenProps {
@@ -66,18 +72,18 @@ export interface ScreenProps {
 }
 
 /**
- * The nine screens, in the order they are presented. The deck is being
- * rebuilt one screen at a time: screen 1 is the new opener, and the eight
- * behind it are the screens that were already built, carried in their old
- * order until each is rewritten in turn.
+ * The nine screens, in the order they are presented. One to five are the
+ * rebuilt deck: the problem, what the word means, the plugin, how the
+ * matching works, and how a client is brought to care. Six to nine are the
+ * screens that were already built, carried until each is rewritten in turn.
  */
 const COMPONENTS = [
   ScreenProblem,
+  ScreenWhat,
+  ScreenPlugin,
+  ScreenKnows,
+  ScreenCare,
   ScreenHook,
-  ScreenAnswer,
-  ScreenDemo,
-  ScreenHow,
-  ScreenOrbit,
   ScreenModel,
   ScreenProcess,
   ScreenClose,
