@@ -9,39 +9,75 @@ import useReducedMotion from "@/components/ui/useReducedMotion";
  * or a sentence of its own: a screen passes in what it reads from the data.
  */
 
+/**
+ * The deck's own ground: a dark field that runs to deep purple across the
+ * right third, with two soft magenta circles low on that side. It is painted
+ * once per screen behind the content rather than on the page, so a printed
+ * sheet carries it too.
+ */
+export function Backdrop() {
+  return (
+    <div
+      aria-hidden
+      className="absolute inset-0"
+      style={{
+        background: [
+          "radial-gradient(760px 760px at 82% 104%, rgba(173,58,214,0.34) 0%, rgba(173,58,214,0) 62%)",
+          "radial-gradient(520px 520px at 101% 72%, rgba(124,34,221,0.30) 0%, rgba(124,34,221,0) 60%)",
+          "linear-gradient(96deg, #16171A 0%, #16171A 50%, #26124C 78%, #4B1B96 100%)",
+        ].join(", "),
+      }}
+    />
+  );
+}
+
 /** The 1280x720 stage, with the app's 48px page gutter. */
 export function Frame({
-  kicker,
   title,
   children,
   footer,
-  dark = false,
 }: {
-  kicker?: ReactNode;
+  /** The one title the screen is allowed. */
   title?: ReactNode;
   children?: ReactNode;
   footer?: ReactNode;
-  /** The hook screen sits on black rather than surface. */
-  dark?: boolean;
 }) {
   return (
-    <div
-      className={`flex h-full w-full flex-col px-12 py-11 ${
-        dark ? "bg-chrome" : "bg-surface"
-      }`}
-    >
-      {kicker ? (
-        <p className="text-[15px] font-light leading-none text-text-3">{kicker}</p>
-      ) : null}
-      {title ? (
-        <h1 className="mt-3 max-w-[1100px] text-[42px] font-light leading-[1.12] text-text">
-          {title}
-        </h1>
-      ) : null}
-      {children ? <div className="mt-9 min-h-0 flex-1">{children}</div> : null}
-      {footer ? <div className="mt-7 shrink-0">{footer}</div> : null}
+    <div className="relative h-full w-full overflow-hidden">
+      <Backdrop />
+      <div className="relative flex h-full w-full flex-col px-12 py-11">
+        {title ? (
+          <h1 className="max-w-[1120px] text-[40px] font-light leading-[1.14] text-text">
+            {title}
+          </h1>
+        ) : null}
+        {children ? (
+          <div className={`${title ? "mt-8" : ""} min-h-0 flex-1`}>{children}</div>
+        ) : null}
+        {footer ? <div className="mt-7 shrink-0">{footer}</div> : null}
+      </div>
     </div>
   );
+}
+
+/**
+ * An equation, set in a serif maths face with italic variables, which is how
+ * a formula is written everywhere except in a web app. Pass the terms; the
+ * component spaces and styles them.
+ */
+export function Equation({
+  children,
+  className = "",
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return <span className={`pitch-math ${className}`}>{children}</span>;
+}
+
+/** A variable inside an Equation. */
+export function Var({ children }: { children: ReactNode }) {
+  return <span className="pitch-var">{children}</span>;
 }
 
 /**

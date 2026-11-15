@@ -27,15 +27,22 @@ export default function Clip({
   label,
   play,
   loop = false,
+  still,
   className = "",
 }: {
   /** A file under public/pitch/clips, given as its URL path. */
   src: string;
-  /** What the clip shows, printed on the placeholder when the file is absent. */
+  /** What the clip shows, printed under the still that stands in for it. */
   label: string;
   /** True on the beat this clip belongs to, false once the screen is left. */
   play: boolean;
   loop?: boolean;
+  /**
+   * What to show when the recording does not exist yet: a still of the real
+   * screen, never an empty frame. A deck with a missing file should look
+   * like a deck with a picture in it.
+   */
+  still?: string;
   className?: string;
 }) {
   const ref = useRef<HTMLVideoElement>(null);
@@ -70,18 +77,20 @@ export default function Clip({
   }, [play, missing]);
 
   if (missing) {
-    return (
+    return still ? (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={still}
+        alt={label}
+        className={`block h-full w-full object-contain ${className}`}
+      />
+    ) : (
       <div
-        className={`flex h-full w-full flex-col justify-end border border-line-2 bg-panel p-5 ${className}`}
+        className={`flex h-full w-full items-end bg-panel p-5 ${className}`}
         role="img"
-        aria-label={`Clip not recorded yet: ${label}`}
+        aria-label={label}
       >
-        <p className="text-[15px] font-light leading-snug text-text-2">
-          {label}
-        </p>
-        <p className="mt-2 text-[12px] leading-snug text-text-3">
-          Clip not recorded yet. Drop the file at {src}.
-        </p>
+        <p className="text-[15px] font-light leading-snug text-text-2">{label}</p>
       </div>
     );
   }

@@ -50,7 +50,7 @@ export default function ScreenWhat({ bundle, step, printing }: ScreenProps) {
   const picture = step >= 2;
 
   return (
-    <Frame dark>
+    <Frame>
       <div className="flex h-full flex-col">
         <p className="shrink-0 text-[30px] font-light leading-snug text-text-2">
           <span className="relative inline-block">

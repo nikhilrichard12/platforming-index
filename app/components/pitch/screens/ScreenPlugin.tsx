@@ -6,23 +6,21 @@ import Clip from "../Clip";
 import { Frame, Reveal } from "../parts";
 
 /**
- * Screen 3. The product, running where the work happens.
+ * Screen 4. The product, running where the work happens.
  *
- * The recording plays for the whole screen and the three lines land one per
- * advance, so the presenter can talk over it without the deck moving under
- * them.
+ * The recording plays for the whole screen and the three sentences land one
+ * per advance. The frame is given the video's own shape rather than a shape
+ * of its own: the clip is 1126 by 1080, near enough square, so a box cut to
+ * 16:9 would either crop a third of the panel away or sit it between two
+ * black bars. A clip wider than 7:5 would take the full width instead, with
+ * the sentences underneath.
  *
- * The frame is given the video's own shape rather than a shape of its own:
- * the clip is 1126 by 1080, near enough square, so a box cut to 16:9 would
- * either crop a third of the panel away or sit it between two black bars.
- * A clip wider than about 7:5 is treated as landscape instead, and takes the
- * full width with the three lines under it.
+ * The title sits in the right-hand column rather than in the frame's own
+ * slot, which is what lets the recording have the full height of the stage.
  */
 
-/** The stage inside the frame's own padding. */
 const STAGE_W = 1280 - 96;
 const STAGE_H = 720 - 88;
-/** Above this, a clip is wide enough to be worth the full width. */
 const LANDSCAPE = 1.4;
 
 export default function ScreenPlugin({ step, active, printing }: ScreenProps) {
@@ -30,7 +28,6 @@ export default function ScreenPlugin({ step, active, printing }: ScreenProps) {
   const ratio = clip.width / clip.height;
   const landscape = ratio >= LANDSCAPE;
 
-  /* Beside the lines, the clip takes the height; above them, the width. */
   const box = landscape
     ? { width: STAGE_W, height: Math.round(STAGE_W / ratio) }
     : { width: Math.round(STAGE_H * ratio), height: STAGE_H };
@@ -48,20 +45,22 @@ export default function ScreenPlugin({ step, active, printing }: ScreenProps) {
 
   const words = (
     <>
-      <h1 className="text-[42px] font-light leading-[1.12] text-text">
+      <h1 className="text-[40px] font-light leading-[1.14] text-text">
         {PLUGIN.title}
       </h1>
-      <ul className={landscape ? "mt-6 flex gap-10" : "mt-12 space-y-8"}>
+      <ul className={landscape ? "mt-6 flex gap-8" : "mt-10 space-y-7"}>
         {PLUGIN.lines.map((line, i) => (
-          <Reveal key={line} show={step >= i + 1} className={landscape ? "flex-1" : ""}>
-            <li className="flex items-baseline gap-5">
+          <Reveal
+            key={line}
+            show={step >= i + 1}
+            className={landscape ? "flex-1" : ""}
+          >
+            <li className="flex items-baseline gap-4">
               <span
                 aria-hidden
-                className="block h-[2px] w-[34px] shrink-0 bg-accent"
+                className="block h-[2px] w-[28px] shrink-0 bg-accent"
               />
-              <span className="text-[26px] font-light leading-snug text-text">
-                {line}
-              </span>
+              <span className="text-[19px] leading-snug text-text">{line}</span>
             </li>
           </Reveal>
         ))}

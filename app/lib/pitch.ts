@@ -1,71 +1,67 @@
 /**
  * The pitch deck, as data.
  *
- * Everything a screen says that is not read from the parts list, the survey,
- * the proven-design records or lib/index.ts lives here, with where it came
- * from written next to it. Two kinds of thing are kept apart on purpose:
+ * Everything a screen says that is not read from the parts list, the proven
+ * design records or lib/index.ts lives here, with where it came from written
+ * next to it. Nothing in this file is a computed figure about Voltara: those
+ * are all read from data/derived/*.json through lib/voltaraData.server.ts,
+ * lib/similarity.ts and lib/index.ts at render time.
  *
- *   SOURCED   a line or a figure that exists in docs/CONTEXT.md or the data,
- *             carried with its source so it can be checked.
- *   ASSUMED   a number we chose. Every one of these prints where it came
- *             from on screen beside it.
- *
- * Nothing in this file is a figure about Voltara. Those are all computed from
- * data/derived/*.json through lib/voltaraData.server.ts, lib/similarity.ts
- * and lib/index.ts.
+ * The product is PlatInform. The score it produces is the Platforming Index.
  */
 
-/* ---------- screen 1: the problem ---------- */
-
-/**
- * The opener. The headline and the sentence under it are the deck's own
- * words; everything after them is the published survey, quoted with the line
- * of docs/CONTEXT.md it was read from.
- */
-export const PROBLEM = {
-  headline: "Platforming pays. Companies still don't do it.",
-  sub: "Sharing parts and designs across a product line cuts cost, parts, and time to market.",
-  citation:
-    "Kearney PERLab, The current state of platforming and the hidden gap, November 2026. Survey of 100 manufacturing leaders.",
-  citationCheck: "docs/CONTEXT.md line 5",
-  close:
-    "Everyone wants the result. Nobody owns the work, and nobody can see it in their own numbers.",
+export const PRODUCT = "PlatInform";
+export const SCORE_NAME = "Platforming Index";
+export const TEAM = {
+  name: "Team Ladebuggers",
+  members: ["Nikhil Richard", "Rittrija Mandal"],
 } as const;
 
-/** The two survey figures, with the text they were read from. */
-export const RESEARCH_FIGURES = [
-  {
-    value: 43,
-    unit: "percent",
-    read: "name engineering effort as the top challenge",
-    source: "Kearney PERLab survey of 100 leaders, November 2026",
-    check: "docs/CONTEXT.md line 9",
-  },
-  {
-    value: 52,
-    unit: "percent",
-    read: "of companies platforming at scale set no complexity target",
-    source: "Kearney PERLab survey of 100 leaders, November 2026",
-    check: "docs/CONTEXT.md line 9",
-  },
-] as const;
+/* ---------- 1. title ---------- */
 
-/* ---------- screen 2: what the word means ---------- */
+export const TITLE = {
+  event: "Kearney PERLab x UIUC AI Entrepreneurship Hackathon",
+} as const;
+
+/* ---------- 2. the problem ---------- */
 
 /**
- * The two definitions, and the picture under them.
- *
- * The block is read from the two power-stage records in
- * data/derived/voltara_interfaces.json: between them they carry six parts,
- * they were both proved in the same year, and the first of them is on all
- * six products. The screen draws those six parts twice, loose on the left
- * and held together on the right, which is the whole argument.
+ * The survey behind the opener. The two percentages are the ones
+ * docs/CONTEXT.md line 9 records; the industry bars are the figures written
+ * into the deck brief, carried here with the survey they belong to so the
+ * screen can print the source under the chart.
  */
+export const PROBLEM = {
+  title: "Platforming has two problems, and they feed each other.",
+  effortHead: "It takes real engineering effort.",
+  effortBody:
+    "Every product decision has to account for what the company already designed and bought, across every team.",
+  effortFigure: 43,
+  effortRead: "name engineering effort as the top challenge",
+  effortSource:
+    "Kearney PERLab survey of 100 leaders, November 2026. docs/CONTEXT.md line 9.",
+  adoptionHead: "Most companies are not doing it.",
+  chartTitle: "Companies running a platforming strategy at scale, by industry",
+  chartSource: "Kearney Platforming Survey, 2026.",
+  bars: [
+    { name: "Aerospace and defense", value: 80, accent: false },
+    { name: "Consumer electronics", value: 75, accent: false },
+    { name: "Auto and transport", value: 71, accent: false },
+    { name: "Construction", value: 57, accent: false },
+    { name: "Industrial equipment", value: 44, accent: false },
+    { name: "Medical", value: 43, accent: false },
+    { name: "Telecom", value: 38, accent: false },
+    { name: "Energy and power", value: 20, accent: true },
+  ],
+  close:
+    "52 percent of companies that platform at scale set no complexity target, so nobody owns the result.",
+} as const;
+
+/* ---------- 3. what platforming is ---------- */
+
 export const PLATFORMING = {
-  word: "Platforming",
   heard: "Platforming means making every product use the same parts.",
   real: "Platforming means never losing a design the company already proved.",
-  /** The records the block is read from, in the order their parts are drawn. */
   blockIds: ["IF-PWR-HB", "IF-PWR-DCLINK"],
   blockName: "Power stage",
   oneProduct: "One product",
@@ -75,212 +71,177 @@ export const PLATFORMING = {
     "Sample data. data/derived/voltara_interfaces.json, the two power stage records.",
 } as const;
 
-/* ---------- screen 3: where the engineer already works ---------- */
+/* ---------- clips, and what stands in when one is missing ---------- */
 
-/**
- * A clip the deck plays. The recorded ones carry the size they were filmed
- * at, so a screen can give the frame the video's own shape rather than a
- * shape of its own that would crop or letterbox it.
- */
-export const CLIPS = {
+export interface ClipSpec {
+  src: string;
+  label: string;
+  /** Filmed size, so a frame can take the clip's own shape. */
+  width: number;
+  height: number;
+  /** A still to show instead when the recording does not exist yet. */
+  still?: string;
+}
+
+export const CLIPS: Record<string, ClipSpec> = {
   plugin: {
     src: "/pitch/clips/plugin.mp4",
-    label: "Plugin on Velocity AI Studio",
-    /** ffprobe of public/pitch/clips/plugin.mp4: 1126x1080, 21.8s, no audio. */
+    label: "PlatInform running on Velocity AI Studio",
     width: 1126,
     height: 1080,
   },
-  dashboard: {
-    src: "/pitch/clips/dashboard.mp4",
-    label: "Survey to dashboard",
-    /** Not recorded yet; the frame falls back to 16:9 until it is. */
+  survey: {
+    src: "/pitch/clips/survey.mp4",
+    label: "The eight questions",
     width: 16,
-    height: 9,
+    height: 10,
+    still: "/pitch/stills/survey.png",
   },
-} as const;
+  ballpark: {
+    src: "/pitch/clips/ballpark.mp4",
+    label: "A rough index and a rough cost, from eight answers",
+    width: 16,
+    height: 10,
+    still: "/pitch/stills/ballpark.png",
+  },
+  summary: {
+    src: "/pitch/clips/summary.mp4",
+    label: "The measured index, read from the company's own parts list",
+    width: 16,
+    height: 10,
+    still: "/pitch/stills/summary.png",
+  },
+};
+
+/* ---------- 4. the plugin ---------- */
 
 export const PLUGIN = {
-  title: "Where the engineer already works",
+  title: `${PRODUCT} sits where product decisions get made.`,
   lines: [
-    "Reads what they are building.",
-    "Lights up what the company already proved.",
-    "One click to design to it.",
+    "It works inside the web tools teams already use for product development, shown here on Velocity AI Studio.",
+    "It answers from the company's own purchasing and design data.",
+    "It points to proven designs to build on, and to single parts as well.",
   ],
 } as const;
 
-/* ---------- screen 4: how two part numbers become one part ---------- */
+/* ---------- 5. how similarity is calculated ---------- */
 
 /**
- * The matcher, in words. Every figure the screen puts beside these lines is
- * computed: the weights and the two thresholds come from lib/similarity.ts,
- * the four scores from running similarity() on real descriptions, and the
- * graded figures from data/derived/matcher_eval.json.
+ * The matcher, in words. Every figure beside these lines is computed: the
+ * weights and the two thresholds from lib/similarity.ts, the four scores by
+ * running similarity() on real descriptions, the blind result from
+ * data/derived/matcher_eval.json, and the two-product comparison from the
+ * parts list and the proven design records.
  */
-export const MATCHING = {
-  title: "How we know two part numbers are one part.",
+export const SIMILAR = {
+  title: "How we know part A can replace part B.",
+  asked: "The question a judge, BK, asked us on Saturday.",
   /** The two rows the screen opens on, by part number. */
   rowA: "10-92550",
   rowB: "SL5-2214B",
-  sameLine: "Same fan. Two products. Two part numbers.",
-  terms:
-    "The method is Fellegi-Sunter record linkage, 1969: compare field by field, weight the fields, two thresholds, and a human review band between them. The same method behind census matching and product matching across web shops. We applied it to part descriptions.",
-  /** Where the method comes from. The weights themselves are ours. */
-  methodSource:
-    "Fellegi and Sunter, A Theory for Record Linkage, 1969. Multi-component Similarity Method, ACM SAC 2015.",
-  rules: "A different type scores 0. One rating that disagrees caps it at 0.30.",
-  rulesCheck: "lib/similarity.ts",
-  blindTitle: "Tested blind",
-  mistake: "a two-input board versus a three-input board",
-  nextTitle: "What comes next",
-  next: "Text cannot match those. Reading drawings and datasheets can.",
-  citation:
-    "Anthropic, Testing Claude on real-world electronics design, November 2026: models now rebuild parts from engineering drawings.",
-  planned: "Planned, not built.",
+  method:
+    "Fellegi-Sunter record linkage (1969): weighted fields, two thresholds, human review between them.",
+  ringRead: "of matches correct in a blind test on 252 part numbers",
+  /** The second beat: two products from different families. */
+  pairTitle: "When two products share no parts",
+  pairA: "VRK-3000",
+  pairB: "VSI-10",
+  pairInterface: "IF-PWR-HB",
+  pairLine:
+    "Part matching finds identical parts. Design matching finds what different products have in common.",
+  nextTitle: "Next",
+  next: "Reading datasheets and drawings for parts that text cannot describe.",
+  nextCitation:
+    "Anthropic, Testing Claude on real-world electronics design, November 2026.",
+  nextLabel: "Planned",
 } as const;
 
-/* ---------- screen 5: how a client is brought to care ---------- */
+/* ---------- 6. step back ---------- */
 
-export const CARE = {
-  title: "A fourth accelerator, and a door opener.",
-  /** The sample company, in one sentence. The figures in it are computed. */
-  sampleLead: "Voltara is a sample company we built:",
-  sampleTail: "real purchase orders.",
-} as const;
-
-export const THREE_STEPS = [
-  {
-    name: "Ballpark",
-    line: "8 questions. 2 minutes.",
-    who: "The CEO sees a rough score and a rough cost.",
-    note: "Questions shaped with Andrew Cecola, who runs these conversations with clients.",
-  },
-  {
-    name: "Measured",
-    line: "Upload the parts list.",
-    who: "The real score, in each leader's unit.",
-    note: null,
-  },
-  {
-    name: "Sustained",
-    line: "The plugin.",
-    who: "Every time an engineer picks a part.",
-    note: null,
-  },
-] as const;
-
-/* ---------- screen 6: how it gets smarter ---------- */
-
-/**
- * What the product accumulates. Each line is a thing the prototype already
- * records: a reuse, a decline with its reason, and a product planned onto a
- * block. The rules engine that reads them back is lib/rules.ts.
- */
-export const SMARTER = {
-  title: "Every decision becomes a rule.",
+export const STEP_BACK = {
   lines: [
-    "Engineer reuses a part: one part number avoided.",
-    "Engineer declines for compliance: a rule, so nobody asks again.",
-    "Engineer designs to a block: the next product starts there.",
+    "All of this runs on a company's own data.",
+    "Today no team has a reason to platform, so no company hands that data over.",
+    `${PRODUCT} gives every function a reason, in three steps.`,
   ],
-  benchmark: "The benchmark is new thinking avoided.",
-  close: "The more engineers use it, the more the company remembers.",
-  source: "Decisions are recorded by the check and read back by lib/rules.ts.",
 } as const;
 
-/* ---------- screen 7: what Velocity AI Studio changed ---------- */
+/* ---------- 7, 8, 9. the three steps ---------- */
 
-export interface VelocityColumn {
-  title: string;
-  /** The lines of the column, in order. */
-  lines: string[];
-  /** A line that is struck through on arrival, with its badge beside it. */
-  struck?: string;
-  badge?: string;
-  /** A second, smaller line under the first block. */
-  small?: string;
-  /** A picture under the column, cropped into public/pitch/velocity. */
-  image?: { src: string; alt: string; from: string };
-  /** The middle column is the one the screen is about. */
-  accent?: boolean;
+export const STEP_ONE = {
+  title: "Step one: a two-minute ballpark for the CEO.",
+  body: `Eight plain questions produce a rough ${SCORE_NAME} and a rough cost. For Kearney this is a business development opening: any manufacturer can take it, and each result starts a conversation.`,
+  note: "Questions shaped with Andrew Cecola of Kearney PERLab.",
+} as const;
+
+export const STEP_TWO = {
+  title: "Step two: upload the bill of materials.",
+  body: "The company's own parts list and purchase history produce a measured index, and each leader sees the cost in their own unit.",
+  note: "Sample company: Voltara, a fictional energy and power manufacturer, the sector at 20 percent.",
+} as const;
+
+export const STEP_THREE = {
+  title: "Step three: the plugin puts it in every product decision.",
+  body: "The first version works on purchasing data, the low-hanging fruit. Each time someone uses the plugin, their decision goes back into the company's data, so the answers get better for the next team.",
+} as const;
+
+/* ---------- 10. the loop ---------- */
+
+export const LOOP = {
+  nodes: [
+    "Foot in the door",
+    "A reason for every function",
+    "The plugin at each decision",
+    "Decisions feed the data",
+  ],
+  center: `${PRODUCT} grows with use.`,
+} as const;
+
+/* ---------- 11. Velocity AI Studio ---------- */
+
+export interface VelocityItem {
+  line: string;
+  image: string;
+  alt: string;
+  /** The file in docs/velocity this picture was taken from. */
+  from: string;
 }
 
 /**
- * Screen 7, word for word.
- *
- * Every line here was written by the team about work recorded in
- * docs/velocity: the 21-source library, the folder-grounded research answer,
- * the evidence synthesis with its NOT IN SOURCES list, and the concept the
- * Voltara persona was developed in. The pictures are crops of the screenshots
- * in docs/velocity/screens, named below by the file they came from, so a
- * judge can go and look at the original.
+ * Three things the research tool did, each with the screenshot it can be
+ * checked against. The pictures are copies of the shots in
+ * docs/velocity/new, named below by the file they came from. None of them
+ * shows the old hand-set score: the index is computed now.
  */
 export const VELOCITY = {
-  title: "How Velocity AI Studio shaped this",
-  header:
-    "21 sources in one team library. Every figure cited, anything unsupported marked NOT IN SOURCES.",
-  columns: [
+  title: `How Velocity AI Studio shaped ${PRODUCT}.`,
+  items: [
     {
-      title: "Validated the problem",
-      lines: [
-        "Kearney PERLab surveyed 100 manufacturers. About half say they platform at scale. Only a minority of those describe a true common core with modules.",
-      ],
-      small:
-        "Wärtsilä engines: unique components from nearly 7,000 to under 4,000. Supplier-published case.",
-      image: {
-        src: "/pitch/velocity/validated.png",
-        alt: "The folder-grounded research answer, with its evidence table",
-        from: "docs/velocity/screens/12-research-energy-answer.png",
-      },
+      line: "It validated the problem: 21 sources and 29 research chats, every figure cited.",
+      image: "/pitch/velocity/sources.png",
+      alt: "The 21-source Platforming Index library in the team workspace",
+      from: "docs/velocity/new/n01-sources-21.png",
     },
     {
-      title: "Changed our decisions",
-      accent: true,
-      struck: "We planned to claim: companies with duplicate parts fail to platform.",
-      badge: "NOT IN SOURCES",
-      lines: [
-        "Velocity found no data measuring both at the same companies. We dropped the claim.",
-        "Velocity flagged weighting and validation risk in our scoring. The score is now computed from data and tested blind.",
-      ],
-      image: {
-        src: "/pitch/velocity/not-in-sources.png",
-        alt: "The NOT IN SOURCES passage of the evidence synthesis",
-        from: "docs/velocity/screens/09-canvas-evidence-synthesis-not-in-sources.png",
-      },
+      line: "It changed our claim: we planned to say companies with duplicate parts fail to platform. Velocity found no data for that, so we dropped it.",
+      image: "/pitch/velocity/answer.png",
+      alt: "The folder-grounded research answer and its evidence tables",
+      from: "docs/velocity/new/n08-energy-answer.png",
     },
     {
-      title: "Built into the product",
-      lines: [
-        "The plugin runs on Velocity. An engineer writes in a research chat and the panel answers.",
-        "The Voltara persona was developed in a Velocity concept, with every invented value labeled fictional.",
-      ],
-      image: {
-        src: "/pitch/velocity/plugin-on-velocity.png",
-        alt: "The panel answering beside the Velocity research chat",
-        from: "A still from public/pitch/clips/plugin.mp4",
-      },
+      line: "It is where the plugin runs: our browser extension was built on Velocity AI Studio.",
+      image: "/pitch/velocity/plugin-on-velocity.png",
+      alt: "The panel answering beside a Velocity research chat",
+      from: "A still from public/pitch/clips/plugin.mp4",
     },
-  ] as VelocityColumn[],
-  close:
-    "Andrew Cecola: start with the ballpark. Alex Gallard: a proven design is platforming, a part is standardization. BK: prove two parts are the same.",
+  ] as VelocityItem[],
 } as const;
 
-/* ---------- screen 8: why Kearney ---------- */
-
-export const KEARNEY = {
-  title: "Why Kearney.",
-  lead: "The ballpark is business development. Every manufacturer can take it in two minutes, and every result is a reason to talk to Kearney.",
-  stages: [
-    { name: "Ballpark", what: "Free." },
-    { name: "Measured", what: "A diagnostic engagement." },
-    { name: "Sustained", what: "A license." },
-  ],
-} as const;
-
-/* ---------- screen 9: the close ---------- */
+/* ---------- 12. close ---------- */
 
 export const CLOSE = {
-  ask: "Ballpark today. Measured in two weeks. Sustained every time an engineer picks a part.",
-  team: ["Nikhil Richard", "Rittrija Mandal"],
+  title: `What ${PRODUCT} becomes.`,
+  next: "Next: more of a company's designs, read from drawings and datasheets, in every tool its teams use.",
 } as const;
 
 /* ---------- the deck itself ---------- */
@@ -301,172 +262,177 @@ export interface ScreenMeta {
   /** How many advances this screen holds, including the first state. */
   steps: number;
   targetSeconds: number;
-  /** The rubric lines this screen is answering. A screen may serve two. */
   rubric: Rubric[];
-  /** The spoken script, one short sentence per line. */
+  /** The spoken script, in full sentences. */
   script: string[];
 }
 
 export const SCREENS: ScreenMeta[] = [
   {
     n: 1,
-    id: "problem",
-    title: "The problem",
-    steps: 4,
-    targetSeconds: 40,
-    rubric: ["Commercial potential", "Final pitch"],
+    id: "title",
+    title: "Title",
+    steps: 1,
+    targetSeconds: 10,
+    rubric: ["Final pitch"],
     script: [
-      "Platforming pays. Everyone in manufacturing knows it.",
-      "Share parts and designs across a product line and you cut cost, parts, and time to market.",
-      "Kearney PERLab asked a hundred manufacturing leaders this month.",
-      "Forty three percent name engineering effort as the top challenge.",
-      "Fifty two percent of the companies already platforming at scale set no complexity target.",
-      "So the result is wanted and the work is not owned.",
-      "And no leader can see it in the numbers they are measured on.",
-      "That is the gap.",
+      "We are the Ladebuggers, and our product is called PlatInform.",
+      "It was built for the Kearney PERLab track on rapid platforming.",
     ],
   },
   {
     n: 2,
-    id: "what",
-    title: "What platforming is",
+    id: "problem",
+    title: "The problem",
     steps: 3,
-    targetSeconds: 25,
-    rubric: ["Final pitch"],
+    targetSeconds: 40,
+    rubric: ["Commercial potential", "Final pitch"],
     script: [
-      "Platforming is not making every product use the same parts.",
-      "That is parts reuse, and most companies stop there.",
-      "Platforming is never losing a design the company already proved.",
-      "Voltara proved its power stage in 2019.",
-      "Six products later, the brackets, the harness, the firmware and the tests all came with it.",
-      "You start from there, not from a blank page.",
+      "Platforming has two problems, and each one makes the other worse.",
+      "The first is that it takes real engineering effort: every decision has to account for what the company already designed and bought, across every team.",
+      "In Kearney PERLab's survey of a hundred manufacturing leaders, 43 percent named engineering effort as the top challenge.",
+      "The second problem is that most companies are not doing it, and the gap between industries is wide.",
+      "Aerospace and defence runs platforming at scale in 80 percent of companies. Energy and power is at 20.",
+      "And 52 percent of the companies that do platform at scale set no complexity target at all, so nobody owns the result.",
     ],
   },
   {
     n: 3,
-    id: "plugin",
-    title: "The plugin",
-    steps: 4,
-    targetSeconds: 60,
-    rubric: ["Deliverable", "Technical feasibility"],
+    id: "what",
+    title: "What platforming is",
+    steps: 3,
+    targetSeconds: 20,
+    rubric: ["Final pitch"],
     script: [
-      "This is the product, running where the work actually happens.",
-      "An engineer writes a brief in their own tool. They never open our dashboard.",
-      "So the plugin goes to them, on the page they are already on.",
-      "It reads what they are building.",
-      "It lights up what the company already proved, with the products already on it and the year it was proved.",
-      "And it is one click to design to it.",
-      "No new part number. No second harness. No second test plan.",
-      "That is the whole product, in thirty seconds.",
+      "Platforming is not making every product use the same parts. That is parts reuse, and most companies stop there.",
+      "Platforming is never losing a design the company already proved.",
+      "Voltara proved its power stage in 2019, and six products later the brackets, the harness, the firmware and the tests all came with it.",
     ],
   },
   {
     n: 4,
-    id: "knows",
-    title: "How it knows",
-    steps: 5,
-    targetSeconds: 70,
-    rubric: ["Technical feasibility"],
+    id: "plugin",
+    title: "The plugin",
+    steps: 4,
+    targetSeconds: 50,
+    rubric: ["Deliverable", "Technical feasibility"],
     script: [
-      "Two rows out of Voltara's parts list.",
-      "Axial Fan 120mm 24VDC on one product. Lowercase and reordered on another.",
-      "Same fan, two products, two part numbers. A person sees it. A spreadsheet does not.",
-      "So we score it. Half the weight on type: is it the same kind of thing.",
-      "A third on ratings: do the numbers agree. The rest on the wording.",
-      "A different type scores zero, because a fan is never a fan guard.",
-      "One rating that disagrees caps the whole score at nought point three.",
-      "Above nought point eight five we merge. Below nought point six they are different parts.",
-      "In between, a person looks.",
-      "This is not something we invented. It is Fellegi-Sunter record linkage, from 1969, the method behind census matching.",
-      "The three-term version is the Multi-component Similarity Method, ACM SAC 2015. We applied it to part descriptions.",
-      "We tested it blind on all 252 part numbers against a hand labelled key the matcher never reads.",
-      "99.8 percent of the merges were correct.",
-      "One mistake, and we will name it: a two input board merged with a three input board.",
-      "Nine lines in the sample say only SEE DWG. Text cannot match those. Reading the drawing can.",
-      "That part is planned, not built.",
+      "PlatInform sits where product decisions actually get made.",
+      "It works inside the web tools teams already use for product development. What you are watching runs on Velocity AI Studio.",
+      "It reads what the engineer is writing, and it answers from the company's own purchasing and design data.",
+      "It points to proven designs to build on, and to single parts as well, so nobody has to go looking for either.",
     ],
   },
   {
     n: 5,
-    id: "care",
-    title: "How you get them to care",
-    steps: 6,
-    targetSeconds: 60,
-    rubric: ["Commercial potential", "Deliverable"],
+    id: "similar",
+    title: "How similarity is calculated",
+    steps: 3,
+    targetSeconds: 55,
+    rubric: ["Technical feasibility"],
     script: [
-      "Voltara is a sample company we built: six power products, 252 part numbers, real purchase orders.",
-      "The product runs in three steps.",
-      "Ballpark. Eight questions, two minutes. The CEO sees a rough score and a rough cost.",
-      "Those questions were shaped with Andrew Cecola, who runs these conversations with clients.",
-      "Measured. Upload the parts list, and the real score comes back in each leader's own unit.",
-      "Sustained. The plugin, every time an engineer picks a part.",
-      "Here is the survey becoming the dashboard.",
-      "And here is why leadership cares.",
-      "Each function sits on a ring. The further out, the more questions they answer differently from everyone else.",
-      "Two decisions. Name one owner. Set one complexity target.",
-      "Everyone pulls in and the score moves. No part changed. They agreed.",
+      "A judge, BK, asked us on Saturday how we know that one part can replace another.",
+      "These two rows are the same fan on two products, written two different ways.",
+      "We score each pair on three weighted fields: what kind of thing it is, whether its ratings agree, and how much of the rest of the wording matches.",
+      "The method is Fellegi-Sunter record linkage, from 1969: weighted fields, two thresholds, and a human review band between them.",
+      "A different kind of thing scores zero, and one rating that disagrees caps the score at nought point three.",
+      "Graded blind against a hand-labelled key, 99.8 percent of the merges were correct, with one mistake in 602.",
+      "Then there is the harder question: two products that share no part numbers at all.",
+      "Part matching finds identical parts. Design matching finds what different products have in common.",
+      "Next is reading datasheets and drawings for the parts that text cannot describe. That is planned, not built.",
     ],
   },
   {
     n: 6,
-    id: "smarter",
-    title: "How it gets smarter",
-    steps: 2,
-    targetSeconds: 30,
+    id: "stepback",
+    title: "Step back",
+    steps: 3,
+    targetSeconds: 15,
     rubric: ["Commercial potential"],
     script: [
-      "And it gets better the more it is used.",
-      "Every decision becomes a rule.",
-      "An engineer reuses a part: one part number avoided.",
-      "An engineer declines on compliance: that becomes a rule, so nobody asks again.",
-      "An engineer designs to a proven block: the next product starts there.",
-      "The benchmark is new thinking avoided.",
-      "The more engineers use it, the more the company remembers.",
+      "All of this runs on a company's own data.",
+      "Today no team has a reason to platform, so no company hands that data over.",
+      "PlatInform gives every function a reason, and it does that in three steps.",
     ],
   },
   {
     n: 7,
-    id: "velocity",
-    title: "How Velocity AI Studio shaped this",
-    steps: 4,
+    id: "step-one",
+    title: "Step one, the foot in the door",
+    steps: 3,
     targetSeconds: 30,
-    rubric: ["Research and use of Velocity AI"],
+    rubric: ["Commercial potential"],
     script: [
-      "Our research ran in Velocity AI Studio, on a 21 source team library.",
-      "Every figure cited. Anything the sources do not support, marked NOT IN SOURCES.",
-      "It validated the problem. About half say they platform at scale, and only a minority of those describe a true common core.",
-      "It changed a decision. We planned to claim that companies with duplicate parts fail to platform.",
-      "Velocity found no data measuring both at the same companies, so we dropped the claim.",
-      "It flagged weighting and validation risk in our scoring, so the score is computed from data and tested blind.",
-      "And it is in the product. The plugin runs on Velocity.",
-      "The mentors did the rest.",
+      "Step one is a two-minute ballpark aimed at the CEO.",
+      "Eight plain questions produce a rough Platforming Index and a rough cost.",
+      "For Kearney this is a business development opening: any manufacturer can take it, and every result starts a conversation.",
+      "The questions were shaped with Andrew Cecola of Kearney PERLab.",
     ],
   },
   {
     n: 8,
-    id: "kearney",
-    title: "Why Kearney",
-    steps: 3,
-    targetSeconds: 25,
-    rubric: ["Commercial potential"],
+    id: "step-two",
+    title: "Step two, the measured index",
+    steps: 2,
+    targetSeconds: 30,
+    rubric: ["Deliverable"],
     script: [
-      "The ballpark is business development.",
-      "Every manufacturer can take it in two minutes, and every result is a reason to talk to Kearney.",
-      "Ballpark is free. Measured is a diagnostic engagement. Sustained is a licence.",
-      "And the client's side is real.",
-      "1.13 million dollars a year, on 39.33 million of spend, in a six product sample.",
+      "Step two is uploading the bill of materials.",
+      "The company's own parts list and purchase history produce a measured index.",
+      "Each leader sees the same score in the unit they are measured on: dollars, engineering hours, suppliers, weeks of lead time.",
+      "The sample company is Voltara, a fictional energy and power manufacturer, which is the sector sitting at 20 percent.",
     ],
   },
   {
     n: 9,
+    id: "step-three",
+    title: "Step three, every function joins",
+    steps: 2,
+    targetSeconds: 25,
+    rubric: ["Deliverable", "Technical feasibility"],
+    script: [
+      "Step three is the plugin, which puts the index inside every product decision.",
+      "The first version works on purchasing data, because that is the low-hanging fruit.",
+      "Each time someone uses the plugin, their decision goes back into the company's data, so the answers get better for the next team.",
+    ],
+  },
+  {
+    n: 10,
+    id: "loop",
+    title: "The loop",
+    steps: 2,
+    targetSeconds: 20,
+    rubric: ["Commercial potential"],
+    script: [
+      "Put the three steps together and they close a loop.",
+      "The ballpark is the foot in the door. The measured index gives every function a reason to care.",
+      "The plugin sits at each decision, and those decisions feed the data the next answer is read from.",
+      "PlatInform grows with use.",
+    ],
+  },
+  {
+    n: 11,
+    id: "velocity",
+    title: "Velocity AI Studio",
+    steps: 3,
+    targetSeconds: 25,
+    rubric: ["Research and use of Velocity AI"],
+    script: [
+      "Velocity AI Studio validated the problem: 21 sources in one team library, 29 research chats, and every figure cited.",
+      "It changed our claim. We planned to say that companies with duplicate parts fail to platform, and Velocity found no data measuring both at the same companies, so we dropped it.",
+      "And it is where the plugin runs: our browser extension was built on Velocity AI Studio.",
+    ],
+  },
+  {
+    n: 12,
     id: "close",
-    title: "The core, and the ask",
+    title: "Close",
     steps: 2,
     targetSeconds: 15,
-    rubric: ["Physical product"],
+    rubric: ["Final pitch"],
     script: [
-      "Twenty three parts already fit five or more products. That is the platform Voltara already owns.",
-      "Ballpark today. Measured in two weeks. Sustained every time an engineer picks a part.",
+      "In a six-product sample, PlatInform found 1.13 million dollars a year on 39.33 million dollars of spend.",
+      "Next is more of a company's designs, read from drawings and datasheets, in every tool its teams use.",
       "We are the Ladebuggers. Thank you.",
     ],
   },

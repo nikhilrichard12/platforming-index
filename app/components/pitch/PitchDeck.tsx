@@ -23,14 +23,17 @@ import {
   positionOf,
 } from "@/lib/pitch";
 
+import ScreenTitle from "./screens/ScreenTitle";
 import ScreenProblem from "./screens/ScreenProblem";
 import ScreenWhat from "./screens/ScreenWhat";
 import ScreenPlugin from "./screens/ScreenPlugin";
-import ScreenKnows from "./screens/ScreenKnows";
-import ScreenCare from "./screens/ScreenCare";
-import ScreenSmarter from "./screens/ScreenSmarter";
+import ScreenSimilar from "./screens/ScreenSimilar";
+import ScreenStepBack from "./screens/ScreenStepBack";
+import ScreenStepOne from "./screens/ScreenStepOne";
+import ScreenStepTwo from "./screens/ScreenStepTwo";
+import ScreenStepThree from "./screens/ScreenStepThree";
+import ScreenLoop from "./screens/ScreenLoop";
 import ScreenVelocity from "./screens/ScreenVelocity";
-import ScreenModel from "./screens/ScreenModel";
 import ScreenClose from "./screens/ScreenClose";
 
 /** Everything the server read, in the shape every screen reads it. */
@@ -72,21 +75,21 @@ export interface ScreenProps {
 }
 
 /**
- * The nine screens, in the order they are presented: the problem, what the
- * word means, the plugin, how the matching works, how a client is brought to
- * care, what the product accumulates, what Velocity changed, why Kearney, and
- * the core with the ask. The order here and in SCREENS is the same list
- * seen twice, so they move together.
+ * The twelve screens, in the order they are presented. The order here and
+ * the order in SCREENS are the same list seen twice, so they move together.
  */
 const COMPONENTS = [
+  ScreenTitle,
   ScreenProblem,
   ScreenWhat,
   ScreenPlugin,
-  ScreenKnows,
-  ScreenCare,
-  ScreenSmarter,
+  ScreenSimilar,
+  ScreenStepBack,
+  ScreenStepOne,
+  ScreenStepTwo,
+  ScreenStepThree,
+  ScreenLoop,
   ScreenVelocity,
-  ScreenModel,
   ScreenClose,
 ];
 
@@ -242,7 +245,7 @@ export default function PitchDeck({ bundle }: { bundle: PitchBundle }) {
   );
 
   return (
-    <div className="pitch-deck h-screen w-screen select-none overflow-hidden bg-surface">
+    <div className="pitch-deck h-screen w-screen select-none overflow-hidden bg-[#16171A]">
       <div
         className="pitch-viewport relative"
         style={{ height: `calc(100vh - ${CHROME_H}px)` }}
@@ -279,29 +282,18 @@ export default function PitchDeck({ bundle }: { bundle: PitchBundle }) {
         })}
       </div>
 
-      {/* Presenter furniture. None of it prints. */}
-      <div className="pitch-chrome relative h-[52px] bg-surface">
+      {/*
+        Presenter furniture, and none of it prints. The deck carries no
+        header or footer text: the only thing under the stage is the rule
+        that fills as the talk runs. The clock lives in the notes sheet,
+        which is where a presenter is already looking.
+      */}
+      <div className="pitch-chrome relative h-[52px] bg-[#16171A]">
         <div className="h-px w-full bg-line">
           <div
-            className="h-px bg-text-2 transition-[width] duration-200"
+            className="h-px bg-accent transition-[width] duration-200"
             style={{ width: `${progress * 100}%` }}
           />
-        </div>
-        <div className="flex h-[51px] items-center justify-between px-12">
-          <span className="text-[13px] tabular-nums text-text-3">
-            {here.screen + 1} of {SCREENS.length}
-            <span className="ml-3">{meta.title}</span>
-          </span>
-          <span className="flex items-center gap-5 text-[13px] text-text-3">
-            <span className="hidden md:inline">
-              Arrow keys move. N for notes. F for fullscreen.
-            </span>
-            <span
-              className={`tabular-nums ${warn ? "text-warn" : "text-text-2"}`}
-            >
-              {clock(left)}
-            </span>
-          </span>
         </div>
       </div>
 
@@ -316,6 +308,13 @@ export default function PitchDeck({ bundle }: { bundle: PitchBundle }) {
             ))}
             <span className="text-[12px] text-text-3">
               {meta.targetSeconds} seconds
+            </span>
+            <span
+              className={`text-[13px] tabular-nums ${
+                warn ? "text-warn" : "text-text-2"
+              }`}
+            >
+              {clock(left)} left
             </span>
             <button
               type="button"
