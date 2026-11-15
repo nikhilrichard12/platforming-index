@@ -125,12 +125,42 @@ Shared components live in `app/components/ui/`.
   per part number as an editable field, and every constant with its source.
   One accent action, "Get the measured index"; the tab header steps back to an
   outline button on this screen so orange still appears once.
-- **Side panel** (`/panel`, 400px): the extension's page, with its own small
-  header instead of the TopBar. Top to bottom: who is looking, the headline,
-  the part numbers converging, one card per need with Reuse and Can't reuse,
-  the rules that apply, the product drawn from this page, the score, the last
-  decisions, and the assistant docked at the foot. Every block is the
-  dashboard's component at panel width, never a second implementation.
+- **Side panel** (`/panel`, 400 to 600px): the extension's page, one panel
+  height with no scrolling. Top to bottom: a two line header (the product, then
+  the part being looked for) with the Sample data badge and a three item part
+  switcher; the 3D product view at about 55% of the height; one match card at a
+  time with prev and next arrows, Reuse and Can't reuse (the decline reason
+  picker replaces the buttons in place); the assistant with three suggested
+  questions as chips, a one line input and a "See more in dashboard" link. An
+  answer opens as a short overlay above the assistant and closes with "Close".
+  The score, the decisions list and the part-number merge animation live on the
+  dashboard only.
+- **Product stage** (`components/panel/ProductStage.tsx`, models in
+  `lib/models/`): the 3D view shows the part being looked at, alone, and nothing
+  else. Procedural Three.js, toon shading, thin edge lines, an accent rim light,
+  background `panel`. Twelve parts in voltara_parts.json have a component in the
+  SunLine 5 kW inverter model (`TWINS`) and show that component. Every other
+  part shows a plain shape chosen from its name and category (`parts.ts`), so
+  something always appears. The caption says which: "Illustrative model of this
+  part. Not CAD." or "Generic shape for this type of part. Not CAD." With
+  nothing searched, the whole inverter rests assembled and turning.
+  - **One part everywhere**: the header line, the match card and the 3D view are
+    all driven by one current part. The three-tab switcher is a manual override
+    that changes all three; the next search on the page puts it back.
+  - **Exploded** separates the part's own pieces (capacitor cans lift off their
+    base, a fuse comes apart into caps, tube and element).
+  - **Callout**: a 1px accent line from a label with the part's name to the top
+    of the part, re-projected every frame.
+  - **Sequence** on load and on every new search: assembled and turning, the
+    pieces part with a stagger, then the callout fades in. anime.js timelines.
+  - **Camera**: fitted to the part's bounding box every frame, from the angle it
+    is being seen at, so it fills about 80% of the view and stays centred even
+    for a long thin part. Drag to rotate with damping; zoom and pan are off.
+    Idle rotation resumes three seconds after a drag.
+  - **Layout inside the stage**: label top left, Replay and the Assembled and
+    Exploded toggle bottom, caption as one line below the canvas. Rendering
+    stops when the panel is hidden; with reduced motion nothing moves by
+    itself, and a drag still turns it.
 - **New product tab**: a name field beside a tall concept textarea, one text link ("Load sample concept") on the left of the row and the single accent button ("Check against the core") on the right. The answer is a 17px light headline, two supporting lines, then the standard table: need, status badge, matched part, best price, PO tag. Status badges read `positive` in core, `neutral` shared and unique, `warn` for blocked and for new part needed, because both of those end in a new part number.
 - **ActivityTable**: the standard table with a 2px left rule per row, transparent at rest and `accent` for one second on a row that arrived since the last poll. The Source column carries a `positive` badge when the check came from the panel or the extension, and a `neutral` badge when it came from this dashboard. 20 rows on Connections, 3 on Decisions.
 - Sidebar (when used): black, small text-3 group labels, 14px nav items, active item gets a surface-colored row.
