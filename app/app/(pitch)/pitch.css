@@ -1,0 +1,120 @@
+/*
+ * The deck's own rules, on top of globals.css.
+ *
+ * On screen every screen is an absolutely positioned 1280x720 stage stacked
+ * on the others, scaled to fit the window. Only the current one is visible,
+ * but all nine stay in the DOM and hold their end state, which is what makes
+ * the print path work without a second render.
+ */
+
+/*
+ * The dev server's own overlay. It is the only thing on this route we did
+ * not put there, and a presentation should not carry it.
+ */
+nextjs-portal {
+  display: none;
+}
+
+.pitch-page {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  transition: opacity 180ms ease;
+}
+
+/*
+ * Centred by its own transform rather than by the parent, because the stage
+ * is usually wider than the window it is being scaled down to fit and a
+ * centring layout would place the oversized box, not the scaled one.
+ */
+.pitch-stage {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1280px;
+  height: 720px;
+  transform-origin: center center;
+}
+
+/*
+ * Equations are set the way a paper sets them: a serif maths face, with the
+ * variables in italic and the numbers upright.
+ */
+.pitch-math {
+  font-family: "STIX Two Text", "STIX Two Math", "Cambria Math", Cambria,
+    "Times New Roman", serif;
+  font-feature-settings: "lnum" 1;
+}
+
+.pitch-var {
+  font-style: italic;
+}
+
+/* A line drawn by stroke-dashoffset, used on the flow and the timeline. */
+.pitch-draw {
+  stroke-dasharray: var(--len);
+  stroke-dashoffset: var(--len);
+}
+
+@media print {
+  /* The sheet is the stage, so a 16:9 screen prints edge to edge. */
+  @page {
+    size: 1024px 576px;
+    margin: 0;
+  }
+
+  html,
+  body {
+    background: #191a1b !important;
+    height: auto !important;
+    overflow: visible !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* The presenter's furniture is not part of the handout. */
+  .pitch-chrome {
+    display: none !important;
+  }
+
+  /* The deck fills one window on screen; on paper it runs down the stack. */
+  .pitch-deck,
+  .pitch-viewport {
+    position: static !important;
+    width: auto !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* One landscape page per screen, each at its end state. */
+  .pitch-page {
+    position: static !important;
+    display: block !important;
+    width: 1024px;
+    height: 576px;
+    overflow: hidden;
+    opacity: 1 !important;
+    break-after: page;
+    page-break-after: always;
+  }
+
+  .pitch-page:last-of-type {
+    break-after: auto;
+    page-break-after: auto;
+  }
+
+  .pitch-stage {
+    position: static !important;
+    left: auto !important;
+    top: auto !important;
+    transform: scale(0.8) !important;
+    transform-origin: top left !important;
+  }
+}
+
+/* Each segment of the loop on screen 10 draws itself once. */
+@keyframes pitch-draw-seg {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
