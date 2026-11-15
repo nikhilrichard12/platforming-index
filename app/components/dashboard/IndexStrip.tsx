@@ -178,6 +178,10 @@ export default function IndexStrip({
             Complexity control. Recording an exception changes nothing, because
             complexity a rule requires is not complexity anyone chose.
           </p>
+          <p className="mt-2 text-[12px] leading-relaxed text-text-3">
+            Shared architecture and Complexity control both depend on part
+            matching. See Inventory for how matches get scored.
+          </p>
         </div>
       )}
     </div>

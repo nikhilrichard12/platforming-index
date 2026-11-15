@@ -1,0 +1,58 @@
+{
+  "ranAt": "2026-11-15T03:16:21.258Z",
+  "partNumbers": 252,
+  "trueParts": 60,
+  "groupsFound": 80,
+  "pairwisePrecision": 0.998,
+  "pairwiseRecall": 0.824,
+  "truePairs": 729,
+  "mergedPairs": 602,
+  "correctMerges": 601,
+  "wrongMerges": 1,
+  "missedMerges": 128,
+  "sentToReview": 166,
+  "unusableDescriptions": 1,
+  "worst": [
+    {
+      "kind": "wrong merge",
+      "score": 0.88,
+      "a": "SL5-7042C mppt brd dual input",
+      "b": "SL10-8433D MPPT Board (Triple Input)",
+      "truthA": "Dual Input MPPT Board",
+      "truthB": "Triple Input MPPT Board"
+    },
+    {
+      "kind": "missed merge",
+      "score": 0.78,
+      "a": "10-65662 LCD Display Module 4.3in",
+      "b": "MX474000 LCD_DISPLAY_MODULE_4P3IN",
+      "truthA": "LCD Display Module 4.3in",
+      "truthB": "LCD Display Module 4.3in"
+    },
+    {
+      "kind": "missed merge",
+      "score": 0.71,
+      "a": "10-48955 Pan Head Machine Screw M5x12",
+      "b": "BS-7677-11 MACHINE SCREW - SEE DWG",
+      "truthA": "Pan Head Machine Screw M5x12",
+      "truthB": "Pan Head Machine Screw M5x12"
+    },
+    {
+      "kind": "missed merge",
+      "score": 0.71,
+      "a": "10-68063 Split Lock Washer M4",
+      "b": "BS-7510-08 LOCK WASHER - SEE DWG",
+      "truthA": "Split Lock Washer M4",
+      "truthB": "Split Lock Washer M4"
+    },
+    {
+      "kind": "missed merge",
+      "score": 0.71,
+      "a": "10-40983 Isolated Gate Driver Board 6 Channel",
+      "b": "SL5-3519A brd iso gate drv 6 ch",
+      "truthA": "Isolated Gate Driver Board 6 Channel",
+      "truthB": "Isolated Gate Driver Board 6 Channel"
+    }
+  ],
+  "note": "Graded blind against voltara_answer_key.csv. The matcher never reads the key."
+}

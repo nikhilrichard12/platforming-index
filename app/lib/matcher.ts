@@ -1,4 +1,7 @@
 import { Part, PartRow, VoltaraData } from "./voltaraData";
+// similarity.ts imports tokenize and headNoun from here. The cycle is safe
+// because neither module calls the other while it is still loading.
+import { similarity } from "./similarity";
 
 /**
  * Text matcher for the new part check. Deliberately small and explainable: a
@@ -80,17 +83,6 @@ export function tokenize(text: string): string[] {
     .filter((t) => t.length > 0 && !STOP.has(t));
 }
 
-/** A rating carries more signal than a common noun. */
-function weight(token: string): number {
-  return /\d/.test(token) ? 2 : 1;
-}
-
-function sumWeight(tokens: Iterable<string>): number {
-  let total = 0;
-  for (const t of tokens) total += weight(t);
-  return total;
-}
-
 /**
  * Words that trail a rating rather than naming the thing: "Isolated Gate
  * Driver Board 6 Channel" is a board, not a channel.
@@ -150,20 +142,17 @@ export function matchCandidates(
 ): PartMatch[] {
   const query = tokenize(description);
   if (query.length === 0) return [];
-  const queryWeight = sumWeight(query);
 
   const scored: { part: Part; score: number; matched: string[] }[] = [];
 
+  // One definition of "same part" for the whole product: the check, the plan
+  // and the grouping all score through lib/similarity.ts.
   for (const part of data.parts) {
-    const partTokens = tokenize(part.name);
-    const partSet = new Set(partTokens);
+    const s = similarity(description, part.name);
+    if (s.score <= 0) continue;
+    const partSet = new Set(tokenize(part.name));
     const matched = [...new Set(query.filter((t) => partSet.has(t)))];
-    if (matched.length < 2) continue;
-
-    const matchedWeight = sumWeight(matched);
-    const partCoverage = matchedWeight / sumWeight(partSet);
-    const queryCoverage = matchedWeight / queryWeight;
-    scored.push({ part, score: 0.65 * partCoverage + 0.35 * queryCoverage, matched });
+    scored.push({ part, score: s.score, matched });
   }
 
   return scored

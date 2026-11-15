@@ -1,4 +1,5 @@
 import { ReasonKind } from "./rules";
+import { SAME } from "./similarity";
 
 /**
  * The concept check. Before a part number exists, a product is still a list of
@@ -22,8 +23,12 @@ export const NEED_STATUSES: NeedStatus[] = [
   "new part needed",
 ];
 
-/** Below this the matcher is guessing, so the need counts as a new part. */
-export const PLAN_FLOOR = 0.35;
+/**
+ * A need only counts as existing when the matcher is confident. The same
+ * threshold lib/similarity.ts calls "same", so a plan never claims coverage
+ * the part check would send to a person.
+ */
+export const PLAN_FLOOR = SAME;
 
 export interface PlannedNeed {
   need: string;

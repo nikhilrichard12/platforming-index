@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import Field from "@/components/ui/Field";
 import Badge from "@/components/ui/Badge";
 import PartMergeAnimation from "./PartMergeAnimation";
+import MatchingPanel, { SimilarityBreakdown } from "./MatchingPanel";
+import { MatcherEval, similarity } from "@/lib/similarity";
 import {
   Part,
   VoltaraData,
@@ -20,11 +22,14 @@ const NUM = "text-right tabular-nums";
 
 export default function PartsTab({
   data,
+  evaluation,
   initialFilter = "all",
   onAsk,
   onTag,
 }: {
   data: VoltaraData;
+  /** What the matcher scored when it was graded blind. */
+  evaluation: MatcherEval | null;
   /** Alignment can send the reader here with a filter already applied. */
   initialFilter?: FilterId;
   onAsk: (question: string) => void;
@@ -88,6 +93,8 @@ export default function PartsTab({
           {s.partNumbers} part numbers describe {s.realParts} real parts.
         </p>
       </div>
+
+      <MatchingPanel evaluation={evaluation} />
 
       <PartMergeAnimation data={data} onOpenPart={openPart} />
 
@@ -185,6 +192,9 @@ function PartRows({
   onTag: (po: string) => void;
 }) {
   const tint = part.gap > 0 ? heatColor(part.gap / maxGap) : undefined;
+  /** The description the group is filed under; every other row is compared to it. */
+  const anchor = part.rows[0];
+  const [why, setWhy] = useState<string | null>(null);
 
   return (
     <>
@@ -265,21 +275,46 @@ function PartRows({
                     <td className="px-2 py-2 text-text-2">{r.origin}</td>
                     <td className={`px-2 py-2 text-text-2 ${NUM}`}>{px(r.price)}</td>
                     <td className="py-2 pl-3">
-                      <button
-                        type="button"
-                        onClick={() => onTag(r.po)}
-                        className="rounded-field border border-line-2 px-[6px] py-px font-mono text-[11px] text-text-2 transition-colors hover:border-text-2 hover:text-text"
-                      >
-                        {r.po}
-                      </button>
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => onTag(r.po)}
+                          className="rounded-field border border-line-2 px-[6px] py-px font-mono text-[11px] text-text-2 transition-colors hover:border-text-2 hover:text-text"
+                        >
+                          {r.po}
+                        </button>
+                        {r.pn !== anchor.pn && (
+                          <button
+                            type="button"
+                            aria-expanded={why === r.pn}
+                            onClick={() => setWhy(why === r.pn ? null : r.pn)}
+                            className="whitespace-nowrap text-[12px] text-text-3 underline-offset-4 transition-colors hover:text-text hover:underline"
+                          >
+                            {why === r.pn ? "Hide" : "Why these are the same"}
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            {why && (
+              <div className="mt-3">
+                <SimilarityBreakdown
+                  a={anchor.desc}
+                  b={part.rows.find((r) => r.pn === why)?.desc ?? ""}
+                  result={similarity(
+                    anchor.desc,
+                    part.rows.find((r) => r.pn === why)?.desc ?? ""
+                  )}
+                />
+              </div>
+            )}
             <p className="mt-3 text-[12px] text-text-3">
               A match is a suggestion. Engineering approves before one part
-              replaces another.
+              replaces another. Groups here are engineer-confirmed; the matcher
+              proposes and a person approves anything under 0.85.
             </p>
           </td>
         </tr>

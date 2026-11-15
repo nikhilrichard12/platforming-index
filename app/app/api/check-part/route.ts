@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { loadVoltaraData } from "@/lib/voltaraData.server";
 import { headNoun, matchCandidates } from "@/lib/matcher";
+import { REVIEW, SAME } from "@/lib/similarity";
 import { corsHeaders, preflight } from "@/lib/cors";
 import { Rule } from "@/lib/rules";
 import { blockingRules, listRules, logActivity } from "@/lib/rules.server";
@@ -9,9 +10,12 @@ import { callerOf } from "@/lib/sources.server";
 
 export const runtime = "nodejs";
 
-/** Above this, the card stands on its own. Below the floor, say nothing. */
-const CONFIDENT = 0.6;
-const POSSIBLE = 0.35;
+/**
+ * One definition of "same part" for the whole product: the bands come from
+ * lib/similarity.ts, so the card, the plan and the grouping agree.
+ */
+const CONFIDENT = SAME;
+const POSSIBLE = REVIEW;
 
 export interface Alternative {
   name: string;

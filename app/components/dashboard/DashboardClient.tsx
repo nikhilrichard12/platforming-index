@@ -10,6 +10,7 @@ import { FUNCTION_ICON } from "@/components/ui/FunctionIcons";
 import { FunctionName, functionFor } from "@/lib/survey";
 import { VoltaraData } from "@/lib/voltaraData";
 import { SurveyFile } from "@/lib/survey";
+import { MatcherEval } from "@/lib/similarity";
 import { Decision, Rule } from "@/lib/rules";
 import { computeIndex } from "@/lib/index";
 import {
@@ -127,10 +128,13 @@ function Reply({
 export default function DashboardClient({
   data,
   survey,
+  evaluation,
   basis,
 }: {
   data: VoltaraData;
   survey: SurveyFile;
+  /** How the matcher scored when it was graded blind, for the Inventory tab. */
+  evaluation: MatcherEval | null;
   basis?: string;
 }) {
   const [profile, setProfile] = useState<UserProfile>({ ...EMPTY_PROFILE });
@@ -373,6 +377,7 @@ export default function DashboardClient({
             {tab === "inventory" && (
               <PartsTab
                 data={data}
+                evaluation={evaluation}
                 onAsk={ask}
                 onTag={(po) => setSource(data.rowsByPo[po] ?? null)}
               />
