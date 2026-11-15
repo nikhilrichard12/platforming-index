@@ -1,0 +1,63 @@
+{
+ "scene": "engineering",
+ "what": "Engineering writes a cooling module brief for a new outdoor cabinet.",
+ "page": "engineering.txt",
+ "product": "VBS-30 Thermal design brief",
+ "expect": {
+  "needs": 7,
+  "onInterface": 5,
+  "onPart": 0,
+  "newThinking": 2,
+  "line": "5 of 7 needs start from something Voltara already built. 2 need new thinking.",
+  "interfaces": [
+   "IF-COOL-120",
+   "IF-COOL-TIM",
+   "IF-CTRL-SENSE"
+  ],
+  "landings": [
+   {
+    "need": "Cooling fan, axial, 120 mm 24 VDC",
+    "landing": "interface",
+    "interface": "IF-COOL-120",
+    "part": "Axial Fan 120mm 24VDC"
+   },
+   {
+    "need": "Fan guard, wire, 120 mm",
+    "landing": "interface",
+    "interface": "IF-COOL-120",
+    "part": "Wire Fan Guard 120mm"
+   },
+   {
+    "need": "Extruded aluminum heatsink, 200 mm",
+    "landing": "interface",
+    "interface": "IF-COOL-TIM",
+    "part": "Extruded Aluminum Heatsink 200mm"
+   },
+   {
+    "need": "Silicone thermal pad, 40 x 40 mm",
+    "landing": "interface",
+    "interface": "IF-COOL-TIM",
+    "part": "Silicone Thermal Pad 40x40mm"
+   },
+   {
+    "need": "Temperature sensor, NTC 10k",
+    "landing": "interface",
+    "interface": "IF-CTRL-SENSE",
+    "part": "NTC Temperature Sensor 10k"
+   },
+   {
+    "need": "Liquid cooling cold plate",
+    "landing": "new",
+    "interface": null,
+    "part": null
+   },
+   {
+    "need": "Variable speed fan controller, 4 pin PWM",
+    "landing": "new",
+    "interface": null,
+    "part": null
+   }
+  ]
+ },
+ "note": "Expected values are what POST /api/plan-product returns for this page text. Interfaces are curated sample data."
+}

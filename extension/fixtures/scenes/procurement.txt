@@ -1,0 +1,22 @@
+OrderDesk
+
+Purchasing / Supplier notes / SN-2211
+
+Supplier change note: second source for cabinet cooling
+
+Norwick Components has quoted an eleven week lead time on the cabinet fan for
+Q2, which does not clear the VBS-50 build plan. Purchasing is qualifying a
+second source and needs engineering to confirm what else moves with it.
+
+Lines affected by the change:
+
+- Axial fan, 120 mm 24 VDC
+- Wire fan guard, 120 mm
+- Pan head machine screw, M4 x 10
+- Split lock washer, M4
+- Nylon cable tie, 150 mm
+- Second source qualification plan
+
+The fan sits on six products, so any change here is a change everywhere.
+
+Raised by A. Duarte, Purchasing

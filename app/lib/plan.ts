@@ -30,10 +30,30 @@ export const NEED_STATUSES: NeedStatus[] = [
  */
 export const PLAN_FLOOR = SAME;
 
+/**
+ * Where a need lands. Platforming is not only part reuse: an interface the
+ * company already has brings its brackets, harness, firmware and tests with
+ * it, so a need that lands on one is a need nobody has to think about twice.
+ */
+export type Landing = "interface" | "part" | "new";
+
 export interface PlannedNeed {
   need: string;
   status: NeedStatus;
   confidence: number;
+  /** Interface first, then part, then nothing. */
+  landing: Landing;
+  /** The interface this need designs to, if the company already has one. */
+  iface?: {
+    id: string;
+    name: string;
+    subsystem: string;
+    spec: string;
+    products: string[];
+    since: number | null;
+    inherits: string[];
+    why: string;
+  };
   part?: string;
   partNumber?: string;
   price?: number;
@@ -59,6 +79,23 @@ export interface PlanSummary {
   covered: number;
   coveredPercent: number;
   projectedNewPartNumbers: number;
+  /** Needs that land on an interface the company already has. */
+  onInterface: number;
+  /** Needs that land on a part, with no interface defined for them. */
+  onPart: number;
+  /** Needs with neither: new thinking. */
+  newThinking: number;
+  /** The interfaces this plan starts from, most covered first. */
+  interfaces: {
+    id: string;
+    name: string;
+    subsystem: string;
+    spec: string;
+    products: string[];
+    since: number | null;
+    inherits: string[];
+    needs: string[];
+  }[];
 }
 
 export interface PlanResult {
@@ -102,6 +139,16 @@ export function summarize(needs: PlannedNeed[]): PlanSummary {
   ) as Record<NeedStatus, number>;
   needs.forEach((n) => (byStatus[n.status] += 1));
 
+  // One card per interface this plan starts from, with the needs it covers.
+  const found = new Map<string, PlanSummary["interfaces"][number]>();
+  for (const n of needs) {
+    if (!n.iface) continue;
+    const hit = found.get(n.iface.id) ?? { ...n.iface, needs: [] };
+    hit.needs.push(n.need);
+    found.set(n.iface.id, hit);
+  }
+  const interfaces = [...found.values()].sort((a, b) => b.needs.length - a.needs.length);
+
   const covered =
     byStatus["in core"] + byStatus["shared"] + byStatus["exists, unique"];
   // A blocked need still ends in a new part number for that product.
@@ -116,7 +163,17 @@ export function summarize(needs: PlannedNeed[]): PlanSummary {
       ? Math.round((covered / needs.length) * 100)
       : 0,
     projectedNewPartNumbers,
+    onInterface: needs.filter((n) => n.landing === "interface").length,
+    onPart: needs.filter((n) => n.landing === "part").length,
+    newThinking: needs.filter((n) => n.landing === "new").length,
+    interfaces,
   };
+}
+
+/** How a plan reads against the interfaces the company already has. */
+export function interfaceLine(s: PlanSummary): string {
+  const started = s.onInterface + s.onPart;
+  return `${started} of ${s.total} needs start from something Voltara already built. ${s.newThinking} need new thinking.`;
 }
 
 /** The one line a person should read first. */

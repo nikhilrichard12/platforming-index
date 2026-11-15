@@ -1,3 +1,6 @@
+import { NeedTone, StageItem } from "./models/planStage";
+import type { StageSubject } from "./models/parts";
+import { PlannedNeed } from "./plan";
 import { EMPTY_PROFILE, UserProfile } from "./types";
 
 /**
@@ -104,4 +107,48 @@ export function panelQuestions(product: string): string[] {
     "Which needs force a new part number?",
     "What would reusing these parts save?",
   ];
+}
+
+/* ---------- what the stage draws for one page ---------- */
+
+/**
+ * Every need this page raised, as something to draw: the part it landed on,
+ * tinted by what it landed on. Nothing else goes on the stage.
+ */
+export function stageItemsFor(
+  needs: PlannedNeed[],
+  parts: { id: string; name: string; cat: string }[]
+): StageItem[] {
+  return needs.map((n) => ({
+    key: n.need,
+    tone:
+      n.status === "blocked by rule"
+        ? "blocked"
+        : (n.landing as NeedTone),
+    part: n.part ? parts.find((p) => p.name === n.part) : undefined,
+  }));
+}
+
+/** Counts per tone, for the legend under the stage. */
+export function stageCounts(items: StageItem[]): Record<NeedTone, number> {
+  const out: Record<NeedTone, number> = {
+    interface: 0,
+    part: 0,
+    new: 0,
+    blocked: 0,
+  };
+  items.forEach((i) => (out[i.tone] += 1));
+  return out;
+}
+
+/** A new set of needs is a new model, so the stage knows when to redraw. */
+export function planSubject(items: StageItem[]): StageSubject | null {
+  if (items.length === 0) return null;
+  return {
+    key: `plan:${items.map((i) => `${i.tone}:${i.key}`).join("|")}`,
+    label: `${items.length} ${items.length === 1 ? "need" : "needs"} on this page`,
+    twin: false,
+    caption: "Only what this page asks for. Illustrative shapes, not CAD.",
+    plan: items,
+  };
 }

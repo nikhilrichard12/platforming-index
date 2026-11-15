@@ -78,6 +78,17 @@ export function IconClock({ size }: { size?: number }) {
   );
 }
 
+/** An interface: two sides that meet on an agreed boundary. */
+export function IconInterface({ size }: { size?: number }) {
+  return (
+    <Frame size={size}>
+      <path d="M9.5 4.5H6a1.5 1.5 0 0 0-1.5 1.5v12A1.5 1.5 0 0 0 6 19.5h3.5" />
+      <path d="M14.5 4.5H18a1.5 1.5 0 0 1 1.5 1.5v12a1.5 1.5 0 0 1-1.5 1.5h-3.5" />
+      <path d="M12 7v3M12 13v4" />
+    </Frame>
+  );
+}
+
 export const FUNCTION_ICON: Record<
   FunctionName,
   (props: { size?: number }) => React.JSX.Element

@@ -1,4 +1,5 @@
 import { Kit, Rig, toonRamp } from "./kit";
+import { StageItem, buildPlanRig } from "./planStage";
 import { TWINS, buildComponentRig, buildHeroRig } from "./product";
 
 /**
@@ -26,7 +27,9 @@ export interface StageSubject {
   /** The one line under the view. */
   caption: string;
   /** The part itself: a plain shape is chosen from its name and category. */
-  part: StagePart;
+  part?: StagePart;
+  /** Everything this page needs, drawn together, instead of one part. */
+  plan?: StageItem[];
 }
 
 export function subjectFor(part: StagePart | undefined): StageSubject | null {
@@ -456,6 +459,11 @@ const SHAPES: Record<Archetype, Build> = {
   },
 };
 
+/** One part's shape, built into a kit the caller owns. */
+export function buildShape(kit: Kit, part: StagePart) {
+  SHAPES[archetypeFor(part)](kit, part);
+}
+
 /** The model for one part, alone: its component of the inverter, or a plain shape for its type. */
 export function buildPartRig(part: StagePart): Rig {
   const twin = TWINS[part.id];
@@ -466,7 +474,11 @@ export function buildPartRig(part: StagePart): Rig {
   return kit.toRig(ramp);
 }
 
-/** What the stage draws: the searched part alone, or, with nothing searched, the whole inverter. */
-export function buildRig(part: StagePart | undefined): Rig {
-  return part ? buildPartRig(part) : buildHeroRig();
+/**
+ * What the stage draws: everything one page needs, the searched part alone,
+ * or, with nothing searched, the whole inverter.
+ */
+export function buildRig(subject: StageSubject | null | undefined): Rig {
+  if (subject?.plan && subject.plan.length > 0) return buildPlanRig(subject.plan);
+  return subject?.part ? buildPartRig(subject.part) : buildHeroRig();
 }

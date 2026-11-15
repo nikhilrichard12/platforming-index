@@ -1,0 +1,63 @@
+{
+ "scene": "sales",
+ "what": "Sales writes a custom variant request for a top account.",
+ "page": "sales.txt",
+ "product": "SunLine 10 kW custom variant",
+ "expect": {
+  "needs": 7,
+  "onInterface": 5,
+  "onPart": 0,
+  "newThinking": 2,
+  "line": "5 of 7 needs start from something Voltara already built. 2 need new thinking.",
+  "interfaces": [
+   "IF-IO-PANEL",
+   "IF-ENC-OUTDOOR",
+   "IF-IO-FIELD"
+  ],
+  "landings": [
+   {
+    "need": "LCD display module, 4.3 in",
+    "landing": "interface",
+    "interface": "IF-IO-PANEL",
+    "part": "LCD Display Module 4.3in"
+   },
+   {
+    "need": "RS485 Modbus communication card",
+    "landing": "interface",
+    "interface": "IF-IO-PANEL",
+    "part": "RS485 Modbus Communication Card"
+   },
+   {
+    "need": "Signal 8 pin connector on the front face",
+    "landing": "interface",
+    "interface": "IF-IO-PANEL",
+    "part": "Signal 8 Pin Connector"
+   },
+   {
+    "need": "IP65 outdoor enclosure, 10 mm EPDM gasket",
+    "landing": "interface",
+    "interface": "IF-ENC-OUTDOOR",
+    "part": "EPDM Strip Gasket 10mm 1m"
+   },
+   {
+    "need": "Nylon cable gland, M20",
+    "landing": "interface",
+    "interface": "IF-IO-FIELD",
+    "part": "Nylon Cable Gland M20"
+   },
+   {
+    "need": "Branded bezel in the account colour",
+    "landing": "new",
+    "interface": null,
+    "part": null
+   },
+   {
+    "need": "Field crew tablet pairing, Bluetooth",
+    "landing": "new",
+    "interface": null,
+    "part": null
+   }
+  ]
+ },
+ "note": "Expected values are what POST /api/plan-product returns for this page text. Interfaces are curated sample data."
+}

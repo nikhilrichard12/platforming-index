@@ -7,6 +7,13 @@ import {
 import { corsHeaders, preflight } from "@/lib/cors";
 import { computeIndex, computeIndexFor, scoreMethod } from "@/lib/index";
 import { priceGapOf, regroup, reviewedGrouping } from "@/lib/grouping";
+import { planNeeds } from "@/lib/planner.server";
+import {
+  SAMPLE_CONCEPT,
+  interfaceLine,
+  splitNeeds,
+  summarize,
+} from "@/lib/plan";
 import { applyAlignment } from "@/lib/alignment";
 import { listAlignment, listDecisions, logActivity } from "@/lib/rules.server";
 import { callerOf } from "@/lib/sources.server";
@@ -76,11 +83,29 @@ export function GET(req: NextRequest) {
     });
   }
 
+  // The benchmark the index does not score: how much of a new product starts
+  // from an interface the company already has. Measured on the sample concept,
+  // because that is the only plan this endpoint knows about.
+  const conceptNeeds = splitNeeds(SAMPLE_CONCEPT.description);
+  const plan = summarize(planNeeds(SAMPLE_CONCEPT.name, conceptNeeds));
+  const reuseOfInterfaces = {
+    concept: SAMPLE_CONCEPT.name,
+    needs: plan.total,
+    onInterface: plan.onInterface,
+    onPart: plan.onPart,
+    newThinking: plan.newThinking,
+    startFromSomethingBuilt: plan.onInterface + plan.onPart,
+    interfacesUsed: plan.interfaces.length,
+    line: interfaceLine(plan),
+    note: "Interfaces are curated for this sample. The index formula does not read this figure.",
+  };
+
   return NextResponse.json(
     {
       company: data.company,
       period: data.period,
       index,
+      reuseOfInterfaces,
       grouping: both,
       method: scoreMethod(index),
       read: "Sharing parts, not yet a platform.",

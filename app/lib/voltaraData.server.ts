@@ -4,6 +4,7 @@ import { deriveVoltaraData, VoltaraData, VoltaraFile } from "./voltaraData";
 import { SurveyFile } from "./survey";
 import { MatcherEval } from "./similarity";
 import { Grouping, ReviewPair, matcherGrouping, reviewQueue } from "./grouping";
+import { InterfaceFile, PlatformInterface } from "./interfaces";
 
 const DERIVED = path.join(process.cwd(), "..", "data", "derived");
 
@@ -12,6 +13,7 @@ let cachedSurvey: SurveyFile | null = null;
 let cachedEval: MatcherEval | null | undefined = undefined;
 let cachedGrouping: Grouping | null = null;
 let cachedQueue: ReviewPair[] | null = null;
+let cachedInterfaces: PlatformInterface[] | null = null;
 
 /**
  * Server-side loader. Reads data/derived/voltara_parts.json once per process.
@@ -53,6 +55,19 @@ export function loadReviewQueue(): ReviewPair[] {
   if (cachedQueue) return cachedQueue;
   cachedQueue = reviewQueue(loadVoltaraData());
   return cachedQueue;
+}
+
+/**
+ * The interfaces the company already has. Curated for the sample by
+ * engine/build_interfaces.py; in a deployment they come from CAD and PLM.
+ */
+export function loadInterfaces(): PlatformInterface[] {
+  if (cachedInterfaces) return cachedInterfaces;
+  const file = path.join(DERIVED, "voltara_interfaces.json");
+  cachedInterfaces = fs.existsSync(file)
+    ? (JSON.parse(fs.readFileSync(file, "utf8")) as InterfaceFile).interfaces
+    : [];
+  return cachedInterfaces;
 }
 
 /** Sample survey responses for the alignment view and the system prompt. */

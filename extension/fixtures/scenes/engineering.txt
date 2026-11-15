@@ -1,0 +1,24 @@
+Partsmith PLM
+
+Programs / StorLine / VBS-30 / Thermal design brief
+
+Cooling module for the VBS-30 outdoor cabinet
+
+Target is 30 kW continuous in a sealed outdoor enclosure, ambient to 45 C.
+The thermal path drives the rest of the design, so this brief fixes it first
+and leaves the power stage to the electrical brief.
+
+What the module needs:
+
+- Cooling fan, axial, 120 mm 24 VDC
+- Fan guard, wire, 120 mm
+- Extruded aluminum heatsink, 200 mm
+- Silicone thermal pad, 40 x 40 mm
+- Temperature sensor, NTC 10k
+- Liquid cooling cold plate
+- Variable speed fan controller, 4 pin PWM
+
+Open questions for review: whether the cabinet can take the 120 mm frame
+without a new bracket, and whether the cold plate is worth its service burden.
+
+Last edited by R. Mandal

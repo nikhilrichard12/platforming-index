@@ -1,0 +1,22 @@
+Voltara CRM
+
+Accounts / Northwind Utilities / Opportunity 4821
+
+Custom variant request from Northwind Utilities
+
+Northwind buys roughly 900 inverters a year and wants a variant for their
+own field crews. Their standards group sent the list below. They have asked for a
+quote in three weeks, so engineering needs to say what is standard and what is
+not before we price it.
+
+What the account is asking for:
+
+- LCD display module, 4.3 in
+- RS485 Modbus communication card
+- Signal 8 pin connector on the front face
+- IP65 outdoor enclosure, 10 mm EPDM gasket
+- Nylon cable gland, M20
+- Branded bezel in the account colour
+- Field crew tablet pairing, Bluetooth
+
+Account manager: J. Okafor

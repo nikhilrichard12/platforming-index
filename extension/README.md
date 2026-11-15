@@ -20,6 +20,22 @@ part request forms for the moment a part number would be born.
   description field, with the part already in stock and the yearly cost of a
   new part number.
 
+## Scenes
+
+`fixtures/scenes/` holds three pages for the pitch, each with the plan it is
+expected to produce:
+
+- `engineering.txt` — a cooling module brief for a new outdoor cabinet.
+- `sales.txt` — a custom variant request for a top account.
+- `procurement.txt` — a supplier change note.
+
+Each `*.expected.json` records what `POST /api/plan-product` returns for that
+page: the needs, where each one lands, and the interfaces it starts from. To
+replay one without the extension, open the panel with the page text in the
+query string:
+
+    /panel?title=VBS-30%20Thermal%20design%20brief&text=<the file, url encoded>
+
 ## Where it runs
 
 Host permissions, and the only pages it reads:

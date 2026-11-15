@@ -238,6 +238,23 @@ Shared components live in `app/components/ui/`.
   same parts data and the same rules.
 - A plan never moves the index score. Only a recorded decision on a real part
   does, and every surface that shows a plan says so.
+- Platforming is not only part reuse. What carries across a generation is the
+  interface: a frame size, a pin-out, a bolt pattern, a bus voltage, and the
+  brackets, harness, firmware and test fixtures that hang off it. A need
+  resolves interface first, then part, then nothing, and the panel is ordered
+  the same way: "Start from what you have" above "Parts you already buy".
+- The interface list lives in `data/derived/voltara_interfaces.json`. In a
+  deployment these come from CAD and PLM. For this sample they are curated by
+  hand from the parts data (`engine/build_interfaces.py`), which resolves the
+  products and the year from the parts themselves, and the file says so in its
+  own note. Every screen that shows one says it is curated sample data.
+- The panel stage draws what the page needs and nothing else: one shape per
+  need, positive for a need on an existing interface, text for a part with no
+  interface behind it, warn for new thinking, risk for something a rule
+  blocks. The legend counts them, and the counts match the line above it.
+- "Start from what exists" sits beside the four dimensions on Summary and is
+  not part of the score. The formula has four terms; this is a fifth figure,
+  measured on the sample concept, and it says so under the bar.
 - Motion is anime.js v4 (`animate`, `createTimeline`, `stagger`, `utils`),
   imported from `animejs` in client components only.
 - Every animation animates real rows. The merge moves one element per part
