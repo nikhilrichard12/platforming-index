@@ -1,0 +1,11 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
+
+/* Inter, loaded with a plain stylesheet. next/font's Google loader fails the
+   production build on this Next version, so the font no longer goes through it.
+   Offline, the stack falls back to the system face. */
+.pi-inter {
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+.pi-inter-var {
+  --font-inter: "Inter";
+}

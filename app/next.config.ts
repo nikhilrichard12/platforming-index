@@ -35,7 +35,7 @@ const KEY = [
 
 const nextConfig: NextConfig = {
   // The repo, not app/, so a traced path one level up stays inside the root.
-  outputFileTracingRoot: path.join(__dirname, ".."),
+  outputFileTracingRoot: process.env.VERCEL ? __dirname : path.join(__dirname, ".."),
   outputFileTracingIncludes: {
     "/**/*": DATA,
     "/api/**/*": DATA,
