@@ -8,16 +8,16 @@ import { Frame, Reveal, StepCount } from "../parts";
 /**
  * Screen 7. The free step.
  *
- * The two recordings run back to back in the same frame: the questions on
- * the first advance, the result they produce on the second. The clip holds
- * the left of the stage at the same size the plugin screen uses, so the
- * three step screens and the product screen all carry the same weight.
+ * The recording is the eight questions themselves; what they produce is
+ * step two's business, not this screen's. The clip holds the left of the
+ * stage at the same size the plugin screen uses, so the three step screens
+ * and the product screen all carry the same weight.
  */
 const CLIP_W = 740;
 const CLIP_H = 500;
 
 export default function ScreenStepOne({ step, active, printing }: ScreenProps) {
-  const clip = step >= 2 ? CLIPS.ballpark : CLIPS.survey;
+  const clip = CLIPS.survey;
 
   return (
     <Frame>

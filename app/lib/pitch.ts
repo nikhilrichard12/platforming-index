@@ -177,19 +177,19 @@ export const STEP_BACK = {
 
 export const STEP_ONE = {
   title: "Step one: a two-minute ballpark for the C-suite.",
-  body: `Eight plain questions produce a rough ${SCORE_NAME} and a rough cost, so executives see the size of the problem before anyone opens a parts list. For Kearney this is a business development opening: any manufacturer can take it, and each result starts a conversation.`,
+  body: `Eight plain questions give executives a rough ${SCORE_NAME} and a rough cost. For Kearney it is a business development opening.`,
   note: "Questions shaped with Andrew Cecola of Kearney PERLab.",
 } as const;
 
 export const STEP_TWO = {
-  title: "Step two: upload the bill of materials.",
-  body: "The company's own parts list and purchase history produce a measured index, and each leader sees the cost in their own unit.",
+  title: "Step two: the measured index.",
+  body: "With the bill of materials in, the company sees its real score, where the duplicates are, and what they cost, explained by an assistant for each role.",
   note: "Sample company: Voltara, a fictional energy and power manufacturer, the sector at 20 percent.",
 } as const;
 
 export const STEP_THREE = {
-  title: "Step three: the plugin puts it in every product decision.",
-  body: "The first version works on purchasing data, the low-hanging fruit. Each time someone uses the plugin, their decision goes back into the company's data, so the answers get better for the next team.",
+  title: "Step three: every function owns a piece.",
+  body: "Leaders see where they disagree and decide who owns what. Each function gets a reason to act in its own unit.",
 } as const;
 
 /* ---------- 10. the loop ---------- */
@@ -400,14 +400,14 @@ export const SCREENS: ScreenMeta[] = [
     n: 7,
     id: "step-one",
     title: "Step one, the foot in the door",
-    steps: 3,
+    steps: 2,
     targetSeconds: 30,
     rubric: ["Commercial potential"],
     script: [
       "Step one is a two-minute ballpark aimed at the C-suite.",
-      "Eight plain questions about the company, and no data to upload.",
-      "Executives get a rough Platforming Index and a rough cost, so they see the size of the problem before anyone opens a parts list.",
-      "For Kearney this is a business development opening: any manufacturer can take it, and every result starts a conversation.",
+      "Eight plain questions about the company, and nothing to upload.",
+      "Executives get a rough Platforming Index and a rough cost out of it, which is enough to know whether the problem is worth their time.",
+      "For Kearney it is a business development opening: any manufacturer can take it, and every result starts a conversation.",
       "The questions were shaped with Andrew Cecola of Kearney PERLab.",
     ],
   },
@@ -415,13 +415,14 @@ export const SCREENS: ScreenMeta[] = [
     n: 8,
     id: "step-two",
     title: "Step two, the measured index",
-    steps: 2,
+    steps: 3,
     targetSeconds: 30,
     rubric: ["Deliverable"],
     script: [
-      "Step two is uploading the bill of materials.",
-      "The company's own parts list and purchase history produce a measured index.",
-      "Each leader sees the same score in the unit they are measured on: dollars, engineering hours, suppliers, weeks of lead time.",
+      "Step two is the measured index, and it starts from the ballpark the executive has already seen.",
+      "With the bill of materials in, the same four dimensions are computed from the company's own parts list and purchase history.",
+      "The company sees its real score, where the duplicates are, and what they cost, with an assistant that explains every number for the role reading it.",
+      "Each leader gets the same score in the unit they are measured on: dollars, engineering hours, suppliers, weeks of lead time.",
       "The sample company is Voltara, a fictional energy and power manufacturer, which is the sector sitting at 20 percent.",
     ],
   },
@@ -433,10 +434,10 @@ export const SCREENS: ScreenMeta[] = [
     targetSeconds: 25,
     rubric: ["Deliverable", "Technical feasibility"],
     script: [
-      "Step three is the plugin, which puts the index inside every product decision.",
-      "The first version works on purchasing data, because that is the low-hanging fruit.",
-      "Where functions disagree, the decision is recorded, and each one goes back into the company's data.",
-      "So the answers get better for the next team.",
+      "Step three is where every function owns a piece of it.",
+      "The view shows leaders exactly where they disagree, and they decide who owns what.",
+      "Each function comes out of that with a reason to act in the unit it is measured on.",
+      "And every decision they record goes back into the data the next answer is read from.",
     ],
   },
   {

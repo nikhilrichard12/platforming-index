@@ -10,25 +10,29 @@ import { Frame, Reveal, StepCount } from "../parts";
 /**
  * Screen 8. The measured step.
  *
- * The recording is the dashboard the company's own parts list produces. The
- * list beside it is the same score said in each function's own unit, read
- * live from lib/roles.ts over the parts and purchase data.
+ * Two recordings run back to back in the same frame: the ballpark the
+ * executive already has, and then the measured dashboard the bill of
+ * materials produces. The list beside them is the same score said in each
+ * function's own unit, read live from lib/roles.ts over the parts and
+ * purchase data.
  */
 const CLIP_W = 740;
 const CLIP_H = 500;
 
 export default function ScreenStepTwo({ bundle, step, active, printing }: ScreenProps) {
   const score = bundle.before.score;
+  const clip = step >= 1 ? CLIPS.summary : CLIPS.ballpark;
 
   return (
     <Frame>
       <div className="flex h-full items-center gap-10">
         <ClipFrame
-          clip={CLIPS.summary}
+          key={clip.src}
+          clip={clip}
           width={CLIP_W}
           height={CLIP_H}
           play={active && !printing}
-          caption={CLIPS.summary.label}
+          caption={clip.label}
         />
 
         <div className="flex min-w-0 flex-1 flex-col">
@@ -40,7 +44,7 @@ export default function ScreenStepTwo({ bundle, step, active, printing }: Screen
             {STEP_TWO.body}
           </p>
 
-          <Reveal show={step >= 1} className="mt-6">
+          <Reveal show={step >= 2} className="mt-6">
             <ul className="space-y-[10px] border-t border-line pt-4">
               {FUNCTIONS.map((f) => {
                 const id = FUNCTION_IDENTITY[f];

@@ -6,9 +6,9 @@ import ClipFrame from "../ClipFrame";
 import { Frame, Reveal, StepCount } from "../parts";
 
 /**
- * Screen 9. The step that keeps running after the engagement ends. The
- * recording is the alignment view, where the functions disagree and a
- * decision gets recorded against the disagreement.
+ * Screen 9. The step where the functions take ownership. The recording is
+ * the alignment view: where they disagree, who owns what, and the decision
+ * recorded against the disagreement.
  */
 const CLIP_W = 740;
 const CLIP_H = 500;
