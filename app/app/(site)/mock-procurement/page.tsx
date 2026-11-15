@@ -1,6 +1,6 @@
 /**
  * OrderDesk: a stand-in for the procurement system the manufacturer already
- * runs. There is no Platforming Index code on this page and it knows nothing
+ * runs. There is no PlatInform code on this page and it knows nothing
  * about the new part check. The check arrives through a browser extension.
  */
 export default function MockProcurementPage() {

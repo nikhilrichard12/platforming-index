@@ -209,7 +209,7 @@ export function scoreMethod(index: ComputedIndex): {
       result: String(d[3].score),
     },
     {
-      name: "Platforming Index",
+      name: "Complexity Index",
       formula: `(${d.map((x) => x.score).join(" + ")}) / 4`,
       result: String(index.score),
     },

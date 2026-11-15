@@ -233,7 +233,7 @@ export default function OrbitView({
         fontSize={12}
         fill={TOKEN.text3}
       >
-        Platforming Index
+        Complexity Index
       </text>
 
       {/* One planet per function */}

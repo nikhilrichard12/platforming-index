@@ -1,5 +1,5 @@
 /**
- * Drives the Platforming Index MCP server over stdio with the SDK client and
+ * Drives the PlatInform MCP server over stdio with the SDK client and
  * runs the five demo steps in order.
  */
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";

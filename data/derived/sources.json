@@ -1,5 +1,5 @@
 {
-  "note": "Where the Platforming Index gets its data. Sample company, sample data. A source marked Not connected has no connector in this build.",
+  "note": "Where PlatInform gets its data. Sample company, sample data. A source marked Not connected has no connector in this build.",
   "sources": [
     {
       "id": "plm",

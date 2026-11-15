@@ -24,13 +24,13 @@ function Arrow() {
   );
 }
 
-export default function StepStrip({ steps }: { steps: Step[] }) {
+export default function StepStrip({ steps, center = false }: { steps: Step[]; center?: boolean }) {
   return (
     <div className="flex flex-col gap-10 md:flex-row md:gap-4">
       {steps.map((s, i) => (
         <div key={s.title} className="flex flex-1 gap-4 md:contents">
           {i > 0 ? <Arrow /> : null}
-          <div className="flex-1">
+          <div className={`flex-1 ${center ? "flex flex-col items-center text-center" : ""}`}>
             <div className="text-accent">{s.icon}</div>
             <h3 className="mt-8 text-[20px] font-extrabold leading-none text-text">
               {s.title}

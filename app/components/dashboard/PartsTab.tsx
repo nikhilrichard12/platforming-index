@@ -5,8 +5,8 @@ import Field from "@/components/ui/Field";
 import Badge from "@/components/ui/Badge";
 import MatchingPanel, { SimilarityBreakdown } from "./MatchingPanel";
 import PartMergeAnimation from "./PartMergeAnimation";
-import { MatcherEval, similarity } from "@/lib/similarity";
-import { Grouping, ReviewPair } from "@/lib/grouping";
+import { similarity } from "@/lib/similarity";
+import { Emphasis } from "@/lib/roleHighlights";
 import {
   Part,
   VoltaraData,
@@ -23,20 +23,14 @@ const NUM = "text-right tabular-nums";
 
 export default function PartsTab({
   data,
-  evaluation,
+  emphasis,
   initialFilter = "all",
   onAsk,
   onTag,
 }: {
   data: VoltaraData;
-  /** What the matcher scored when it was graded blind. */
-  evaluation: MatcherEval | null;
-  /**
-   * Still sent by the dashboard, no longer used here: the matcher's own groups
-   * and the review queue moved out of this tab with the explainer.
-   */
-  grouping?: Grouping;
-  reviewQueue?: ReviewPair[];
+  /** What this reader's role leads with; the filters it names get an outline. */
+  emphasis?: ReadonlySet<Emphasis>;
   /** Alignment can send the reader here with a filter already applied. */
   initialFilter?: FilterId;
   onAsk: (question: string) => void;
@@ -101,7 +95,7 @@ export default function PartsTab({
         </p>
       </div>
 
-      <MatchingPanel data={data} evaluation={evaluation} />
+      <MatchingPanel data={data} />
 
       <PartMergeAnimation data={data} onOpenPart={openPart} />
 
@@ -130,6 +124,8 @@ export default function PartsTab({
               className={`-ml-px border px-4 py-[9px] text-[13px] transition-colors first:ml-0 ${
                 filter === f.id
                   ? "z-10 border-text bg-transparent text-text"
+                  : emphasis && ((f.id === "shared" && emphasis.has("shared")) || (f.id === "review" && emphasis.has("review")))
+                  ? "border-line bg-panel-2 text-text"
                   : "border-line bg-panel-2 text-text-2 hover:text-text"
               }`}
             >

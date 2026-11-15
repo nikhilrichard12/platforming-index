@@ -9,7 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Platforming Index panel",
+  title: "PlatInform panel",
   description: "The check, beside the page you are reading",
 };
 
@@ -19,8 +19,8 @@ export const metadata: Metadata = {
  */
 export default function PanelLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={inter.variable}>
-      <body className="bg-surface text-text">{children}</body>
+    <html lang="en" suppressHydrationWarning className={inter.variable}>
+      <body suppressHydrationWarning className="bg-surface text-text">{children}</body>
     </html>
   );
 }

@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Platforming Index",
+  "name": "PlatInform",
   "version": "0.2.0",
   "description": "Checks the page you are reading against the parts your company already buys.",
   "minimum_chrome_version": "114",
@@ -30,7 +30,7 @@
     "default_path": "sidepanel.html"
   },
   "action": {
-    "default_title": "Platforming Index",
+    "default_title": "PlatInform",
     "default_icon": {
       "16": "icon16.png",
       "48": "icon48.png",

@@ -10,7 +10,7 @@
 
 const API = "http://localhost:3000";
 
-/* Only these hosts are read. Page text goes to the Platforming Index and
+/* Only these hosts are read. Page text goes to PlatInform and
    nowhere else. Keep in step with host_permissions in manifest.json. */
 const ALLOWED = [
   /^http:\/\/localhost:3000\//,

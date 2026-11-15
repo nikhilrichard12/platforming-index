@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Badge from "@/components/ui/Badge";
 import Field from "@/components/ui/Field";
@@ -99,6 +99,9 @@ export default function BallparkResult({
   onCost: (value: number) => void;
 }) {
   const router = useRouter();
+  // Demo only. The file is never read, sent or kept: only its name is shown.
+  const fileInput = useRef<HTMLInputElement>(null);
+  const [fileName, setFileName] = useState("");
   const [open, setOpen] = useState(false);
   const b = ballpark(answers, profile);
   const role = profile.role || "CEO";
@@ -265,9 +268,31 @@ score
             Upload a parts list and purchase history. About 10 minutes.
           </p>
         </div>
-        <Button onClick={() => router.push("/dashboard")}>
-          See a measured example
-        </Button>
+        <div className="flex flex-wrap items-center gap-3">
+          <input
+            ref={fileInput}
+            type="file"
+            accept=".csv,.pdf"
+            hidden
+            onChange={(e) => {
+              setFileName(e.target.files?.[0]?.name ?? "");
+              // Clear it, so choosing the same file again still counts as a choice.
+              e.target.value = "";
+            }}
+          />
+          <Button onClick={() => fileInput.current?.click()}>
+            {fileName ? "Choose a different file" : "Upload a CSV or PDF"}
+          </Button>
+          {fileName && (
+            <span className="max-w-[220px] truncate text-[13px] text-text-2" title={fileName}>
+              {fileName}
+            </span>
+          )}
+          <Button onClick={() => router.push("/dashboard")}>Continue to measured index</Button>
+          <p className="text-[12px] text-text-3">
+            Demo upload. Your file won&apos;t be analyzed; the dashboard uses sample data.
+          </p>
+        </div>
       </div>
     </section>
   );

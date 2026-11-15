@@ -10,7 +10,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Platforming Index",
+  title: "PlatInform",
   description: "Diagnose product complexity and find platforming opportunities",
 };
 
@@ -20,8 +20,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={inter.variable}>
-      <body className="bg-surface text-text">
+    <html lang="en" suppressHydrationWarning className={inter.variable}>
+      <body suppressHydrationWarning className="bg-surface text-text">
         <TopBar />
         <main>{children}</main>
       </body>

@@ -216,7 +216,7 @@ export default function BuildClient({
       <div className="mx-auto max-w-shell px-12 pb-24">
         <PageHeader
           parent="Voltara Power Systems"
-          section="Platforming Index"
+          section="PlatInform"
           title="Building your view"
           actions={
             done ? (

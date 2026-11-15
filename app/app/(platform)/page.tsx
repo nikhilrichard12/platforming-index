@@ -206,16 +206,26 @@ export default function IntakePage() {
       ? "Back to my ballpark"
       : "Start";
 
+  // The landing screen sits centred, in the middle of the window. The question
+  // screens are long forms and keep their place at the top.
+  const centered = tab === "overview";
+
   return (
-    <div className="min-h-screen bg-surface">
-      <div className="mx-auto max-w-shell px-12 pb-24">
+    <div className={`${centered ? "min-h-[calc(100vh-44px)]" : "min-h-screen"} bg-surface`}>
+      <div
+        className={`mx-auto max-w-shell px-12 ${
+          centered ? "flex min-h-[calc(100vh-44px)] flex-col justify-center pb-10" : "pb-24"
+        }`}
+      >
         <PageHeader
-          parent="Platforming Index"
+          parent="PlatInform"
           section="Ballpark"
-          title="How much complexity are you carrying?"
+          title="Calculate your platforming potential"
+          center={centered}
         />
 
         <Tabs
+          center={centered}
           active={tab}
           onSelect={(id) => setTab(id as TabId)}
           items={[
@@ -240,8 +250,8 @@ export default function IntakePage() {
         />
 
         {tab === "overview" && (
-          <section className="pt-14">
-            <StepStrip steps={STEPS} />
+          <section className="pt-14 text-center">
+            <StepStrip steps={STEPS} center />
             <p className="mt-16 text-[15px] text-text-2">
               Start with 8 questions and no upload. Two minutes, and you find
               out whether this is worth an afternoon.
@@ -386,10 +396,6 @@ export default function IntakePage() {
               />
             </QuestionRow>
 
-            <p className="pt-6 text-[13px] text-text-3">
-              Eight answers. No upload. The result is an estimate with its
-              arithmetic shown.
-            </p>
           </section>
         )}
 

@@ -6,7 +6,7 @@ Reference screenshots in this folder. Open them before styling anything.
 - `perlab-tariff-simulator.png`: left sidebar navigation and dense data table.
 - `velocity-how-it-works.png`: the five-step "how it works" strip. Use this pattern for our own flow diagram.
 
-Match the visual language. Do not copy the PERLab or Kearney wordmark or logo. Our product name in the top bar is "Platforming Index".
+Match the visual language. Do not copy the PERLab or Kearney wordmark or logo. Our product name in the top bar is "PlatInform".
 
 Screenshots of our own pages live in `out/`.
 
@@ -54,7 +54,7 @@ Live in `app/tailwind.config.ts` as named colors and in `app/app/globals.css` as
 
 Shared components live in `app/components/ui/`.
 
-- **TopBar**: black, 44px tall, 48px gutter. "Platforming" bold, "Index" light, no logo. At the right, the client name in text-2 and a "Sample data" badge.
+- **TopBar**: black, 44px tall, 48px gutter. "PlatInform" in bold, one word, no logo. At the right, the client name in text-2 and a "Sample data" badge.
 - **PageHeader**: breadcrumb, then title, with optional right-side actions.
 - **Tabs**: plain text, active tab has a 1px white underline, a hairline (`line`) runs under the whole row. Our addition: a 6px `risk` dot after a tab whose answers are incomplete.
 - **Button**: pill, 34px tall, `panel-2` fill, 1px `line-2` border, white text. The `muted` variant (transparent fill, `line` border, text-3) is the disabled state of a primary action that is not ready yet.

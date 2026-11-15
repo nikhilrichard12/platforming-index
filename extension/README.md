@@ -1,6 +1,6 @@
-# Platforming Index extension
+# PlatInform extension
 
-The way people reach the Platforming Index outside the dashboard. It does two
+The way people reach PlatInform outside the dashboard. It does two
 things: it opens a side panel that checks whatever page you are reading
 against the parts your company already buys, and it keeps the inline card on
 part request forms for the moment a part number would be born.

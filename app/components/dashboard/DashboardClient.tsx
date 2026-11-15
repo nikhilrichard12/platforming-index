@@ -4,23 +4,15 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { UserProfile, EMPTY_PROFILE, Role } from "@/lib/types";
 import { loadProfile } from "@/lib/profile";
 import { buildSystemPrompt } from "@/lib/agent/buildSystemPrompt";
-import { roleViewFor } from "@/lib/roleViews";
 import { FUNCTION_IDENTITY, shortRole } from "@/lib/roles";
 import { FUNCTION_ICON } from "@/components/ui/FunctionIcons";
-import { FunctionName, functionFor } from "@/lib/survey";
-import { VoltaraData, deriveVoltaraData, usd } from "@/lib/voltaraData";
+import { functionFor } from "@/lib/survey";
+import { VoltaraData, deriveVoltaraData } from "@/lib/voltaraData";
+import { emphasisFor, groupOf, roleFromParam, tilesFor } from "@/lib/roleHighlights";
 import { SurveyFile } from "@/lib/survey";
-import { MatcherEval } from "@/lib/similarity";
 import { Decision, Rule } from "@/lib/rules";
 import { computeIndexFor } from "@/lib/index";
-import {
-  Grouping,
-  GroupingId,
-  ReviewPair,
-  priceGapOf,
-  reviewedGrouping,
-  regroup,
-} from "@/lib/grouping";
+import { Grouping, GroupingId, reviewedGrouping, regroup } from "@/lib/grouping";
 import {
   AlignmentDecision,
   AlignmentQuestionId,
@@ -44,21 +36,6 @@ import { useActivity } from "./ActivityTable";
 
 type TabId = "summary" | "inventory" | "alignment";
 
-/** The three prompts under the assistant's first message, per tab. */
-const TAB_QUESTIONS: Record<TabId, string[] | null> = {
-  summary: null, // the role's own suggested questions
-  inventory: [
-    "Which part should we consolidate first?",
-    "Why do names differ across products?",
-    "What needs engineering review?",
-  ],
-  alignment: [
-    "Where do we disagree most?",
-    "Who should own part decisions?",
-    "What does the data say about variants?",
-  ],
-};
-
 interface ChatMessage {
   role: "user" | "assistant";
   content: string;
@@ -72,6 +49,24 @@ const TAG_LABEL: Record<string, string> = {
   survey: "Survey",
   kearney_survey: "Kearney survey, 2026",
 };
+
+/** Three dots that pulse in turn while the assistant is working on an answer. */
+function ThinkingDots() {
+  return (
+    <span role="status" aria-label="The assistant is answering" className="flex h-[21px] items-center gap-[6px]">
+      {[0, 1, 2].map((i) => (
+        <span
+          key={i}
+          className="block h-[7px] w-[7px] animate-pulse rounded-full bg-text-3 motion-reduce:animate-none"
+          style={{ animationDelay: `${i * 180}ms`, animationDuration: "1s" }}
+        />
+      ))}
+    </span>
+  );
+}
+
+/** The dots always show for at least this long, so an instant answer is still preceded by them. */
+const MIN_DOTS_MS = 450;
 
 /** Renders an assistant reply: paragraphs, bullets, and clickable evidence tags. */
 function Reply({
@@ -137,19 +132,16 @@ function Reply({
 export default function DashboardClient({
   data,
   survey,
-  evaluation,
   grouping,
-  reviewQueue,
   reuse,
-  basis,
 }: {
   data: VoltaraData;
   survey: SurveyFile;
-  /** How the matcher scored when it was graded blind, for the Inventory tab. */
-  evaluation: MatcherEval | null;
-  /** The matcher's own groups, and what it left for a person. */
+  /** The matcher's own groups. */
   grouping: Grouping;
-  reviewQueue: ReviewPair[];
+  /** Still sent by the page; the Inventory tab no longer shows what it feeds. */
+  evaluation?: unknown;
+  reviewQueue?: unknown;
   /** How much of the sample concept starts from an interface that exists. */
   reuse?: {
     concept: string;
@@ -168,8 +160,8 @@ export default function DashboardClient({
   const [live, setLive] = useState<boolean | null>(null);
   const [showPrompt, setShowPrompt] = useState(false);
   const [copied, setCopied] = useState<number | null>(null);
-  /** Clicking a function on the index block reads the same score as them. */
-  const [roleOverride, setRoleOverride] = useState<Role | "">("");
+  /** ?role=cfo|engineering|sales|ceo, for demos. It overrides the survey role. */
+  const [urlRole, setUrlRole] = useState<Role | "">("");
   const [source, setSource] = useState<SourceHit | null>(null);
   const [rules, setRules] = useState<Rule[]>([]);
   const [decisions, setDecisions] = useState<Decision[]>([]);
@@ -178,6 +170,7 @@ export default function DashboardClient({
 
   useEffect(() => {
     setProfile(loadProfile());
+    setUrlRole(roleFromParam(new URLSearchParams(window.location.search).get("role")));
   }, []);
 
   // Rules shape both the check and the assistant's instructions, so they live
@@ -210,10 +203,11 @@ export default function DashboardClient({
     if (latestId) refresh();
   }, [latestId, refresh]);
 
-  // Which grouping of the 252 part numbers the page is reading. The headline
-  // is the reviewed one; the matcher's own groups are one click away, and
-  // every figure that depends on grouping follows the switch.
-  const [groupingView, setGroupingView] = useState<GroupingId>("reviewed");
+  // Which grouping of the 252 part numbers the page is reading: the reviewed
+  // one, the groups an engineer confirmed. The Matcher only / After review
+  // switch is gone, so this stays put, and every figure that depends on
+  // grouping reads from it.
+  const [groupingView] = useState<GroupingId>("reviewed");
   const reviewed = useMemo(() => reviewedGrouping(data), [data]);
   const shownGrouping = groupingView === "matcher" ? grouping : reviewed;
   const shownData = useMemo(
@@ -234,14 +228,16 @@ export default function DashboardClient({
   );
   const liveData = { ...shownData, index };
 
-  const role = (roleOverride || profile.role || "CEO") as Role;
+  const role = (urlRole || profile.role || "CEO") as Role;
   // Stable between renders, so the orbit does not restart on every poll.
   const viewProfile = useMemo(() => ({ ...profile, role }), [profile, role]);
   const fn = functionFor(role) ?? "CEO";
   const identity = FUNCTION_IDENTITY[fn];
   const FnIcon = FUNCTION_ICON[fn];
-  const view = roleViewFor(role);
-  const kpis = view.kpis(shownData);
+  // Same data and layout for every role; the role decides which existing metrics lead.
+  const group = groupOf(role);
+  const kpis = tilesFor(group, shownData);
+  const emphasis = emphasisFor(group);
   const systemPrompt = buildSystemPrompt(profile, liveData, survey, rules);
 
   useEffect(() => {
@@ -293,6 +289,7 @@ export default function DashboardClient({
     setMessages([...next, { role: "assistant", content: "" }]);
     setInput("");
     setBusy(true);
+    const askedAt = Date.now();
 
     try {
       const res = await fetch("/api/agent", {
@@ -308,6 +305,10 @@ export default function DashboardClient({
       const reader = res.body?.getReader();
       const decoder = new TextDecoder();
       let acc = "";
+      // Demo answers arrive at once. Hold them back so the dots are seen first;
+      // a live answer keeps streaming into the buffer meanwhile.
+      const wait = MIN_DOTS_MS - (Date.now() - askedAt);
+      if (wait > 0) await new Promise((r) => setTimeout(r, wait));
       while (reader) {
         const { done, value } = await reader.read();
         if (done) break;
@@ -330,7 +331,7 @@ export default function DashboardClient({
       <div className="mx-auto flex h-full max-w-shell flex-col px-12">
         <PageHeader
           parent="Voltara Power Systems"
-          section="Platforming Index"
+          section="PlatInform"
           title={`${shortRole(role)} view`}
           titleIcon={<FnIcon size={24} />}
         />
@@ -341,7 +342,7 @@ export default function DashboardClient({
           items={[
             { id: "summary", label: "Summary" },
             { id: "inventory", label: "Inventory" },
-            { id: "alignment", label: "Alignment" },
+            { id: "alignment", label: "Alignment", lead: emphasis.has("alignment") },
           ]}
         />
 
@@ -354,18 +355,13 @@ export default function DashboardClient({
               <div className="space-y-5">
                 <IndexStrip
                   data={liveData}
-                  basis={basis}
-                  meaning={identity.meaning(shownData, index.score)}
                   fn={fn}
-                  onFunction={(f: FunctionName) =>
-                    setRoleOverride(FUNCTION_IDENTITY[f].role)
-                  }
-                  grouping={groupingView}
-                  onGrouping={setGroupingView}
-                  matcherGroups={grouping.groups.length}
-                  reviewedGroups={reviewed.groups.length}
-                  comparableGap={usd(priceGapOf(data, reviewed))}
+                  roleLabel={shortRole(role)}
+                  emphasis={emphasis}
                   reuse={reuse}
+                  onNextSteps={() =>
+                    ask(`What should I do next as ${shortRole(role)}? Recommend next steps from this analysis.`)
+                  }
                 />
                 <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
                   {[
@@ -429,9 +425,7 @@ export default function DashboardClient({
             {tab === "inventory" && (
               <PartsTab
                 data={data}
-                evaluation={evaluation}
-                grouping={grouping}
-                reviewQueue={reviewQueue}
+                emphasis={emphasis}
                 onAsk={ask}
                 onTag={(po) => setSource(data.rowsByPo[po] ?? null)}
               />
@@ -514,7 +508,7 @@ export default function DashboardClient({
                                 )}
                               </>
                             ) : (
-                              <p className="text-[14px] text-text-3">Thinking…</p>
+                              <ThinkingDots />
                             )}
                           </div>
                         </div>
@@ -524,20 +518,6 @@ export default function DashboardClient({
                 </div>
 
                 <div className="mt-5 shrink-0">
-                  {messages.length === 1 && (
-                    <div className="mb-3 flex flex-wrap gap-2">
-                      {(TAB_QUESTIONS[tab] ?? view.suggested).map((q) => (
-                        <button
-                          key={q}
-                          type="button"
-                          onClick={() => ask(q)}
-                          className="rounded-field border border-line-2 bg-transparent px-3 py-[6px] text-left text-[12px] leading-snug text-text-2 transition-colors hover:border-text-2 hover:text-text"
-                        >
-                          {q}
-                        </button>
-                      ))}
-                    </div>
-                  )}
                   <div className="flex items-end gap-3">
                     <div className="flex-1">
                       <Field label="Ask about any number" dense>
@@ -560,16 +540,10 @@ export default function DashboardClient({
                       Send
                     </Button>
                   </div>
-                  {live !== null && (
+                  {live && (
                     <div className="mt-3 flex items-center gap-2">
-                      <span
-                        className={`block h-[6px] w-[6px] rounded-full ${
-                          live ? "bg-positive" : "bg-warn"
-                        }`}
-                      />
-                      <span className="text-[12px] text-text-3">
-                        {live ? "Live" : "Offline: fixed answers"}
-                      </span>
+                      <span className="block h-[6px] w-[6px] rounded-full bg-positive" />
+                      <span className="text-[12px] text-text-3">Live</span>
                     </div>
                   )}
                 </div>

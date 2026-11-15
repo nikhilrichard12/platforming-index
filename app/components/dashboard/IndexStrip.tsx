@@ -3,16 +3,13 @@
 import { useState } from "react";
 import Badge from "@/components/ui/Badge";
 import CountUp from "@/components/ui/CountUp";
-import ScoreNote from "./BallparkNote";
 import ScoreGauge from "./ScoreGauge";
 import { FUNCTION_ICON, IconInterface } from "@/components/ui/FunctionIcons";
 import { ComputedIndex, scoreMethod } from "@/lib/index";
-import { GroupingId } from "@/lib/grouping";
+import { Emphasis } from "@/lib/roleHighlights";
 import { FUNCTION_IDENTITY, FUNCTIONS } from "@/lib/roles";
 import { FunctionName } from "@/lib/survey";
 import { VoltaraData } from "@/lib/voltaraData";
-
-const STEPS = ["Cut cost today", "Consolidate duplicates", "Common core, modules"];
 
 /**
  * The score is the product, so it leads the page: one slim row carrying the
@@ -22,31 +19,21 @@ const STEPS = ["Cut cost today", "Consolidate duplicates", "Common core, modules
  */
 export default function IndexStrip({
   data,
-  basis,
-  meaning,
   fn,
-  onFunction,
-  matcherGroups,
-  reviewedGroups,
+  roleLabel,
+  emphasis,
   reuse,
+  onNextSteps,
 }: {
   data: VoltaraData & { index: ComputedIndex };
-  /** What the score was measured from, printed under the badge. */
-  basis?: string;
-  /** The same score said in this reader's unit. */
-  meaning?: string;
+  /** The reader's function, from the survey. It picks which unit reads brightest. */
   fn?: FunctionName;
-  onFunction?: (f: FunctionName) => void;
-  /**
-   * The Matcher only / After review switch is gone, so the page is always read
-   * from the reviewed grouping. The dashboard still sends these three; they are
-   * accepted so it keeps compiling, and not used.
-   */
-  grouping?: GroupingId;
-  onGrouping?: (id: GroupingId) => void;
-  comparableGap?: string;
-  matcherGroups?: number;
-  reviewedGroups?: number;
+  /** The reader's role, shown as plain text. It is fixed for the session. */
+  roleLabel?: string;
+  /** What this reader's role leads with; those items get a quiet outline. */
+  emphasis?: ReadonlySet<Emphasis>;
+  /** Asks the assistant for a recommendation for this reader's role. */
+  onNextSteps?: () => void;
   /** How much of a new product starts from an interface that already exists. */
   reuse?: {
     concept: string;
@@ -74,61 +61,17 @@ export default function IndexStrip({
             </div>
           </div>
 
-          <div>
-            <p className="text-[17px] leading-snug text-text">
-              Sharing parts, not yet a platform
-            </p>
-            {meaning && fn && (
-              <p className="mt-2 flex items-center gap-2 text-[13px] text-text-2">
-                <span className="text-text-2">
-                  {(() => {
-                    const Mark = FUNCTION_ICON[fn];
-                    return <Mark size={15} />;
-                  })()}
-                </span>
-                {meaning}
-              </p>
-            )}
-            {basis && <p className="mt-1 text-[12px] text-text-3">{basis}</p>}
-            <ScoreNote avoided={idx.avoided} />
-
-            {/* Where the parts count came from: a matcher, then a person. */}
-            {matcherGroups && reviewedGroups && (
-              <div className="mt-3 border-t border-line pt-3">
-                <p className="text-[13px] leading-snug text-text-2">
-                  Matcher found {matcherGroups} parts from {data.summary.partNumbers} part numbers.
-                  Engineer review confirmed {reviewedGroups}.
-                </p>
-                <p className="mt-2 text-[12px] leading-relaxed text-text-3">
-                  Every figure here is read from the {reviewedGroups} groups an engineer confirmed.
-                </p>
-              </div>
-            )}
-
-            <div className="mt-4 grid grid-cols-3 gap-4">
-              {STEPS.map((s, i) => {
-                const current = i + 1 === idx.step;
-                return (
-                  <div
-                    key={s}
-                    className={`border-t pt-2 ${current ? "border-text" : "border-line"}`}
-                  >
-                    <p className={`text-[11px] ${current ? "text-text" : "text-text-3"}`}>
-                      Step {i + 1}
-                      {current ? " · now" : ""}
-                    </p>
-                    <p
-                      className={`mt-1 text-[12px] leading-snug ${
-                        current ? "text-text" : "text-text-2"
-                      }`}
-                    >
-                      {s}
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+          <button
+            type="button"
+            onClick={onNextSteps}
+            disabled={!onNextSteps}
+            className="w-full rounded-field border border-line-2 px-5 py-4 text-left transition-colors hover:border-text-2 disabled:cursor-default disabled:hover:border-line-2"
+          >
+            <span className="block text-[17px] leading-snug text-text">What should you do next?</span>
+            <span className="mt-2 block text-[13px] leading-relaxed text-text-2">
+              Ask the assistant to explore this analysis and recommend next steps.
+            </span>
+          </button>
         </div>
 
         {/* The four dimensions, across the whole width, and beside them the
@@ -141,7 +84,7 @@ export default function IndexStrip({
           {idx.dimensions.map((d) => (
             <div key={d.name} title={`${d.basis} (${d.source})`}>
               <div className="flex items-baseline justify-between gap-3">
-                <span className="text-[12px] leading-tight text-text-2">{d.name}</span>
+                <span className={`text-[12px] leading-tight ${emphasis?.has("dimensions") ? "text-text" : "text-text-2"}`}>{d.name}</span>
                 <CountUp
                   value={d.score}
                   className="shrink-0 text-[12px] tabular-nums text-text-3"
@@ -161,7 +104,7 @@ export default function IndexStrip({
                 <span className="shrink-0 text-text-2">
                   <IconInterface size={14} />
                 </span>
-                <span className="text-[12px] leading-tight text-text-2">
+                <span className={`text-[12px] leading-tight ${emphasis?.has("interfaces") ? "text-text" : "text-text-2"}`}>
                   Start from what exists
                 </span>
               </div>
@@ -184,29 +127,27 @@ export default function IndexStrip({
         </div>
       </div>
 
-      {/* The same score, in five units */}
-      {onFunction && (
+      {/* The same score, in five units. The role is the survey's, shown as text. */}
+      {fn && (
         <div className="border-t border-line px-6 py-3">
-          <p className="text-[12px] text-text-3">Same score, five units</p>
+          <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+            <p className="text-[12px] text-text-3">Same score, five units</p>
+            {roleLabel && <p className="text-[12px] text-text-3">Viewing as {roleLabel}</p>}
+          </div>
           <div className="mt-2 flex flex-wrap gap-x-6 gap-y-2">
             {FUNCTIONS.map((f) => {
               const Mark = FUNCTION_ICON[f];
               const id = FUNCTION_IDENTITY[f];
               const figure = id.figure(data, idx.score);
               return (
-                <button
+                <div
                   key={f}
-                  type="button"
-                  onClick={() => onFunction(f)}
-                  title={`Read the dashboard as ${f}`}
-                  className={`flex items-center gap-2 text-left transition-colors ${
-                    f === fn ? "text-text" : "text-text-2 hover:text-text"
-                  }`}
+                  className={`flex items-center gap-2 ${f === fn ? "text-text" : "text-text-2"}`}
                 >
                   <Mark size={15} />
                   <span className="text-[12px] tabular-nums">{figure.value}</span>
                   <span className="text-[12px] text-text-3">{id.unit}</span>
-                </button>
+                </div>
               );
             })}
           </div>

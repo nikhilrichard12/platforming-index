@@ -304,7 +304,7 @@ export const SAMPLE_CONCEPT = {
 };
 
 export const PLAN_NOTE =
-  "A plan does not change the Platforming Index score. The score moves when an engineer records a decision on a real part.";
+  "A plan does not change the Complexity Index. The score moves when an engineer records a decision on a real part.";
 
 /* ---------- reading a page ---------- */
 
