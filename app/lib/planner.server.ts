@@ -3,7 +3,28 @@ import { matchCandidates } from "./matcher";
 import { matchInterface } from "./interfaces";
 import { blockingRules } from "./rules.server";
 import { originFromText, sourceFrom } from "./origin";
-import { Landing, PLAN_FLOOR, PlannedNeed, statusFor } from "./plan";
+import {
+  DISPLAY_FLOOR,
+  Landing,
+  PlannedNeed,
+  shorthandScore,
+  statusFor,
+  worthShowing,
+} from "./plan";
+import { Part } from "./voltaraData";
+
+/** The cheapest row of a part, for a match the shorthand pass found. */
+function cheapest(part: Part) {
+  const row = part.rows.reduce((lo, r) => (r.price < lo.price ? r : lo), part.rows[0]);
+  return {
+    pn: row.pn,
+    products: row.products,
+    supplier: row.supplier,
+    origin: row.origin,
+    price: row.price,
+    po: row.po,
+  };
+}
 
 /**
  * Where a list of needs lands against what the company already has. One
@@ -15,17 +36,63 @@ export function planNeeds(product: string, needs: string[]): PlannedNeed[] {
   const interfaces = loadInterfaces();
 
   return needs.map((need) => {
-    const best = matchCandidates(data, need, 0, 1)[0] ?? null;
-    const confidence = best?.confidence ?? 0;
+    const strict = matchCandidates(data, need, 0, 1)[0] ?? null;
+
+    // A page is written by a person, not copied from the catalogue. When the
+    // strict matcher finds nothing, the shorthand pass looks for the name
+    // under the noun: "gate driver 6ch" is the gate driver board.
+    // A mid-band match has to share a rating or real words, not just a noun.
+    const showable = strict ? worthShowing(need, strict.name) : false;
+    let best = showable ? strict : null;
+    let confidence = showable ? (strict?.confidence ?? 0) : 0;
+    if (confidence < DISPLAY_FLOOR) {
+      let found: { part: Part; score: number } | null = null;
+      for (const candidate of data.parts) {
+        const score = shorthandScore(need, candidate.name);
+        if (score > (found?.score ?? 0)) found = { part: candidate, score };
+      }
+      if (found && found.score >= DISPLAY_FLOOR) {
+        confidence = found.score;
+        best = {
+          name: found.part.name,
+          partNumberCount: found.part.rows.length,
+          products: found.part.products,
+          bestRow: cheapest(found.part),
+          minPrice: found.part.min,
+          maxPrice: found.part.max,
+          yearlySavingVsHighest: 0,
+          confidence: found.score,
+          matchedTokens: [],
+          rows: found.part.rows,
+        };
+      }
+    }
+
+    // A part worth showing is a part worth drawing, so the floor for both is
+    // the review band, not the confident one.
     const part =
-      best && confidence >= PLAN_FLOOR
-        ? data.parts.find((p) => p.name === best.name)
+      best && confidence >= DISPLAY_FLOOR
+        ? data.parts.find((p) => p.name === best!.name)
         : undefined;
 
     // Interface first, then part, then nothing: designing to an interface
     // brings its brackets, harness, firmware and tests with it, which a part
-    // on its own does not.
-    const hit = matchInterface(need, interfaces, part);
+    // on its own does not. A part that belongs to an interface lights it even
+    // when the words on the page say nothing about the boundary.
+    const hit =
+      matchInterface(need, interfaces, part) ??
+      (part
+        ? (() => {
+            const owner = interfaces.find((i) => i.parts.includes(part.id));
+            return owner
+              ? {
+                  interface: owner,
+                  agreed: [],
+                  why: `${part.name} is part of the ${owner.name}`,
+                }
+              : null;
+          })()
+        : null);
     const iface = hit
       ? {
           id: hit.interface.id,
@@ -40,7 +107,7 @@ export function planNeeds(product: string, needs: string[]): PlannedNeed[] {
       : undefined;
     const landing: Landing = iface ? "interface" : part ? "part" : "new";
 
-    if (!best || confidence < PLAN_FLOOR) {
+    if (!best || !part) {
       return { need, status: "new part needed", confidence, landing, iface };
     }
 

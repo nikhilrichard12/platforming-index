@@ -1,0 +1,58 @@
+{
+ "scene": "message",
+ "what": "An engineer asks a question in a chat and names the parts in prose.",
+ "page": "message.txt",
+ "product": "VRK-3000",
+ "title": "Message from Dani",
+ "expect": {
+  "productOnStage": "VRK-3000",
+  "interfacesLit": [
+   "IF-PWR-DCLINK",
+   "IF-PWR-HB"
+  ],
+  "needs": 5,
+  "matchedParts": 5,
+  "onInterface": 5,
+  "onPart": 0,
+  "newThinking": 0,
+  "line": "5 of 5 needs start from something Voltara already built. 0 need new thinking.",
+  "landings": [
+   {
+    "need": "Half bridge IGBT module 600 V 50 A",
+    "landing": "interface",
+    "confidence": 1,
+    "interface": "IF-PWR-HB",
+    "part": "Half Bridge IGBT Module 600V 50A"
+   },
+   {
+    "need": "Isolated gate driver board 6 channel",
+    "landing": "interface",
+    "confidence": 1,
+    "interface": "IF-PWR-HB",
+    "part": "Isolated Gate Driver Board 6 Channel"
+   },
+   {
+    "need": "DC link capacitor electrolytic 470 uF 450 V",
+    "landing": "interface",
+    "confidence": 1,
+    "interface": "IF-PWR-DCLINK",
+    "part": "Electrolytic DC Link Capacitor 470uF 450V"
+   },
+   {
+    "need": "Bleeder resistor 10k 10 W",
+    "landing": "interface",
+    "confidence": 1,
+    "interface": "IF-PWR-DCLINK",
+    "part": "Bleeder Resistor 10k 10W"
+   },
+   {
+    "need": "Film capacitor 20 uF 800 V",
+    "landing": "interface",
+    "confidence": 1,
+    "interface": "IF-PWR-DCLINK",
+    "part": "Film Capacitor 20uF 800V"
+   }
+  ]
+ },
+ "note": "Expected values are what POST /api/plan-product returns for this page text. Interfaces are curated sample data."
+}

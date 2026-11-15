@@ -1,3 +1,4 @@
+import { Subsystem } from "./interfaces";
 import { NeedTone, StageItem } from "./models/planStage";
 import type { StageSubject } from "./models/parts";
 import { PlannedNeed } from "./plan";
@@ -229,4 +230,99 @@ export function stageLabelFor(iface: {
 /** What an interface gives a product that designs to it, in one line. */
 export function inheritLine(inherits: string[]): string {
   return `You inherit: ${inherits.map((x) => x.toLowerCase()).join(", ")}.`;
+}
+
+/* ---------- goal mode ---------- */
+
+/**
+ * Engineers describe what they are building, not a parts list. "I'm designing
+ * the power stage for the next VRK-3000" names a subsystem and a product and
+ * nothing else, and a panel that answers that with an empty box is useless.
+ * These are the words that name a subsystem.
+ */
+const SUBSYSTEM_PHRASE: [Subsystem, RegExp, string][] = [
+  ["Power stage", /\b(power stage|inverter stage|power train|power electronics|power section)\b/i, "power stage"],
+  ["Cooling", /\b(cooling|thermal|airflow|heat path|fan system)\b/i, "cooling system"],
+  ["Control", /\b(control|controls|firmware|sensing|control board)\b/i, "control system"],
+  ["Enclosure", /\b(enclosure|cabinet|housing|chassis|envelope)\b/i, "enclosure"],
+  ["Energy storage", /\b(battery|batteries|energy storage|storage bay|module bay)\b/i, "battery system"],
+  ["I/O", /\b(i\/o|io|wiring entry|field wiring|front panel|comms|communications)\b/i, "I/O"],
+];
+
+export interface Goal {
+  subsystems: Subsystem[];
+  /** "power stage", for the headline. */
+  phrase: string;
+}
+
+/** The subsystems a page names, in the order they appear. */
+export function goalFrom(text: string): Goal | null {
+  const found = SUBSYSTEM_PHRASE.filter(([, pattern]) => pattern.test(text));
+  if (found.length === 0) return null;
+  return {
+    subsystems: found.map(([subsystem]) => subsystem),
+    phrase: found[0][2],
+  };
+}
+
+/**
+ * "Building a power stage for the VRK-3000? Voltara already has 2 interfaces
+ * for it, proven on 6 products." Proven on is the products carrying at least
+ * one of those interfaces, which is what a reader can go and look at.
+ */
+export function goalHeadline(
+  goal: Goal,
+  productId: string,
+  interfaces: { products: string[] }[]
+): string {
+  const n = interfaces.length;
+  const proven = new Set(interfaces.flatMap((i) => i.products)).size;
+  return `Building a ${goal.phrase} for the ${productId}? Voltara already has ${n} ${
+    n === 1 ? "interface" : "interfaces"
+  } for it, proven on ${proven} ${proven === 1 ? "product" : "products"}.`;
+}
+
+/* ---------- the figures under the stage ---------- */
+
+export interface StageFigure {
+  value: string;
+  label: string;
+}
+
+/**
+ * What this page is worth, from the parts it matched. Only figures the data
+ * can carry: a yearly cost is not one of them, because a product that does
+ * not exist yet has no volume to multiply by.
+ */
+export function stageFigures(
+  matched: { min: number; max: number; products: number }[],
+  money: (n: number) => string,
+  /** In goal mode nothing has been decided yet, so nothing is avoided yet. */
+  goal = false
+): StageFigure[] {
+  if (matched.length === 0) return [];
+  const best = matched.reduce((n, p) => n + p.min, 0);
+  const worst = matched.reduce((n, p) => n + p.max, 0);
+  const proven = matched.reduce((n, p) => Math.max(n, p.products), 0);
+
+  return [
+    {
+      value: String(matched.length),
+      label: goal
+        ? matched.length === 1
+          ? "part ready to use"
+          : "parts ready to use"
+        : matched.length === 1
+          ? "part number avoided"
+          : "part numbers avoided",
+    },
+    {
+      value: money(best),
+      label:
+        worst > best
+          ? `per unit at the best price already paid, ${money(worst - best)} more at the highest`
+          : "per unit at the price already paid",
+    },
+    { value: String(proven), label: proven === 1 ? "product proven on" : "products proven on" },
+  ];
 }

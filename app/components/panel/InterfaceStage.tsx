@@ -16,63 +16,88 @@ import { TOKEN } from "@/lib/anim";
 import {
   ProductScene,
   ProductSceneSpec,
-  SceneBlock,
   buildProductScene,
 } from "@/lib/models/productScene";
 
 /**
- * The stage is the answer.
+ * The stage answers the question, in the order a person would ask it.
  *
- * One product, drawn in line art from its own parts, turning slowly. Then the
- * interfaces this page lands on light up in accent, one after another, each
- * with the parts it owns grouped and outlined and named. Everything else in
- * the product stays grey, because everything else is still a part.
+ * The product draws itself in grey line art. Each part this page named lifts
+ * out of it, turns green and says its name. The parts that share an interface
+ * slide together, an accent outline closes around them and the boundary names
+ * itself. Anything with nothing behind it stays an empty yellow slot marked
+ * new. Then the product turns slowly until someone points at it.
+ *
+ * The whole sequence runs in about five seconds and no single move takes more
+ * than 600ms: a reader is waiting for an answer, not a show.
  */
 
 const FOV = 28;
-/**
- * The product fills this share of the stage. The fit is taken at the widest
- * turn, so a long product never clips as it comes round, which means it reads
- * a little smaller than this at every other angle.
- */
-const FILL = 0.82;
+/** The product fills this share of the stage at its widest turn. */
+const FILL = 0.85;
 const TURN_SECONDS = 20;
-const STEP_MS = 1500; // between one interface lighting and the next
-const LIGHT_MS = 420; // every transition stays under 600ms
-const GROW = 1.1;
+
+/* the sequence, in ms */
+const DRAW = 420;
+const PART_STEP = 420;
+const LIFT_MS = 260;
+const LABEL_HOLD = 800;
+const SETTLE_MS = 240;
+const GROUP_MS = 420;
+const OUTLINE_MS = 300;
 
 export interface StageCluster {
   id: string;
-  /** The line beside the lit cluster: "Power stage interface. On 6 products since 2019." */
+  /** "Half bridge power stage. On 6 products since 2019." */
   label: string;
   partIds: string[];
 }
 
+export interface StageMatch {
+  partId: string;
+  /** The part's name, shown while it is lifted. */
+  label: string;
+}
+
 export interface InterfaceStageHandle {
-  /** Run the lighting sequence again from the start. */
   replay(): void;
-  /** Make one cluster jump, for a card the reader clicked. */
   pulse(id: string): void;
 }
 
 interface Props {
   productId: string;
   parts: { id: string; name: string }[];
+  /** The parts this page matched, in page order. */
+  matched: StageMatch[];
   clusters: StageCluster[];
+  /** Needs with nothing behind them. */
+  newCount: number;
   shell: ProductSceneSpec["shell"];
-  /** A cluster the reader is pointing at somewhere else on the panel. */
   hovered?: string | null;
   onHover?: (id: string | null) => void;
   onSelect?: (id: string) => void;
+  /** Fires when the sequence lands, for the figures below the stage. */
+  onSettled?: () => void;
 }
 
 const GREY = new THREE.Color(TOKEN.text3);
-const LIT = new THREE.Color(TOKEN.accent);
+const GREEN = new THREE.Color(TOKEN.positive);
 const FACE = new THREE.Color(TOKEN.panel);
 const FACE_LIT = new THREE.Color(TOKEN.panel2);
 
 const InterfaceStage = forwardRef<InterfaceStageHandle, Props>(function InterfaceStage(
-  { productId, parts, clusters, shell, hovered, onHover, onSelect },
+  {
+    productId,
+    parts,
+    matched,
+    clusters,
+    newCount,
+    shell,
+    hovered,
+    onHover,
+    onSelect,
+    onSettled,
+  },
   ref
 ) {
   const reduced = useReducedMotion();
@@ -80,14 +105,23 @@ const InterfaceStage = forwardRef<InterfaceStageHandle, Props>(function Interfac
   const canvas = useRef<HTMLCanvasElement>(null);
   const labelLayer = useRef<HTMLDivElement>(null);
   const svg = useRef<SVGSVGElement>(null);
+  const settledRef = useRef<(() => void) | undefined>(undefined);
+  settledRef.current = onSettled;
 
   const [error, setError] = useState("");
-  const [lit, setLit] = useState<string[]>([]);
+  const [lit, setLit] = useState(0);
 
-  /** A new product or a new set of interfaces is a new scene. */
+  /** A new product, or new matches, is a new scene. */
   const key = useMemo(
-    () => `${productId}:${clusters.map((c) => c.id).join(",")}:${parts.length}`,
-    [productId, clusters, parts.length]
+    () =>
+      [
+        productId,
+        parts.length,
+        newCount,
+        matched.map((m) => m.partId).join(","),
+        clusters.map((c) => `${c.id}:${c.partIds.join("+")}`).join(","),
+      ].join("|"),
+    [productId, parts.length, newCount, matched, clusters]
   );
 
   const engine = useRef<{
@@ -98,42 +132,63 @@ const InterfaceStage = forwardRef<InterfaceStageHandle, Props>(function Interfac
     raf: number;
     last: number;
     paused: boolean;
-    visible: boolean;
+    turning: boolean;
     timeline: ReturnType<typeof createTimeline> | null;
-    /**
-     * How far each cluster has lit, 0 to 1, and how far it has grown, both
-     * indexed by the cluster's position. anime tweens the entries of a plain
-     * object by key, and a key has to be a plain one.
-     */
-    level: Record<number, number>;
-    scale: Record<number, number>;
-    index: Map<string, number>;
+    /** Driven by anime, all 0 to 1: the draw, then per part, cluster, slot. */
+    draw: { v: number };
+    green: Record<number, number>;
+    out: Record<number, number>;
+    partLabel: Record<number, number>;
+    group: Record<number, number>;
+    ring: Record<number, number>;
+    slot: Record<number, number>;
     raycaster: THREE.Raycaster;
     pointer: THREE.Vector2;
     hoverId: string | null;
   } | null>(null);
 
-  /** Paint one block for how lit its cluster is. */
-  const paint = useCallback((block: SceneBlock, t: number) => {
-    const edge = block.edges.material as THREE.LineBasicMaterial;
-    edge.color.copy(GREY).lerp(LIT, t);
-    edge.opacity = 0.9 + 0.1 * t;
-    const face = block.mesh.material as THREE.MeshBasicMaterial;
-    face.color.copy(FACE).lerp(FACE_LIT, t);
-  }, []);
-
   const apply = useCallback(() => {
     const e = engine.current;
     if (!e) return;
-    e.product.clusters.forEach((cluster, i) => {
-      const t = e.level[i] ?? 0;
-      const s = e.scale[i] ?? 1;
-      cluster.blocks.forEach((b) => paint(b, t));
-      const out = cluster.outline.material as THREE.LineBasicMaterial;
-      out.opacity = t * (e.hoverId === cluster.id ? 1 : 0.75);
-      cluster.group.scale.setScalar(s);
+    const { product } = e;
+
+    product.shell.forEach((line) => {
+      const m = (line as THREE.LineSegments).material as THREE.LineBasicMaterial;
+      m.opacity = ((line.userData.base as number) ?? 0.75) * e.draw.v;
     });
-  }, [paint]);
+
+    const indexOfPart = new Map(matched.map((m, i) => [m.partId, i]));
+    product.blocks.forEach((b) => {
+      const edge = b.edges.material as THREE.LineBasicMaterial;
+      const face = b.mesh.material as THREE.MeshBasicMaterial;
+      const i = indexOfPart.get(b.partId);
+      const green = i === undefined ? 0 : e.green[i] ?? 0;
+      const out = i === undefined ? 0 : e.out[i] ?? 0;
+      const ring = b.clusterId
+        ? product.clusters.findIndex((c) => c.id === b.clusterId)
+        : -1;
+      const pull = ring >= 0 ? e.group[ring] ?? 0 : 0;
+
+      edge.color.copy(GREY).lerp(GREEN, green);
+      edge.opacity = (0.9 + 0.1 * green) * e.draw.v;
+      face.color.copy(FACE).lerp(FACE_LIT, green);
+
+      b.mesh.position.copy(b.home).lerp(b.tight, pull).addScaledVector(b.lift, out);
+      b.mesh.scale.setScalar(1 + 0.12 * out);
+    });
+
+    product.clusters.forEach((c, i) => {
+      const t = e.ring[i] ?? 0;
+      const m = c.outline.material as THREE.LineBasicMaterial;
+      m.opacity = t * (e.hoverId === c.id ? 1 : 0.85);
+      c.outline.scale.set(Math.max(0.001, t), 1, 1);
+    });
+
+    product.slots.forEach((s, i) => {
+      const m = s.outline.material as THREE.LineBasicMaterial;
+      m.opacity = (e.slot[i] ?? 0) * 0.9;
+    });
+  }, [matched]);
 
   /* ---------- the scene ---------- */
 
@@ -162,7 +217,14 @@ const InterfaceStage = forwardRef<InterfaceStageHandle, Props>(function Interfac
     const product = buildProductScene({
       shell,
       parts,
+      matched: matched.map((m) => m.partId),
       clusters: clusters.map((c) => ({ id: c.id, partIds: c.partIds })),
+      newCount,
+    });
+    product.shell.forEach((line) => {
+      line.userData.base = (
+        (line as THREE.LineSegments).material as THREE.LineBasicMaterial
+      ).opacity;
     });
     scene.add(product.root);
 
@@ -174,24 +236,33 @@ const InterfaceStage = forwardRef<InterfaceStageHandle, Props>(function Interfac
       raf: 0,
       last: performance.now(),
       paused: false,
-      visible: true,
+      turning: false,
       timeline: null as ReturnType<typeof createTimeline> | null,
-      level: {} as Record<number, number>,
-      scale: {} as Record<number, number>,
-      index: new Map(product.clusters.map((c, i) => [c.id, i])),
+      draw: { v: 0 },
+      green: {} as Record<number, number>,
+      out: {} as Record<number, number>,
+      partLabel: {} as Record<number, number>,
+      group: {} as Record<number, number>,
+      ring: {} as Record<number, number>,
+      slot: {} as Record<number, number>,
       raycaster: new THREE.Raycaster(),
       pointer: new THREE.Vector2(-2, -2),
       hoverId: null as string | null,
     };
-    product.clusters.forEach((_, i) => {
-      e.level[i] = 0;
-      e.scale[i] = 1;
+    matched.forEach((_, i) => {
+      e.green[i] = 0;
+      e.out[i] = 0;
+      e.partLabel[i] = 0;
     });
+    product.clusters.forEach((_, i) => {
+      e.group[i] = 0;
+      e.ring[i] = 0;
+    });
+    product.slots.forEach((_, i) => (e.slot[i] = 0));
     engine.current = e;
 
-    // The camera sits where the product fills its share of the stage at its
-    // widest turn, so nothing clips as it comes round. Every corner of the
-    // model is checked at a ring of angles, the way the part viewer does it.
+    // The camera fits the product at its widest turn, so nothing clips as it
+    // comes round. Every corner is checked at a ring of angles.
     const bounds = new THREE.Box3().setFromObject(product.spin);
     const centre = new THREE.Vector3();
     bounds.getCenter(centre);
@@ -201,7 +272,6 @@ const InterfaceStage = forwardRef<InterfaceStageHandle, Props>(function Interfac
         for (const z of [bounds.min.z, bounds.max.z])
           corners.push(new THREE.Vector3(x, y, z).sub(centre));
 
-    // A flat product is read from above; an upright one almost face on.
     const elevation = shell === "rack" ? 0.42 : 0.16;
     const up = new THREE.Vector3(0, 1, 0);
     const dir = new THREE.Vector3();
@@ -253,61 +323,85 @@ const InterfaceStage = forwardRef<InterfaceStageHandle, Props>(function Interfac
     fit();
 
     const project = new THREE.Vector3();
-    const draw = () => {
-      renderer.render(scene, camera);
-      // The labels ride on the cluster they name, so they follow the turn.
-      const layer = labelLayer.current;
-      const lines = svg.current;
-      if (!layer || !lines) return;
-      const w = box.clientWidth;
-      const h = box.clientHeight;
-      product.clusters.forEach((cluster, i) => {
-        const node = layer.querySelector<HTMLElement>(`[data-label="${cluster.id}"]`);
-        const line = lines.querySelector<SVGLineElement>(`[data-line="${cluster.id}"]`);
-        if (!node || !line) return;
-        const t = e.level[i] ?? 0;
-        if (t < 0.05) {
-          node.style.opacity = "0";
-          line.style.opacity = "0";
-          return;
-        }
-        project.copy(cluster.anchor).applyMatrix4(product.spin.matrixWorld).project(camera);
-        const x = (project.x * 0.5 + 0.5) * w;
-        const y = (-project.y * 0.5 + 0.5) * h;
-
-        // Labels keep their own slots down the left edge, in the order the
-        // interfaces lit. They never cover each other, and the leader line
-        // does the pointing.
-        const lx = 6;
-        const ly = 6 + i * (node.offsetHeight + 6);
-        node.style.transform = `translate(${lx}px, ${ly}px)`;
-        node.style.opacity = String(t);
+    /** Put one label in its slot down the left edge, pointing at its subject. */
+    const place = (
+      node: HTMLElement,
+      line: SVGLineElement | null,
+      anchor: THREE.Vector3,
+      t: number,
+      slot: number,
+      w: number,
+      h: number
+    ) => {
+      if (t < 0.05) {
+        node.style.opacity = "0";
+        if (line) line.style.opacity = "0";
+        return;
+      }
+      project.copy(anchor).applyMatrix4(product.spin.matrixWorld).project(camera);
+      const x = (project.x * 0.5 + 0.5) * w;
+      const y = (-project.y * 0.5 + 0.5) * h;
+      const lx = 6;
+      const ly = Math.min(h - node.offsetHeight - 6, 6 + slot * (node.offsetHeight + 6));
+      node.style.transform = `translate(${lx}px, ${ly}px)`;
+      node.style.opacity = String(t);
+      if (line) {
         line.setAttribute("x1", String(lx + node.offsetWidth));
         line.setAttribute("y1", String(ly + node.offsetHeight / 2));
         line.setAttribute("x2", x.toFixed(1));
         line.setAttribute("y2", y.toFixed(1));
         line.style.opacity = String(t * 0.9);
+      }
+    };
+
+    const lifted = new THREE.Vector3();
+    const draw = () => {
+      renderer.render(scene, camera);
+      const layer = labelLayer.current;
+      const lines = svg.current;
+      if (!layer || !lines) return;
+      const w = box.clientWidth;
+      const h = box.clientHeight;
+
+      product.clusters.forEach((cluster, i) => {
+        const node = layer.querySelector<HTMLElement>(`[data-label="${cluster.id}"]`);
+        const line = lines.querySelector<SVGLineElement>(`[data-line="${cluster.id}"]`);
+        if (node) place(node, line, cluster.anchor, e.ring[i] ?? 0, i, w, h);
+      });
+
+      matched.forEach((m, i) => {
+        const node = layer.querySelector<HTMLElement>(`[data-part-label="${m.partId}"]`);
+        const line = lines.querySelector<SVGLineElement>(`[data-part-line="${m.partId}"]`);
+        const block = product.byPart.get(m.partId);
+        if (!node || !block) return;
+        lifted.copy(block.mesh.position).add(new THREE.Vector3(0, block.size.y, 0));
+        place(node, line, lifted, e.partLabel[i] ?? 0, product.clusters.length, w, h);
+      });
+
+      product.slots.forEach((s, i) => {
+        const node = layer.querySelector<HTMLElement>(`[data-slot="${i}"]`);
+        if (node)
+          place(node, null, s.anchor, e.slot[i] ?? 0, product.clusters.length + 1 + i, w, h);
       });
     };
 
     const frame = (now: number) => {
       const dt = Math.min(0.05, (now - e.last) / 1000);
       e.last = now;
-      if (!e.paused && !reduced) {
+      if (e.turning && !e.paused && !reduced) {
         product.spin.rotation.y += (dt * Math.PI * 2) / TURN_SECONDS;
       }
       product.spin.updateMatrixWorld();
 
-      // What the pointer is over, so a lit part can name its own card.
       if (e.pointer.x > -1.5) {
         e.raycaster.setFromCamera(e.pointer, camera);
         const hit = e.raycaster.intersectObjects(
-          product.clusters.flatMap((c) => c.blocks.map((b) => b.mesh)),
+          product.blocks.map((b) => b.mesh),
           false
         )[0];
         const id = (hit?.object.userData.clusterId as string) ?? null;
-        const at = id ? e.index.get(id) : undefined;
-        const alive = id && at !== undefined && (e.level[at] ?? 0) > 0.5 ? id : null;
+        const at = id ? product.clusters.findIndex((c) => c.id === id) : -1;
+        const alive = at >= 0 && (e.ring[at] ?? 0) > 0.5 ? id : null;
         if (alive !== e.hoverId) {
           e.hoverId = alive;
           onHover?.(alive);
@@ -321,11 +415,12 @@ const InterfaceStage = forwardRef<InterfaceStageHandle, Props>(function Interfac
     e.raf = requestAnimationFrame(frame);
 
     const onVisibility = () => {
-      e.visible = !document.hidden;
-      if (e.visible && !e.raf) e.raf = requestAnimationFrame(frame);
-      if (!e.visible) {
+      if (document.hidden) {
         cancelAnimationFrame(e.raf);
         e.raf = 0;
+      } else if (!e.raf) {
+        e.last = performance.now();
+        e.raf = requestAnimationFrame(frame);
       }
     };
     document.addEventListener("visibilitychange", onVisibility);
@@ -339,43 +434,91 @@ const InterfaceStage = forwardRef<InterfaceStageHandle, Props>(function Interfac
       renderer.dispose();
       engine.current = null;
     };
-    // The scene is rebuilt only when the product or its interfaces change.
+    // The scene is rebuilt only when the product or its matches change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key, reduced]);
 
-  /* ---------- the lighting sequence ---------- */
+  /* ---------- the sequence ---------- */
 
   const play = useCallback(() => {
     const e = engine.current;
     if (!e) return;
     e.timeline?.revert();
     e.timeline = null;
+    e.turning = false;
 
-    const ids = e.product.clusters.map((c) => c.id);
+    const parts = Object.keys(e.green).length;
+    const rings = e.product.clusters.length;
+    const slots = e.product.slots.length;
+
     if (reduced) {
-      ids.forEach((_, i) => {
-        e.level[i] = 1;
-        e.scale[i] = GROW;
-      });
-      setLit(ids);
+      e.draw.v = 1;
+      for (let i = 0; i < parts; i++) {
+        e.green[i] = 1;
+        e.out[i] = 0;
+        e.partLabel[i] = 0;
+      }
+      for (let i = 0; i < rings; i++) {
+        e.group[i] = 1;
+        e.ring[i] = 1;
+      }
+      for (let i = 0; i < slots; i++) e.slot[i] = 1;
       apply();
+      setLit(rings);
+      settledRef.current?.();
       return;
     }
 
-    ids.forEach((_, i) => {
-      e.level[i] = 0;
-      e.scale[i] = 1;
-    });
-    setLit([]);
+    e.draw.v = 0;
+    for (let i = 0; i < parts; i++) {
+      e.green[i] = 0;
+      e.out[i] = 0;
+      e.partLabel[i] = 0;
+    }
+    for (let i = 0; i < rings; i++) {
+      e.group[i] = 0;
+      e.ring[i] = 0;
+    }
+    for (let i = 0; i < slots; i++) e.slot[i] = 0;
+    setLit(0);
 
-    // One interface lights at a time, 1.5s apart, and both hold.
     const tl = createTimeline({ defaults: { ease: "outQuad" } });
-    ids.forEach((id, i) => {
-      const at = 200 + i * STEP_MS;
-      tl.add(e.level, { [i]: 1, duration: LIGHT_MS }, at)
-        .add(e.scale, { [i]: GROW, duration: LIGHT_MS, ease: "outBack" }, at)
-        .call(() => setLit((l) => (l.includes(id) ? l : [...l, id])), at);
-    });
+
+    // a) the product draws itself
+    tl.add(e.draw, { v: 1, duration: DRAW }, 0);
+
+    // b) each matched part lifts out, turns green, says its name, settles
+    let at = DRAW + 160;
+    for (let i = 0; i < parts; i++) {
+      tl.add(e.out, { [i]: 1, duration: LIFT_MS, ease: "outBack" }, at)
+        .add(e.green, { [i]: 1, duration: LIFT_MS }, at)
+        .add(e.partLabel, { [i]: 1, duration: 150 }, at + 60)
+        .add(e.partLabel, { [i]: 0, duration: 150 }, at + 60 + LABEL_HOLD)
+        .add(e.out, { [i]: 0, duration: SETTLE_MS, ease: "inOutQuad" }, at + LABEL_HOLD + 150);
+      at += PART_STEP;
+    }
+
+    // c) each interface closes its group and names itself
+    let ringAt = at + 100;
+    for (let i = 0; i < rings; i++) {
+      tl.add(e.group, { [i]: 1, duration: GROUP_MS, ease: "inOutQuad" }, ringAt)
+        .add(e.ring, { [i]: 1, duration: OUTLINE_MS }, ringAt + GROUP_MS - 120)
+        .call(() => setLit((n) => Math.max(n, i + 1)), ringAt + GROUP_MS);
+      ringAt += 300;
+    }
+
+    // d) what has no home yet
+    const slotAt = ringAt + 100;
+    for (let i = 0; i < slots; i++) {
+      tl.add(e.slot, { [i]: 1, duration: 260 }, slotAt + i * 90);
+    }
+
+    // e) and then it turns
+    tl.call(() => {
+      e.turning = true;
+      settledRef.current?.();
+    }, slotAt + slots * 90 + 300);
+
     e.timeline = tl;
   }, [reduced, apply]);
 
@@ -383,19 +526,10 @@ const InterfaceStage = forwardRef<InterfaceStageHandle, Props>(function Interfac
     play();
   }, [play, key]);
 
-  /** A cluster the reader is pointing at from the cards. */
   useEffect(() => {
     const e = engine.current;
     if (!e) return;
     e.hoverId = hovered ?? e.hoverId;
-    e.product.clusters.forEach((c, i) => {
-      if ((e.level[i] ?? 0) < 0.5) return;
-      animate(e.scale, {
-        [i]: hovered === c.id ? GROW + 0.06 : GROW,
-        duration: 240,
-        ease: "outQuad",
-      });
-    });
   }, [hovered]);
 
   useImperativeHandle(
@@ -404,19 +538,13 @@ const InterfaceStage = forwardRef<InterfaceStageHandle, Props>(function Interfac
       replay: () => play(),
       pulse: (id: string) => {
         const e = engine.current;
-        const i = e?.index.get(id);
-        if (!e || i === undefined || (e.level[i] ?? 0) < 0.5 || reduced) return;
-        animate(e.scale, {
-          [i]: [GROW, GROW + 0.14, GROW],
-          duration: 420,
-          ease: "inOutQuad",
-        });
+        const i = e?.product.clusters.findIndex((c) => c.id === id) ?? -1;
+        if (!e || i < 0 || (e.ring[i] ?? 0) < 0.5 || reduced) return;
+        animate(e.ring, { [i]: [1, 0.25, 1], duration: 420, ease: "inOutQuad" });
       },
     }),
     [play, reduced]
   );
-
-  /* ---------- pointer ---------- */
 
   function onPointerMove(ev: React.PointerEvent<HTMLCanvasElement>) {
     const e = engine.current;
@@ -428,11 +556,6 @@ const InterfaceStage = forwardRef<InterfaceStageHandle, Props>(function Interfac
       -((ev.clientY - rect.top) / rect.height) * 2 + 1
     );
   }
-
-  const byId = useMemo(
-    () => new Map(clusters.map((c) => [c.id, c])),
-    [clusters]
-  );
 
   return (
     <div className="relative h-full w-full bg-panel">
@@ -457,9 +580,7 @@ const InterfaceStage = forwardRef<InterfaceStageHandle, Props>(function Interfac
         <canvas
           ref={canvas}
           role="img"
-          aria-label={`${productId}, with ${clusters.length} matched ${
-            clusters.length === 1 ? "interface" : "interfaces"
-          } lit`}
+          aria-label={`${productId}, ${matched.length} parts matched, ${clusters.length} interfaces`}
           onPointerMove={onPointerMove}
           onClick={() => {
             const id = engine.current?.hoverId;
@@ -484,6 +605,15 @@ const InterfaceStage = forwardRef<InterfaceStageHandle, Props>(function Interfac
               style={{ opacity: 0 }}
             />
           ))}
+          {matched.map((m) => (
+            <line
+              key={m.partId}
+              data-part-line={m.partId}
+              stroke={TOKEN.positive}
+              strokeWidth="1"
+              style={{ opacity: 0 }}
+            />
+          ))}
         </svg>
 
         <div ref={labelLayer} className="pointer-events-none absolute inset-0">
@@ -494,18 +624,44 @@ const InterfaceStage = forwardRef<InterfaceStageHandle, Props>(function Interfac
               style={{ opacity: 0 }}
               className="absolute left-0 top-0 w-[58%] border border-line bg-panel px-2 py-[3px] text-[11px] leading-tight text-text"
             >
-              {byId.get(c.id)?.label}
+              {c.label}
+            </div>
+          ))}
+          {matched.map((m) => (
+            <div
+              key={m.partId}
+              data-part-label={m.partId}
+              style={{ opacity: 0 }}
+              className="absolute left-0 top-0 w-[58%] truncate border border-line bg-panel px-2 py-[3px] text-[11px] leading-tight text-positive"
+            >
+              {m.label}
+            </div>
+          ))}
+          {Array.from({ length: newCount }, (_, i) => (
+            <div
+              key={i}
+              data-slot={i}
+              style={{ opacity: 0 }}
+              className="absolute left-0 top-0 border border-line bg-panel px-2 py-[2px] text-[11px] leading-tight text-warn"
+            >
+              new
             </div>
           ))}
         </div>
+
+        <button
+          type="button"
+          onClick={() => play()}
+          className="absolute bottom-2 right-2 h-[26px] rounded-full border border-line-2 bg-panel-2 px-3 text-[12px] text-text transition-colors hover:border-text-2"
+        >
+          Replay
+        </button>
       </div>
 
-      <p className="pointer-events-none absolute bottom-[6px] left-2 text-[10px] leading-[12px] text-text-3">
+      <p className="pointer-events-none absolute bottom-[8px] left-2 text-[10px] leading-[12px] text-text-3">
         {productId}
-        {lit.length > 0
-          ? `, ${lit.length} ${lit.length === 1 ? "interface" : "interfaces"} lit`
-          : ""}
-        . Illustrative, not CAD.
+        {lit > 0 ? `, ${lit} ${lit === 1 ? "interface" : "interfaces"} lit` : ""}.
+        Illustrative, not CAD.
       </p>
     </div>
   );

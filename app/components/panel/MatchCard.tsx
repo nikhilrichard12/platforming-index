@@ -4,7 +4,7 @@ import Badge from "@/components/ui/Badge";
 import { Button, PrimaryButton } from "@/components/ui/Button";
 import ReasonPicker from "@/components/ui/ReasonPicker";
 import { originLine } from "@/lib/origin";
-import { PlannedNeed } from "@/lib/plan";
+import { PLAN_FLOOR, PlannedNeed } from "@/lib/plan";
 import { ReasonKind } from "@/lib/rules";
 import { px } from "@/lib/voltaraData";
 
@@ -110,7 +110,9 @@ export default function MatchCard({
           <p className="mt-1 flex items-baseline justify-between gap-2 text-[12px] text-text-2">
             <span className="min-w-0 truncate">
               {px(need.price ?? 0)} from {need.supplier}, {need.origin}
-              {need.confidence < 0.6 && <span className="ml-1 text-text-3">check fit</span>}
+              {need.confidence < PLAN_FLOOR && (
+                <span className="ml-1 text-text-3">check fit</span>
+              )}
             </span>
             {need.po && <span className="shrink-0 font-mono text-[11px] text-text-3">[{need.po}]</span>}
           </p>

@@ -1,0 +1,7 @@
+Velocity AI Studio
+
+Dani Park
+
+I'm working on the Voltara VRK-3000 refresh. The power stage needs: Half bridge IGBT module 600 V 50 A. Isolated gate driver board 6 channel. DC link capacitor electrolytic 470 uF 450 V. Bleeder resistor 10k 10 W. Film capacitor 20 uF 800 V. What should I keep in mind before layout starts?
+
+Ask a follow up question

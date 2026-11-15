@@ -1,6 +1,8 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { animate, utils } from "animejs";
+import useReducedMotion from "@/components/ui/useReducedMotion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Badge from "@/components/ui/Badge";
 import Field from "@/components/ui/Field";
@@ -8,7 +10,7 @@ import { Button, PrimaryButton } from "@/components/ui/Button";
 import MatchCard from "./MatchCard";
 import InterfaceCards, { InterfaceCardData, NewThinkingCard } from "./InterfaceCards";
 import PartsYouBuy, { StageLegend } from "./PartsYouBuy";
-import type { InterfaceStageHandle, StageCluster } from "./InterfaceStage";
+import type { InterfaceStageHandle, StageCluster, StageMatch } from "./InterfaceStage";
 import {
   ASK_FLOOR,
   PlanResult,
@@ -23,12 +25,15 @@ import {
   PANEL_READY,
   PageContext,
   TEST_PROFILE,
+  goalFrom,
+  goalHeadline,
   panelQuestions,
   partsOfProduct,
   productFromTitle,
   readStored,
   resolveProduct,
   stageCounts,
+  stageFigures,
   stageItemsFor,
   stageLabelFor,
   textKey,
@@ -37,7 +42,7 @@ import {
 import { shellFor } from "@/lib/models/productScene";
 import { PlatformInterface } from "@/lib/interfaces";
 import { shortRole } from "@/lib/roles";
-import { PRODUCT_MASTER, VoltaraData } from "@/lib/voltaraData";
+import { PRODUCT_MASTER, VoltaraData, usd } from "@/lib/voltaraData";
 
 // Three.js is large and only runs in the browser, so it loads on its own.
 const InterfaceStage = dynamic(() => import("./InterfaceStage"), {
@@ -48,6 +53,43 @@ const InterfaceStage = dynamic(() => import("./InterfaceStage"), {
 interface ChatMessage {
   role: "user" | "assistant";
   content: string;
+}
+
+/**
+ * The headline, with its first number counting up once the stage has landed.
+ * The sentence is the answer; the count is what makes a reader look at it.
+ */
+function CountingLine({ text, run }: { text: string; run: boolean }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const reduced = useReducedMotion();
+  const done = useRef("");
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || !run || done.current === text) return;
+    done.current = text;
+    const m = /^([^\d]*)(\d+)([\s\S]*)$/.exec(text);
+    if (!m || reduced) {
+      el.textContent = text;
+      return;
+    }
+    const target = Number(m[2]);
+    const counter = { v: 0 };
+    animate(counter, {
+      v: target,
+      duration: 600,
+      ease: "outQuad",
+      modifier: utils.round(0),
+      onUpdate: () => {
+        el.textContent = `${m[1]}${Math.round(counter.v)}${m[3]}`;
+      },
+      onComplete: () => {
+        el.textContent = text;
+      },
+    });
+  }, [text, run, reduced]);
+
+  return <span ref={ref}>{text}</span>;
 }
 
 export default function PanelClient({
@@ -73,11 +115,13 @@ export default function PanelClient({
   const stage = useRef<InterfaceStageHandle>(null);
   /** An interface the reader is pointing at, on the stage or on a card. */
   const [hovered, setHovered] = useState<string | null>(null);
+  /** True once the stage sequence has landed, so the figures can count in. */
+  const [landed, setLanded] = useState(false);
 
   /** Interfaces adopted and needs proposed on this page, this search. */
   const [adopted, setAdopted] = useState<string[]>([]);
   const [proposed, setProposed] = useState<string[]>([]);
-  const [settled, setSettled] = useState<string[]>([]);
+  const [settledNeeds, setSettledNeeds] = useState<string[]>([]);
   const [recording, setRecording] = useState("");
 
   const [declining, setDeclining] = useState(false);
@@ -156,18 +200,103 @@ export default function PanelClient({
     });
   }, [matched, interfaces, productParts, data.parts]);
 
+  /**
+   * Goal mode. A page that names what it is building rather than what it is
+   * made of still has an answer: every interface the company already has in
+   * that subsystem, for that product.
+   */
+  const pageText = useMemo(
+    () => `${ctx.title} ${ctx.selection || ctx.text || ""}`,
+    [ctx.title, ctx.text, ctx.selection]
+  );
+  const partLike = plan?.needs.filter((n) => n.part).length ?? 0;
+  const goal = useMemo(() => goalFrom(pageText), [pageText]);
+  const goalMode = Boolean(goal && shown && partLike < 3);
+
+  const goalInterfaces = useMemo(() => {
+    if (!goalMode || !goal || !shown) return [];
+    return interfaces.filter(
+      (i) =>
+        goal.subsystems.includes(i.subsystem) && i.products.includes(shown.id)
+    );
+  }, [goalMode, goal, shown, interfaces]);
+
+  /** What the stage lights: the page's own interfaces, or the goal's. */
+  const liveCards = useMemo<(InterfaceCardData & { partIds: string[] })[]>(() => {
+    if (!goalMode) return cards;
+    const here = new Set(productParts.map((p) => p.id));
+    return goalInterfaces.map((i) => {
+      const partIds = i.parts.filter((id) => here.has(id));
+      return {
+        id: i.id,
+        name: i.name,
+        subsystem: i.subsystem,
+        spec: i.spec,
+        products: i.products,
+        since: i.since,
+        inherits: i.inherits,
+        needs: [],
+        partIds,
+        partNames: partIds.map(
+          (id) => data.parts.find((p) => p.id === id)?.name ?? id
+        ),
+      };
+    });
+  }, [goalMode, cards, goalInterfaces, productParts, data.parts]);
+
   /** Only an interface with parts in this product can light on the stage. */
   const stageClusters = useMemo<StageCluster[]>(
     () =>
-      cards
+      liveCards
         .filter((c) => c.partIds.length > 0)
         .map((c) => ({
           id: c.id,
           partIds: c.partIds,
           label: stageLabelFor(c),
         })),
-    [cards]
+    [liveCards]
   );
+
+  /** The parts the stage calls out, in the order the page named them. */
+  const stageMatched = useMemo<StageMatch[]>(() => {
+    if (goalMode) {
+      const seen = new Set<string>();
+      return liveCards
+        .flatMap((c) => c.partIds)
+        .filter((id) => !seen.has(id) && seen.add(id))
+        .map((id) => ({
+          partId: id,
+          label: data.parts.find((p) => p.id === id)?.name ?? id,
+        }));
+    }
+    const out: StageMatch[] = [];
+    for (const need of plan?.needs ?? []) {
+      const part = need.part ? data.parts.find((p) => p.name === need.part) : undefined;
+      if (part && !out.some((m) => m.partId === part.id)) {
+        out.push({ partId: part.id, label: part.name });
+      }
+    }
+    return out;
+  }, [goalMode, liveCards, plan, data.parts]);
+
+  /** Needs with nothing behind them get an empty slot on the stage. */
+  const newCount = goalMode
+    ? 0
+    : plan?.needs.filter((n) => !n.part).length ?? 0;
+
+  /** Three figures, from the parts this page matched. */
+  const figures = useMemo(() => {
+    const parts = stageMatched
+      .map((m) => data.parts.find((p) => p.id === m.partId))
+      .filter(Boolean) as VoltaraData["parts"];
+    return stageFigures(parts, usd, goalMode);
+  }, [stageMatched, data.parts, goalMode]);
+
+  const headline = goalMode && goal && shown
+    ? goalHeadline(goal, shown.id, goalInterfaces)
+    : plan
+      ? interfaceLine(plan.summary)
+      : "";
 
   // Each result is a new search: it replaces the plan and drops any override.
   const applyPlan = useCallback((next: PlanResult | null) => {
@@ -177,8 +306,9 @@ export default function PanelClient({
     setNote("");
     setAdopted([]);
     setProposed([]);
-    setSettled([]);
+    setSettledNeeds([]);
     setHovered(null);
+    setLanded(false);
   }, []);
 
   /* ---------- which card ---------- */
@@ -239,7 +369,10 @@ export default function PanelClient({
           return;
         }
         setStale(false);
-        if (result.needs.length < ASK_FLOOR && result.summary.covered === 0) {
+        // A page that says what it is building has an answer even with no
+        // parts named, so it goes to the stage, not to the ask form.
+        const statesGoal = Boolean(goalFrom(`${context.title} ${body}`));
+        if (!statesGoal && result.needs.length < ASK_FLOOR && result.summary.covered === 0) {
           // Too little to show and nothing matched. Ask, and show what was read.
           applyPlan(null);
           setAskName(name || productFromTitle(context.title));
@@ -356,7 +489,7 @@ export default function PanelClient({
       });
       setAdopted((a) => [...new Set([...a, iface.id])]);
       stage.current?.pulse(iface.id);
-      setSettled((s) => [...new Set([...s, ...iface.needs])]);
+      setSettledNeeds((s) => [...new Set([...s, ...iface.needs])]);
       setNote(
         `Designing to ${iface.name}. ${iface.needs.length} ${
           iface.needs.length === 1 ? "need" : "needs"
@@ -495,6 +628,8 @@ export default function PanelClient({
   const line1 = plan ? plan.product.name : ctx.title || askName || "No product yet";
   const line2 = need
     ? `Looking for ${need.part ?? need.need}`
+    : goalMode
+    ? "No parts named yet. This is what already exists."
     : plan
     ? `${plan.summary.total} needs read from this page`
     : busy
@@ -522,30 +657,33 @@ export default function PanelClient({
       </div>
 
       {/* 2) one product, with the interfaces this page lands on lit */}
-      {plan && (
+      {headline && (
         <p className="shrink-0 text-[12px] leading-snug text-text">
-          {interfaceLine(plan.summary)}
+          <CountingLine text={headline} run={landed} />
         </p>
       )}
 
-      {plan && shown && !shown.named && (
+      {(plan || goalMode) && shown && !shown.named && (
         <p className="shrink-0 text-[12px] text-text-3">
           Closest existing product: {shown.id}
         </p>
       )}
 
-      <div className="relative h-[360px] shrink-0">
+      <div className="relative h-[400px] shrink-0">
         <div className="absolute inset-0">
-          {plan && shown && productParts.length > 0 ? (
+          {(plan || goalMode) && shown && productParts.length > 0 ? (
             <InterfaceStage
               ref={stage}
               productId={shown.id}
               parts={productParts}
+              matched={stageMatched}
               clusters={stageClusters}
+              newCount={newCount}
               shell={shellFor(shown.id)}
               hovered={hovered}
               onHover={setHovered}
               onSelect={(id) => stage.current?.pulse(id)}
+              onSettled={() => setLanded(true)}
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-panel px-6 text-center">
@@ -557,7 +695,19 @@ export default function PanelClient({
         </div>
       </div>
 
-      {/* 3) the word itself, always on screen */}
+      {/* 3) what this page is worth, and the word itself */}
+      {figures.length > 0 && (
+        <div className="flex shrink-0 flex-wrap gap-x-4 gap-y-1">
+          {figures.map((f) => (
+            <p key={f.label} className="text-[12px] leading-snug text-text-2">
+              <span className="tabular-nums text-text">{f.value}</span>{" "}
+              <span className="text-text-3">{f.label}</span>
+            </p>
+          ))}
+        </div>
+      )}
+
+
       <p className="shrink-0 text-[12px] leading-snug text-text-2">
         An interface is a group of parts that connect the same way across
         products. Design to it and you inherit everything already built around
@@ -575,7 +725,7 @@ export default function PanelClient({
         {error && <p className="text-[12px] text-risk">{error}</p>}
         {note && <p className="bg-panel p-2 text-[12px] leading-snug text-text-2">{note}</p>}
 
-        {plan && (
+        {(plan || goalMode) && (
           <>
             {stale && (
               <button
@@ -588,7 +738,7 @@ export default function PanelClient({
             )}
 
             <InterfaceCards
-              interfaces={cards}
+              interfaces={liveCards}
               adopted={adopted}
               busy={recording}
               hovered={hovered}
@@ -597,7 +747,7 @@ export default function PanelClient({
               onSelect={(id) => stage.current?.pulse(id)}
             />
 
-            {cards.length === 0 && (
+            {plan && liveCards.length === 0 && (
               <NewThinkingCard
                 needs={plan.needs.filter((n) => n.landing === "new")}
                 proposed={proposed}
@@ -606,12 +756,14 @@ export default function PanelClient({
               />
             )}
 
+            {plan && (
             <PartsYouBuy
               needs={plan.needs}
-              settled={settled}
+              settled={settledNeeds}
               selected={need?.need}
               onPick={(n) => showCard(plan.needs.indexOf(n))}
             />
+            )}
           </>
         )}
 
@@ -636,10 +788,12 @@ export default function PanelClient({
           />
         )}
 
-        {busy && !plan && <p className="bg-panel p-3 text-[13px] text-text-2">Reading the page.</p>}
+        {busy && !plan && !goalMode && (
+          <p className="bg-panel p-3 text-[13px] text-text-2">Reading the page.</p>
+        )}
 
         {/* nothing readable: ask instead of showing an empty panel */}
-        {!plan && !busy && (
+        {!plan && !goalMode && !busy && (
           <div className="space-y-2 bg-panel p-3">
             <p className="text-[14px] text-text">What product are you working on?</p>
             {chips.length > 0 && (

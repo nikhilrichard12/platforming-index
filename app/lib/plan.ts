@@ -1,5 +1,5 @@
 import { ReasonKind } from "./rules";
-import { SAME } from "./similarity";
+import { REVIEW, SAME, parsePart, similarity } from "./similarity";
 
 /**
  * The concept check. Before a part number exists, a product is still a list of
@@ -24,11 +24,102 @@ export const NEED_STATUSES: NeedStatus[] = [
 ];
 
 /**
- * A need only counts as existing when the matcher is confident. The same
- * threshold lib/similarity.ts calls "same", so a plan never claims coverage
- * the part check would send to a person.
+ * A need only counts as a confident match when lib/similarity.ts calls the
+ * two descriptions the same part.
  */
 export const PLAN_FLOOR = SAME;
+
+/**
+ * A need shows the part it found from here up. Between this and PLAN_FLOOR a
+ * match is worth showing and worth checking, which is what an engineer does
+ * with it anyway: a page that says "gate driver 6ch" has found the board, it
+ * just has not spelled it the way the catalogue does.
+ */
+export const DISPLAY_FLOOR = REVIEW;
+
+/**
+ * Is this match worth putting on screen?
+ *
+ * Above PLAN_FLOOR the matcher is confident and the answer is yes. Below it,
+ * the two descriptions have to share something real: a rating that agrees, or
+ * two words. Sharing only a generic noun is not a match — a "bidirectional
+ * 30 kW power conversion module" and an "LCD display module" are both modules
+ * and nothing else, and a panel that showed one for the other would be lying
+ * to the person reading it.
+ */
+export function worthShowing(need: string, partName: string): boolean {
+  const s = similarity(need, partName);
+  if (s.score >= PLAN_FLOOR) return true;
+  if (s.score < DISPLAY_FLOOR) return false;
+  const agreeing = s.checks.filter((c) => c.agrees).length;
+  const shared = s.parsedA.words.filter((w) => s.parsedB.words.includes(w)).length;
+  return agreeing >= 1 || shared >= 2;
+}
+
+/**
+ * Nouns a catalogue adds and an engineer leaves off: "IGBT" is the "IGBT
+ * module", "gate driver" is the "gate driver board".
+ */
+const CONTAINER = new Set([
+  "module",
+  "board",
+  "card",
+  "unit",
+  "assembly",
+  "kit",
+  "pack",
+  "block",
+]);
+
+/**
+ * The shorthand an engineer writes, scored against a catalogue name.
+ *
+ * lib/similarity.ts is the company's definition of "the same part" and it is
+ * graded blind, so it stays strict: a different kind of thing is never the
+ * same part. This is a second look, used only when the strict pass finds
+ * nothing, for the case the strict pass is built to refuse — one side left
+ * the noun off. It can never return a confident score, because it is not
+ * confident: everything it finds is shown as a match to check.
+ */
+export function shorthandScore(need: string, partName: string): number {
+  const a = parsePart(need);
+  const b = parsePart(partName);
+  if (!a.type || !b.type || a.type === b.type) return 0;
+
+  const aWords = [a.type, ...a.words];
+  const bWords = [b.type, ...b.words];
+
+  // "IGBT" against "IGBT Module": the catalogue's head is a container noun
+  // and the word underneath it is the one the engineer wrote.
+  const sameUnderneath =
+    (CONTAINER.has(b.type) && aWords.includes(bWords[bWords.indexOf(b.type) - 1] ?? "")) ||
+    (CONTAINER.has(b.type) && bWords.includes(a.type)) ||
+    (CONTAINER.has(a.type) && aWords.includes(b.type));
+  // "bleeder" against "Bleeder Resistor": the engineer's head noun is not a
+  // kind of component this file knows, so it is read as a name, not a type.
+  const shorthandHead = !KNOWN_TYPE.test(a.type) && bWords.includes(a.type);
+
+  if (!sameUnderneath && !shorthandHead) return 0;
+
+  // Ratings still decide. One that disagrees ends it.
+  const unitsA = new Map(a.specs.map((s) => [s.unit, s.value]));
+  const unitsB = new Map(b.specs.map((s) => [s.unit, s.value]));
+  const shared = [...unitsA.keys()].filter((u) => unitsB.has(u));
+  const agreed = shared.filter((u) => unitsA.get(u) === unitsB.get(u));
+  if (agreed.length !== shared.length) return 0;
+
+  const words = aWords.filter((w) => bWords.includes(w)).length;
+  const share = shared.length === 0 ? 0 : agreed.length / shared.length;
+  // Never confident: the top of this scale sits below PLAN_FLOOR.
+  return Math.min(
+    0.84,
+    DISPLAY_FLOOR + 0.12 * share + 0.04 * Math.min(2, words)
+  );
+}
+
+/** The component nouns shorthandScore treats as a real type. */
+const KNOWN_TYPE =
+  /^(fan|guard|heatsink|pad|duct|capacitor|resistor|inductor|transformer|varistor|fuse|holder|relay|contactor|breaker|filter|busbar|lug|module|board|card|backplane|controller|sensor|display|supply|gateway|switch|block|terminal|connector|cable|harness|ribbon|gland|grommet|gasket|tie|standoff|screw|nut|washer|bolt|clip|bracket|battery|pack|cell|cabinet|chassis|frame|sled|panel|plate|unit|assembly|kit|shunt|driver)$/;
 
 /**
  * Where a need lands. Platforming is not only part reuse: an interface the

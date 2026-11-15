@@ -10,42 +10,48 @@
    "IF-COOL-120"
   ],
   "needs": 5,
-  "onInterface": 2,
-  "onPart": 2,
+  "matchedParts": 4,
+  "onInterface": 4,
+  "onPart": 0,
   "newThinking": 1,
   "line": "4 of 5 needs start from something Voltara already built. 1 need new thinking.",
   "landings": [
    {
     "need": "Axial fan, 120 mm 24 VDC",
     "landing": "interface",
+    "confidence": 1,
     "interface": "IF-COOL-120",
     "part": "Axial Fan 120mm 24VDC"
    },
    {
     "need": "Wire fan guard, 120 mm",
     "landing": "interface",
+    "confidence": 1,
     "interface": "IF-COOL-120",
     "part": "Wire Fan Guard 120mm"
    },
    {
     "need": "Pan head machine screw, M4 x 10",
-    "landing": "part",
-    "interface": null,
+    "landing": "interface",
+    "confidence": 1,
+    "interface": "IF-COOL-120",
     "part": "Pan Head Machine Screw M4x10"
    },
    {
     "need": "Split lock washer, M4",
-    "landing": "part",
-    "interface": null,
+    "landing": "interface",
+    "confidence": 1,
+    "interface": "IF-COOL-120",
     "part": "Split Lock Washer M4"
    },
    {
     "need": "Second source qualification plan",
     "landing": "new",
+    "confidence": 0,
     "interface": null,
     "part": null
    }
   ]
  },
- "note": "The page names its product, so the stage draws that one. Expected values are what POST /api/plan-product returns for this page text. Interfaces are curated sample data."
+ "note": "Expected values are what POST /api/plan-product returns for this page text. Interfaces are curated sample data."
 }

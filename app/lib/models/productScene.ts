@@ -4,14 +4,15 @@ import { TOKEN } from "@/lib/anim";
 /**
  * One product, drawn from its own parts list.
  *
- * The stage answers a question: what in this product is already an interface
- * you could design to? So it draws the whole product in line art, every part
- * it carries as one block, and nothing else. The parts that belong to the
- * same interface sit together in a block of their own, so lighting them reads
- * as one thing rather than a scatter of highlights.
+ * The stage answers a question in order: here is the product, here are the
+ * parts on this page that it already contains, here are the interfaces those
+ * parts belong to, and here is what has no home yet. So the scene keeps every
+ * part where it sits in the product and hands the component the two places
+ * each one travels between: its home, and the tight group its interface pulls
+ * it into.
  *
- * Line art, not shading: a dark face and a thin edge, in text-3 until an
- * interface lights it in accent.
+ * Line art, not shading: a dark face and a thin edge, in text-3 until the
+ * sequence lights it.
  */
 
 export type ShellKind = "rack" | "cabinet" | "wall";
@@ -23,14 +24,18 @@ export interface ScenePart {
 
 export interface SceneCluster {
   id: string;
-  /** The parts of this interface that this product actually carries. */
+  /** The parts of this interface that this product carries, in page order. */
   partIds: string[];
 }
 
 export interface ProductSceneSpec {
   shell: ShellKind;
   parts: ScenePart[];
+  /** The parts this page matched, in the order the page named them. */
+  matched: string[];
   clusters: SceneCluster[];
+  /** Needs with nothing behind them: an empty slot each. */
+  newCount: number;
 }
 
 /** Outside dimensions per product class, in model units. */
@@ -40,23 +45,33 @@ const SHELL: Record<ShellKind, [number, number, number]> = {
   wall: [2.6, 3.2, 1.2],
 };
 
-const DEPTH = 0.24; // how deep a part block is
-const PAD = 0.22; // margin between the shell and the first block
-const FILL = 0.76; // how much of its cell a block occupies
+const DEPTH = 0.24;
+const PAD = 0.22;
+const FILL = 0.76;
 
 export interface SceneBlock {
   partId: string;
   clusterId: string | null;
   mesh: THREE.Mesh;
   edges: THREE.LineSegments;
+  /** Where it sits in the product, and where its interface pulls it to. */
+  home: THREE.Vector3;
+  tight: THREE.Vector3;
+  /** How far it comes out of the product when it is called out. */
+  lift: THREE.Vector3;
+  size: THREE.Vector3;
 }
 
 export interface SceneClusterView {
   id: string;
-  group: THREE.Group;
   blocks: SceneBlock[];
   outline: THREE.LineSegments;
-  /** Where the label points, in the rotating group's own space. */
+  /** Where the label points once the group has closed up. */
+  anchor: THREE.Vector3;
+}
+
+export interface SceneSlot {
+  outline: THREE.LineSegments;
   anchor: THREE.Vector3;
 }
 
@@ -64,9 +79,12 @@ export interface ProductScene {
   root: THREE.Group;
   /** The part that turns. Labels project from inside it. */
   spin: THREE.Group;
+  /** Every line of the product itself, for the opening draw. */
+  shell: THREE.Object3D[];
   blocks: SceneBlock[];
+  byPart: Map<string, SceneBlock>;
   clusters: SceneClusterView[];
-  radius: number;
+  slots: SceneSlot[];
   dispose(): void;
 }
 
@@ -85,71 +103,39 @@ function wireBox(w: number, h: number, d: number, color: string, opacity = 1) {
   return edges;
 }
 
-/**
- * Where each part sits. Interface parts are placed first, each cluster taking
- * a run of cells in one row, so an outline around it is a rectangle and not a
- * scatter. Everything else fills the cells that are left.
- */
-function layout(spec: ProductSceneSpec, cols: number) {
-  const order: { partId: string; clusterId: string | null }[] = [];
-  const taken = new Set<string>();
-  const runs = new Map<string, { row: number; from: number; to: number }>();
-
-  let cell = 0;
-  for (const cluster of spec.clusters) {
-    const members = cluster.partIds.filter((id) => !taken.has(id));
-    if (members.length === 0) continue;
-    // A cluster never straddles two rows: it starts a new one if it must.
-    const room = cols - (cell % cols);
-    if (members.length > room) cell += room;
-    const start = cell;
-    members.forEach((id) => {
-      taken.add(id);
-      order[cell] = { partId: id, clusterId: cluster.id };
-      cell += 1;
-    });
-    runs.set(cluster.id, {
-      row: Math.floor(start / cols),
-      from: start % cols,
-      to: (start % cols) + members.length - 1,
-    });
-  }
-
-  for (const part of spec.parts) {
-    if (taken.has(part.id)) continue;
-    while (order[cell]) cell += 1;
-    order[cell] = { partId: part.id, clusterId: null };
-    cell += 1;
-  }
-
-  return { order, runs, rows: Math.max(1, Math.ceil(order.length / cols)) };
-}
-
 export function buildProductScene(spec: ProductSceneSpec): ProductScene {
   const root = new THREE.Group();
   const spin = new THREE.Group();
   root.add(spin);
 
   const [W, H, D] = SHELL[spec.shell];
-  // A rack is flat, so its parts sit on the tray and the grid runs across the
-  // deck. A cabinet stands up, so its parts sit on the front plane.
+  // A rack is flat, so its parts sit on the tray. A cabinet stands up, so its
+  // parts sit on the front plane.
   const deck = spec.shell === "rack";
   const cols = deck ? 8 : 5;
-  const { order, runs, rows } = layout(spec, cols);
 
-  // The shell, and two lines across its face so it reads as a product.
+  // Matched parts first, in the order the page named them, then the rest of
+  // the product, then one empty slot per need with nothing behind it.
+  const matched = spec.matched.filter((id) => spec.parts.some((p) => p.id === id));
+  const rest = spec.parts.map((p) => p.id).filter((id) => !matched.includes(id));
+  const order = [...matched, ...rest];
+  const cells = order.length + spec.newCount;
+  const rows = Math.max(1, Math.ceil(cells / cols));
+
+  const shellLines: THREE.Object3D[] = [];
   const shell = wireBox(W, H, D, TOKEN.text3, 0.75);
   spin.add(shell);
-  const faceLines = new THREE.Group();
+  shellLines.push(shell);
   for (const t of [0.3, 0.7]) {
     const y = -H / 2 + H * t;
     const geo = new THREE.BufferGeometry().setFromPoints([
       new THREE.Vector3(-W / 2 + 0.08, y, D / 2),
       new THREE.Vector3(W / 2 - 0.08, y, D / 2),
     ]);
-    faceLines.add(new THREE.Line(geo, lineMaterial(TOKEN.text3, 0.35)));
+    const line = new THREE.Line(geo, lineMaterial(TOKEN.text3, 0.35));
+    spin.add(line);
+    shellLines.push(line);
   }
-  spin.add(faceLines);
 
   const innerW = W - PAD * 2;
   const innerDown = (deck ? D : H) - PAD * 2;
@@ -158,24 +144,34 @@ export function buildProductScene(spec: ProductSceneSpec): ProductScene {
   const bw = cellW * FILL;
   const bh = cellH * FILL;
 
-  const at = (col: number, row: number) => {
+  const at = (index: number) => {
+    const col = index % cols;
+    const row = Math.floor(index / cols);
     const x = -innerW / 2 + cellW * (col + 0.5);
     const down = innerDown / 2 - cellH * (row + 0.5);
+    // On a tray the first row sits at the front, nearest the reader, so the
+    // parts a page named are never hidden behind the ones it did not.
     return deck
-      ? new THREE.Vector3(x, -H / 2 + PAD + DEPTH / 2, -down)
+      ? new THREE.Vector3(x, -H / 2 + PAD + DEPTH / 2, down)
       : new THREE.Vector3(x, down, 0);
   };
 
-  const blocks: SceneBlock[] = [];
-  const byCluster = new Map<string, SceneBlock[]>();
+  const size = deck
+    ? new THREE.Vector3(bw, DEPTH, bh)
+    : new THREE.Vector3(bw, bh, DEPTH);
+  /** Out of the product, toward the reader: up off a tray, forward off a face. */
+  const liftBy = deck
+    ? new THREE.Vector3(0, bh * 1.2, 0)
+    : new THREE.Vector3(0, 0, Math.max(D / 2, bh));
 
-  order.forEach((slot, i) => {
-    if (!slot) return;
-    const col = i % cols;
-    const row = Math.floor(i / cols);
-    const geo = deck
-      ? new THREE.BoxGeometry(bw, DEPTH, bh)
-      : new THREE.BoxGeometry(bw, bh, DEPTH);
+  const clusterOf = new Map<string, string>();
+  spec.clusters.forEach((c) => c.partIds.forEach((id) => clusterOf.set(id, c.id)));
+
+  const blocks: SceneBlock[] = [];
+  const byPart = new Map<string, SceneBlock>();
+
+  order.forEach((partId, i) => {
+    const geo = new THREE.BoxGeometry(size.x, size.y, size.z);
     const mesh = new THREE.Mesh(
       geo,
       new THREE.MeshBasicMaterial({ color: TOKEN.panel })
@@ -185,69 +181,82 @@ export function buildProductScene(spec: ProductSceneSpec): ProductScene {
       lineMaterial(TOKEN.text3, 0.9)
     );
     mesh.add(edges);
-    mesh.position.copy(at(col, row));
-    mesh.userData.partId = slot.partId;
-    mesh.userData.clusterId = slot.clusterId;
+    const home = at(i);
+    mesh.position.copy(home);
+    mesh.userData.partId = partId;
+    mesh.userData.clusterId = clusterOf.get(partId) ?? null;
+    spin.add(mesh);
 
     const block: SceneBlock = {
-      partId: slot.partId,
-      clusterId: slot.clusterId,
+      partId,
+      clusterId: clusterOf.get(partId) ?? null,
       mesh,
       edges,
+      home,
+      tight: home.clone(),
+      lift: liftBy.clone(),
+      size: size.clone(),
     };
     blocks.push(block);
-
-    if (slot.clusterId) {
-      byCluster.set(slot.clusterId, [...(byCluster.get(slot.clusterId) ?? []), block]);
-    } else {
-      spin.add(mesh);
-    }
+    byPart.set(partId, block);
   });
 
-  // Each cluster is its own group, so it can grow about its own centre.
+  // An interface pulls its parts into one tight row, so the outline around
+  // them is a rectangle and the group reads as one thing.
   const clusters: SceneClusterView[] = [];
   for (const cluster of spec.clusters) {
-    const members = byCluster.get(cluster.id);
-    const run = runs.get(cluster.id);
-    if (!members || members.length === 0 || !run) continue;
+    const members = cluster.partIds
+      .map((id) => byPart.get(id))
+      .filter(Boolean) as SceneBlock[];
+    if (members.length === 0) continue;
 
-    const left = at(run.from, run.row);
-    const right = at(run.to, run.row);
-    const centre = new THREE.Vector3((left.x + right.x) / 2, left.y, left.z);
-
-    const group = new THREE.Group();
-    group.position.copy(centre);
-    members.forEach((b) => {
-      b.mesh.position.sub(centre);
-      group.add(b.mesh);
+    const centre = members
+      .reduce((v, b) => v.add(b.home), new THREE.Vector3())
+      .divideScalar(members.length);
+    const pitch = cellW * 0.82;
+    members.forEach((b, i) => {
+      const offset = (i - (members.length - 1) / 2) * pitch;
+      b.tight = new THREE.Vector3(centre.x + offset, centre.y, centre.z);
     });
 
-    const span = right.x - left.x + cellW;
-    const outline = deck
-      ? wireBox(span + 0.1, DEPTH + 0.12, cellH + 0.1, TOKEN.accent, 0)
-      : wireBox(span + 0.1, cellH + 0.1, DEPTH + 0.12, TOKEN.accent, 0);
-    group.add(outline);
-    spin.add(group);
+    const span = members.length * pitch + 0.08;
+    const outline = wireBox(span, size.y + 0.1, size.z + 0.1, TOKEN.accent, 0);
+    outline.position.copy(centre);
+    spin.add(outline);
 
     clusters.push({
       id: cluster.id,
-      group,
       blocks: members,
       outline,
-      anchor: deck
-        ? new THREE.Vector3(centre.x, centre.y + DEPTH, centre.z)
-        : new THREE.Vector3(centre.x, centre.y + cellH / 2, centre.z),
+      anchor: new THREE.Vector3(
+        centre.x,
+        centre.y + size.y / 2 + 0.08,
+        centre.z
+      ),
     });
   }
 
-  const radius = Math.max(W, H, D) * 0.62;
+  // A need with nothing behind it: an empty slot where the part would go.
+  const slots: SceneSlot[] = [];
+  for (let n = 0; n < spec.newCount; n++) {
+    const where = at(order.length + n);
+    const outline = wireBox(size.x, size.y, size.z, TOKEN.warn, 0);
+    outline.position.copy(where);
+    spin.add(outline);
+    slots.push({
+      outline,
+      anchor: new THREE.Vector3(where.x, where.y + size.y / 2, where.z),
+    });
+  }
 
   return {
     root,
     spin,
+    shell: shellLines,
     blocks,
+    byPart,
     clusters,
-    radius,
+    slots,
     dispose() {
       root.traverse((obj) => {
         const m = obj as THREE.Mesh | THREE.LineSegments;

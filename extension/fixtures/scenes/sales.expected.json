@@ -11,6 +11,7 @@
    "IF-ENC-OUTDOOR"
   ],
   "needs": 6,
+  "matchedParts": 4,
   "onInterface": 4,
   "onPart": 0,
   "newThinking": 2,
@@ -19,40 +20,46 @@
    {
     "need": "IP65 outdoor enclosure, 10 mm EPDM gasket",
     "landing": "interface",
+    "confidence": 0.88,
     "interface": "IF-ENC-OUTDOOR",
     "part": "EPDM Strip Gasket 10mm 1m"
    },
    {
     "need": "Nylon cable gland, M20",
     "landing": "interface",
+    "confidence": 1,
     "interface": "IF-IO-FIELD",
     "part": "Nylon Cable Gland M20"
    },
    {
     "need": "6 pole terminal block, 30 A",
     "landing": "interface",
+    "confidence": 1,
     "interface": "IF-IO-FIELD",
     "part": "6 Pole Terminal Block 30A"
    },
    {
     "need": "Copper grounding lug, 35 mm2",
     "landing": "interface",
+    "confidence": 0.75,
     "interface": "IF-IO-FIELD",
-    "part": null
+    "part": "Copper Grounding Lug 35mm2"
    },
    {
     "need": "Branded bezel in the account colour",
     "landing": "new",
+    "confidence": 0,
     "interface": null,
     "part": null
    },
    {
     "need": "Field crew tablet pairing, Bluetooth",
     "landing": "new",
+    "confidence": 0,
     "interface": null,
     "part": null
    }
   ]
  },
- "note": "The page names its product, so the stage draws that one. Expected values are what POST /api/plan-product returns for this page text. Interfaces are curated sample data."
+ "note": "Expected values are what POST /api/plan-product returns for this page text. Interfaces are curated sample data."
 }
