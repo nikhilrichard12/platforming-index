@@ -27,11 +27,11 @@ export interface SourcedLine {
 }
 
 /**
- * The quotable lines, copied word for word from docs/CONTEXT.md. Screen 2
- * renders `mentor`; `research` is the other line the file supports, kept here
- * so a swap stays sourced. Nothing is attributed to Kearney that is not in
- * that file, and the mentor line is attributed to the mentor, not to the
- * published research.
+ * The quotable lines, copied word for word from docs/CONTEXT.md. No screen
+ * renders either one while the deck is being rebuilt; both are kept here so
+ * the screen that takes the mentor line back carries its attribution with it.
+ * Nothing is attributed to Kearney that is not in that file, and the mentor
+ * line is attributed to the mentor, not to the published research.
  */
 export const QUOTES: Record<"mentor" | "research", SourcedLine> = {
   mentor: {
@@ -46,7 +46,7 @@ export const QUOTES: Record<"mentor" | "research", SourcedLine> = {
   },
 };
 
-/** The two survey figures on screen 2, with the text they were read from. */
+/** The two survey figures on screen 1, with the text they were read from. */
 export const RESEARCH_FIGURES = [
   {
     value: 43,
@@ -63,6 +63,37 @@ export const RESEARCH_FIGURES = [
     check: "docs/CONTEXT.md line 9",
   },
 ] as const;
+
+/**
+ * The citation screen 1 opens on, split into the two lines it types.
+ *
+ * The title, the date and the survey are docs/CONTEXT.md line 5. Two of the
+ * four names are recorded there as well: line 13 names Alex Gallard and
+ * Andrew Cecola as authors and as mentors at this hackathon. Bruns and Mehl
+ * are the remaining two names on the article's byline; nothing in this
+ * repository records them, so `bylineUnrecorded` says so here rather than the
+ * screen implying the file backs all four.
+ */
+export const RESEARCH_CITATION = {
+  publication:
+    "Kearney PERLab, The current state of platforming and the hidden gap. November 2026. Bruns, Mehl, Gallard, Cecola.",
+  sample: "A survey of 100 leaders at manufacturers over one billion dollars.",
+  check: "docs/CONTEXT.md lines 5 and 13",
+  bylineUnrecorded:
+    "Bruns and Mehl are from the article byline; docs/CONTEXT.md records only Gallard and Cecola.",
+} as const;
+
+/**
+ * The one part screen 1 draws, named by words rather than by id so it is
+ * found the way every other surface finds a part. The axial fan is carried by
+ * all six products under six part numbers, which is the picture the screen
+ * makes: one fan, six numbers, nobody looking at the row.
+ */
+export const FAN_EXAMPLE = {
+  fragment: "axial fan",
+  caption: "One fan. Six products. Six part numbers. Nobody sees it.",
+  source: "data/derived/voltara_parts.json, part C005",
+} as const;
 
 /* ---------- the business model, every number named ---------- */
 
@@ -265,7 +296,8 @@ export interface ScreenMeta {
   /** How many advances this screen holds, including the first state. */
   steps: number;
   targetSeconds: number;
-  rubric: Rubric;
+  /** The rubric lines this screen is answering. A screen may serve two. */
+  rubric: Rubric[];
   /** The spoken script, one short sentence per line. */
   script: string[];
 }
@@ -273,11 +305,33 @@ export interface ScreenMeta {
 export const SCREENS: ScreenMeta[] = [
   {
     n: 1,
+    id: "problem",
+    title: "The problem",
+    steps: 4,
+    targetSeconds: 40,
+    rubric: ["Commercial potential", "Final pitch"],
+    script: [
+      "This is Kearney's own research, published this month.",
+      "A hundred leaders at manufacturers over a billion dollars.",
+      "Andrew Cecola co-wrote it. He is a mentor here this weekend.",
+      "Forty three percent name engineering effort as the top challenge.",
+      "Fifty two percent of the companies already platforming at scale carry no complexity target.",
+      "So the belief is there. The measurement is not.",
+      "Everyone agrees platforming pays. Nobody can see where.",
+      "Here is what that looks like on one row.",
+      "The same 120 millimetre axial fan goes into six products.",
+      "Six part numbers. Six purchase orders. Six prices.",
+      "No report in the company puts those six side by side.",
+      "That is the gap we built for.",
+    ],
+  },
+  {
+    n: 2,
     id: "hook",
     title: "Hook",
     steps: 2,
     targetSeconds: 25,
-    rubric: "Final pitch",
+    rubric: ["Final pitch"],
     script: [
       "Voltara builds six products.",
       "It carries 252 part numbers to do it.",
@@ -287,29 +341,12 @@ export const SCREENS: ScreenMeta[] = [
     ],
   },
   {
-    n: 2,
-    id: "problem",
-    title: "The problem",
-    steps: 3,
-    targetSeconds: 35,
-    rubric: "Commercial potential",
-    script: [
-      "Every manufacturer already knows platforming pays.",
-      "Kearney asked a hundred senior leaders this month.",
-      "Forty three percent said engineering effort is the top challenge.",
-      "Fifty two percent of the companies already platforming at scale carry no complexity target at all.",
-      "A PERLab mentor said it to us plainly on Thursday.",
-      "So the blocker is agreement, before it is engineering.",
-      "That is the gap we built for.",
-    ],
-  },
-  {
     n: 3,
     id: "answer",
     title: "The answer",
     steps: 3,
     targetSeconds: 35,
-    rubric: "Commercial potential",
+    rubric: ["Commercial potential"],
     script: [
       "The Platforming Index is a fourth accelerator.",
       "It runs in three steps, and each one has a different user.",
@@ -325,7 +362,7 @@ export const SCREENS: ScreenMeta[] = [
     title: "Live demo",
     steps: 1,
     targetSeconds: 150,
-    rubric: "Deliverable",
+    rubric: ["Deliverable"],
     script: [
       "Three things, quickly.",
       "First the ballpark. Eight questions about your company, no data.",
@@ -345,7 +382,7 @@ export const SCREENS: ScreenMeta[] = [
     title: "How it works",
     steps: 3,
     targetSeconds: 40,
-    rubric: "Technical feasibility",
+    rubric: ["Technical feasibility"],
     script: [
       "Four boxes.",
       "The parts list and the purchase history go in. The matcher groups the same part under different numbers.",
@@ -363,7 +400,7 @@ export const SCREENS: ScreenMeta[] = [
     title: "Same score, five units",
     steps: 3,
     targetSeconds: 30,
-    rubric: "Deliverable",
+    rubric: ["Deliverable"],
     script: [
       "The same score, said five ways.",
       "Each function sits on a ring. The further out, the more questions they answer differently from everyone else.",
@@ -378,7 +415,7 @@ export const SCREENS: ScreenMeta[] = [
     title: "Why Kearney wins",
     steps: 4,
     targetSeconds: 40,
-    rubric: "Commercial potential",
+    rubric: ["Commercial potential"],
     script: [
       "It opens the door, then it sizes the work.",
       "The ballpark is free. It starts a conversation with any manufacturer.",
@@ -395,7 +432,7 @@ export const SCREENS: ScreenMeta[] = [
     title: "How we got here",
     steps: 1,
     targetSeconds: 25,
-    rubric: "Research and use of Velocity AI",
+    rubric: ["Research and use of Velocity AI"],
     script: [
       "Friday we had the idea.",
       "The first mentor conversation moved it. Procurement is too late. The decision happens at design.",
@@ -410,7 +447,7 @@ export const SCREENS: ScreenMeta[] = [
     title: "The core, and the ask",
     steps: 2,
     targetSeconds: 20,
-    rubric: "Physical product",
+    rubric: ["Physical product"],
     script: [
       "Twenty three parts fit five or more products. That is the shared core, drawn from the parts data.",
       "Ballpark today. Measured in two weeks. Sustained every time an engineer picks a part.",

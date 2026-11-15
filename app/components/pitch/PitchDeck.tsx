@@ -52,6 +52,12 @@ export interface ScreenProps {
   /** Which advance this screen is on, 0 for its first state. */
   step: number;
   /**
+   * True only for the screen being shown. Every screen stays mounted for the
+   * print path, so anything that keeps running on its own, a clip above all,
+   * reads this to stop when the presenter walks off it.
+   */
+  active: boolean;
+  /**
    * True while the page is being printed. Every screen is held at its last
    * step for the duration, and a screen whose animation would restart on
    * that change uses this to sit still instead.
@@ -59,9 +65,15 @@ export interface ScreenProps {
   printing: boolean;
 }
 
+/**
+ * The nine screens, in the order they are presented. The deck is being
+ * rebuilt one screen at a time: screen 1 is the new opener, and the eight
+ * behind it are the screens that were already built, carried in their old
+ * order until each is rewritten in turn.
+ */
 const COMPONENTS = [
-  ScreenHook,
   ScreenProblem,
+  ScreenHook,
   ScreenAnswer,
   ScreenDemo,
   ScreenHow,
@@ -114,13 +126,18 @@ export default function PitchDeck({ bundle }: { bundle: PitchBundle }) {
 
   /**
    * /pitch#5 opens on screen 5 at its end state. It is how the presenter
-   * gets back to a screen after the demo, and how the screenshots in
-   * docs/design/out are taken one screen at a time.
+   * gets back to a screen after the demo. /pitch#1.3 opens on screen 1 at its
+   * third beat, which is how the screenshots in docs/design/out are taken one
+   * beat at a time.
    */
   useEffect(() => {
-    const n = Number(window.location.hash.slice(1));
+    const [a, b] = window.location.hash.slice(1).split(".");
+    const n = Number(a);
     if (!Number.isInteger(n) || n < 1 || n > SCREENS.length) return;
-    const target = positionOf(n - 1, SCREENS[n - 1].steps - 1);
+    const last = SCREENS[n - 1].steps - 1;
+    const beat = b === undefined ? last : Number(b) - 1;
+    if (!Number.isInteger(beat) || beat < 0 || beat > last) return;
+    const target = positionOf(n - 1, beat);
     if (target >= 0) setPos(target);
   }, []);
 
@@ -246,6 +263,7 @@ export default function PitchDeck({ bundle }: { bundle: PitchBundle }) {
                   key={active ? "live" : "end"}
                   bundle={bundle}
                   step={steps[i]}
+                  active={active}
                   printing={printing}
                 />
               </div>
@@ -286,7 +304,9 @@ export default function PitchDeck({ bundle }: { bundle: PitchBundle }) {
             <h2 className="text-[17px] font-light text-text">
               {here.screen + 1}. {meta.title}
             </h2>
-            <Badge>{meta.rubric}</Badge>
+            {meta.rubric.map((r) => (
+              <Badge key={r}>{r}</Badge>
+            ))}
             <span className="text-[12px] text-text-3">
               {meta.targetSeconds} seconds
             </span>
