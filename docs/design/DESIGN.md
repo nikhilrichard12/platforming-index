@@ -73,6 +73,14 @@ Shared components live in `app/components/ui/`.
 - **IndexStrip**: one slim full-width row above the two-column split. Score at 56px/300 with "of 100" and a Provisional badge, the one-line read and four inline dimension bars, then the three steps with the current one picked out by a white top rule. About 165px tall.
 - **StepStrip**: four or five columns of orange line icon, 20px/800 title, 15px text-2 body, with a thin text-2 arrow between columns. Icons are 56px with 2.6px strokes. Stacks to one column under `md`. Used for the survey overview and again on Connections for the three moments a part number can be born.
 - **Possible match card**: the lighter sibling of the confident card, shown when the best score lands between 0.35 and 0.6. No badge, no tiles, no primary button. A text-2 "Possible match" line, up to three candidates with their part number count and best price, and "Keep typing to narrow it down." in text-3. It suggests, it does not ask for a decision.
+- **Price spread panel** (`components/dashboard/PriceSpreadPanel.tsx`): one row
+  per part, the part name at the left, a hairline price track in the middle
+  with one dot per part number at the price actually paid, and the yearly gap
+  at the right. The cheapest dot is `positive` and sits above the stack; every
+  other dot is text-2. Dots appear at their real prices, hold a second, then
+  slide to the cheapest, row by row, while each gap figure and the total count
+  up. The end state leaves a faint `line-2` tick where each dot started, so a
+  still frame still carries the point. No accent anywhere in this panel.
 - **AnimationPanel**: the shell every animated panel shares. Title, optional 12px text-3 note, a control slot on the right, the stage, and a Replay pill. Same `panel` fill and square corners as every other block, so motion is the only thing that marks it out.
 - **CountUp**: a number that counts to its new value over 700ms when the value changes. Renders the figure outright on first paint, so the server HTML and a reader with reduced motion both show the real number. Used for the index score and the four dimension scores.
 - **Merge panel** (`252 become 60`, top of Parts): 252 7px squares, one per part number, blocked and tinted by product in six tints walked from text-3 to text-2. They travel to 60 clusters on a 12 by 5 grid, staggered 6ms by start position so the motion reads as a wave left to right. Cluster footprint is the number of part numbers merged. Core candidates land in accent, two-to-four in text-2, unique in text-3. About 5 seconds, once per tab open.
@@ -108,7 +116,14 @@ Shared components live in `app/components/ui/`.
   (the ring on the running stage, the 1 second left rule on an arriving
   section), and the largest bar in the dashboard's gap chart.
 - Page gutter is 48px. 24px between blocks, 16px inside tiles.
-- Every number shows a source tag in text-3 beneath or beside it.
+- Every number shows a source tag in text-3 beneath or beside it, written as
+  words ("Purchase history", "Parts list", "Product master"). A file name
+  belongs in the source popover, where the file itself is the evidence.
+- A rate is written in whole dollars: "$100 per part number", not "$100.00".
+  `rate()` in `lib/voltaraData.ts`; `usd()` still formats prices and totals.
+- The top bar names the sample company only on the screens that run on sample
+  data. The ballpark is about the reader's own company, so it reads "Your
+  company" with no sample badge.
 - One money format everywhere, `usd()` in `lib/voltaraData.ts`, mirrored in the
   side panel's host extension because it does not share our bundle: two decimals
   under $1,000, no decimals above it, K at ten thousand, M at a million,
@@ -120,13 +135,31 @@ Shared components live in `app/components/ui/`.
   label: a CEO is never told they are "Finance".
 - No em dashes in UI copy. This covers prompt text rendered on screen, so `lib/agent/buildSystemPrompt.ts` carries none either.
 - Every number on screen reads from `data/derived/*.json` through `lib/voltaraData.server.ts`. No figure is typed into a component, including the counts in filter labels and the evidence lines on the alignment view.
+- The measured index is computed, never set. `lib/index.ts` holds four
+  formulas, each a ratio of two numbers in the data, and the strip carries a
+  "How the score works" disclosure that prints them with this company's
+  figures in them. A recorded reuse retires a part number, so Complexity
+  control rises out of the arithmetic rather than being credited points. The
+  counter beside the score, "Part numbers avoided", is what moves on every
+  single decision.
 - Two levels, never confused. A ballpark comes from 8 answers and is always a
   range with a `warn` badge, named constants and visible arithmetic. A measured
   index comes from a parts list, carries a `positive` "Measured" badge and the
   line "From 252 part numbers and 1,109 purchase orders.", and prints single
-  figures. Where both exist the dashboard shows "Ballpark was <range>" beside
+  figures. A ballpark prints one headline figure with its range on the line
+  below ("33 of 100", then "Likely between 23 and 43"), never a range as the
+  headline. Where both exist the dashboard shows "Ballpark said 33" beside
   the measured score, so the gap between guessing and measuring is on screen
   rather than in an argument.
+- The dashboard is two columns under the tab row: the page scrolls on the
+  left, the assistant holds the right at 420px from the tab row to the bottom
+  of the window, and nothing else sits in that column. The page itself does
+  not scroll; the left column does.
+- The assistant carries a four point mark (`components/ui/Sparkle.tsx`) beside
+  its name and beside every reply. Suggested questions are outline chips above
+  the input, not links in the thread.
+- A role name never shows a slash. `shortRole()` in `lib/roles.ts` is what a
+  reader sees ("CFO view", "Answering for CFO"); the long strings stay as ids.
 - The index score leads the dashboard. It sits above the fold at 1440x900, with the KPI tiles and the top of the chart.
 - `/mock-procurement` is deliberately outside this design system. It is a stand-in for the customer's own software, so it has its own root layout and its own light stylesheet, and nothing in `components/ui/` may leak into it.
 - Evidence tags read as words on screen (Survey, Kearney survey 2026, Product master). Only purchase order tags stay in their raw form, because that is what the buyer searches for.

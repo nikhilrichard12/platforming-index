@@ -142,6 +142,17 @@ export function heatColor(t: number): string {
 /** Kept as a name for prices. Same formatter: one money format, one shape. */
 export const px = usd;
 
+/**
+ * A rate, as a person would say it out loud: "$100 per part number", not
+ * "$100.00". Decimals only when the rate actually has them.
+ */
+export function rate(n: number): string {
+  const whole = Math.round(n);
+  return Math.abs(n - whole) < 0.005
+    ? "$" + whole.toLocaleString("en-US")
+    : usd(n);
+}
+
 /** A price span, printed once when both ends round to the same figure. */
 export function priceSpan(min: number, max: number): string {
   const lo = usd(min);

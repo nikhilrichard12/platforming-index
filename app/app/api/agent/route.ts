@@ -4,7 +4,8 @@ import { UserProfile } from "@/lib/types";
 import { buildSystemPrompt } from "@/lib/agent/buildSystemPrompt";
 import { VoltaraData, usd } from "@/lib/voltaraData";
 import { loadSurvey, loadVoltaraData } from "@/lib/voltaraData.server";
-import { listRules } from "@/lib/rules.server";
+import { computeIndex } from "@/lib/index";
+import { listDecisions, listRules } from "@/lib/rules.server";
 import { roleViewFor } from "@/lib/roleViews";
 
 export const runtime = "nodejs";
@@ -71,7 +72,7 @@ function fallbackReply(
   if (/score|index|provisional/.test(t)) {
     const idx = data.index;
     return [
-      `The Platforming Index is ${idx.score} of 100 and provisional. Four dimensions, equal weights: ${idx.dimensions.map((d) => `${d.name} ${d.score}`).join(", ")}.`,
+      `The Platforming Index is ${idx.score} of 100, computed from the parts list and the survey. Four dimensions, equal weights: ${idx.dimensions.map((d) => `${d.name} ${d.score}`).join(", ")}.`,
       `${idx.dimensions[0].basis}. ${idx.dimensions[3].name} is a midpoint because there is no data yet on new part numbers per year.`,
       `The score reads as sharing parts, not yet a platform. Voltara is on step ${idx.step} of three.`,
     ].join("\n\n");
@@ -108,7 +109,12 @@ function offlineResponse(body: AgentRequest, data: VoltaraData, reason: string) 
 
 export async function POST(req: NextRequest) {
   const body: AgentRequest = await req.json();
-  const data = loadVoltaraData();
+  const file = loadVoltaraData();
+  // The assistant quotes the same computed score the dashboard shows.
+  const data = {
+    ...file,
+    index: computeIndex(file, loadSurvey(), listDecisions()),
+  };
   const apiKey = process.env.ANTHROPIC_API_KEY;
 
   if (!apiKey) return offlineResponse(body, data, "no_api_key");

@@ -162,7 +162,7 @@ export function buildPromptSections(
         '1. Answer the question first, in plain language for this role. At most 110 words. Short paragraphs or up to 4 bullets starting with "- ". No headings, no tables, no bold.',
         "2. Use only the DATA above. If the data cannot answer, say what is missing. Never invent a number.",
         "3. Put an evidence tag right after each number, copied exactly from the data: a purchase order tag like [PO450076], or [product_master], [survey], [kearney_survey]. Use at most 4 tags per answer.",
-        "4. A matched part is a suggestion until engineering approves. A price gap is not booked savings. The index score is provisional. Say so when relevant.",
+        "4. A matched part is a suggestion until engineering approves. A price gap is not booked savings. The index score is computed from this company's own data and has no peer benchmark. Say so when relevant.",
         "5. Label all Voltara data as sample data from a fictional company when the user asks what it is.",
         "6. Lead answers for this role with time to market, cost, and complexity, in the order set by ROLE METRICS. Platforming is the method, not the headline.",
         "7. Do not use em dashes.",
@@ -176,7 +176,9 @@ export function buildPromptSections(
         `A1: Part groups come from voltara_answer_key.csv until the matcher exists. Every group is correct by construction, not matched, so matching accuracy is still unmeasured.`,
         `A2: The ${usd(s.yearlyPriceGapUsd)} yearly price gap is computed, not a stated fact: for each shared part, yearly spend above the lowest average price Voltara already pays for that part, summed across parts. It is a gap, not booked savings.`,
         `A3: Unit prices are average prices from voltara_spend_cube.csv. Each row carries one source purchase order; a part number bought many times shows its average.`,
-        `A4: The Platforming Index score of ${idx.score} is provisional. Four dimensions, equal weights. ${idx.dimensions[3].name} scores ${idx.dimensions[3].score} as a midpoint because there is no data yet on new part numbers per year. There is no peer benchmark.`,
+        `A4: The Platforming Index score of ${idx.score} is computed from the parts list and the survey, four dimensions at equal weight: ${idx.dimensions
+          .map((d) => `${d.name} ${d.score} (${d.basis})`)
+          .join("; ")}. Every dimension is a ratio of two numbers in the data, not a judgement. There is no peer benchmark, so the score has nothing to be compared against yet.`,
         `A5: Time to market is qualitative only. Lead time by product exists; no launch-to-ship data exists in the sample files.`,
         `A6: The ${s.needsReviewLines} "SEE DWG" lines are excluded from every figure above until engineering confirms them.`,
       ].join("\n"),

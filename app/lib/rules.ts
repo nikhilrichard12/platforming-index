@@ -131,34 +131,6 @@ export interface IndexShape {
   step: number;
 }
 
-/** Each recorded reuse lifts Complexity control by this much. */
-export const REUSE_STEP = 2;
-
-/**
- * The score with the loop closed: Complexity control rises as engineers reuse
- * parts, so the dashboard moves while the demo runs. An exception changes
- * nothing, because complexity a rule requires is not complexity anyone chose.
- */
-export function liveIndex(base: IndexShape, decisions: Decision[]): IndexShape {
-  const reuses = decisions.filter((d) => d.decision === "reuse").length;
-  const dimensions = base.dimensions.map((d) =>
-    d.name === "Complexity control"
-      ? {
-          ...d,
-          score: Math.min(100, d.score + REUSE_STEP * reuses),
-          basis:
-            reuses === 0
-              ? d.basis
-              : `${reuses} reuse${reuses === 1 ? "" : "s"} recorded since the baseline`,
-        }
-      : d
-  );
-  const score = Math.round(
-    dimensions.reduce((sum, d) => sum + d.score, 0) / dimensions.length
-  );
-  return { ...base, score, dimensions };
-}
-
 export interface Rule {
   id: string;
   at: string;

@@ -307,7 +307,7 @@ export default function CheckTab({
                     {
                       label: "Existing part numbers",
                       value: String(match.partNumberCount),
-                      sub: "voltara_boms.csv",
+                      sub: "Parts list",
                     },
                     {
                       label: "Best price paid",

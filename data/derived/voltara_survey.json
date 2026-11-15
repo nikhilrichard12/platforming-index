@@ -1,7 +1,13 @@
 {
   "company": "Voltara Power Systems (fictional sample)",
   "note": "Sample survey responses. Five functions, three questions. The signed-in user's own function column is replaced at render time with their real answers from the survey screen.",
-  "functions": ["CEO", "CFO", "Engineering", "Sales", "Supply chain"],
+  "functions": [
+    "CEO",
+    "CFO",
+    "Engineering",
+    "Sales",
+    "Supply chain"
+  ],
   "questions": [
     {
       "id": "variants",
@@ -33,7 +39,7 @@
       "answers": {
         "CEO": "No",
         "CFO": "No",
-        "Engineering": "No",
+        "Engineering": "Partly",
         "Sales": "No",
         "Supply chain": "No"
       },

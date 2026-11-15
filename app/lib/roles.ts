@@ -108,3 +108,18 @@ export function getRoleConfig(role: Role): RoleConfig {
 }
 
 export const ALL_ROLES = Object.keys(configs) as Role[];
+
+/** The name a reader sees. No slashes: "CFO view", not "CFO / Finance view". */
+const SHORT_NAME: Record<Role, string> = {
+  CEO: "CEO",
+  "CFO / Finance": "CFO",
+  "Sales / Commercial": "Sales",
+  "Marketing / Product": "Product",
+  "Engineering / R&D": "Engineering",
+  "Supply Chain / Procurement": "Supply chain",
+  "Operations / Manufacturing": "Operations",
+};
+
+export function shortRole(role: Role | ""): string {
+  return role ? SHORT_NAME[role] : "";
+}
