@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { AlignmentDecision, AlignmentQuestionId } from "./alignment";
 import {
   Activity,
   ActivityDetail,
@@ -28,6 +29,8 @@ interface Store {
   decisions: Decision[];
   rules: Rule[];
   activity: Activity[];
+  /** What leadership decided on the three split questions. */
+  alignment: AlignmentDecision[];
 }
 
 const FILE = path.join(process.cwd(), "..", "data", "derived", "decisions.json");
@@ -39,10 +42,11 @@ function read(): Store {
       decisions: raw.decisions ?? [],
       rules: raw.rules ?? [],
       activity: raw.activity ?? [],
+      alignment: raw.alignment ?? [],
     };
   } catch {
     // No file yet, or it was reset. An empty store is the valid starting state.
-    return { decisions: [], rules: [], activity: [] };
+    return { decisions: [], rules: [], activity: [], alignment: [] };
   }
 }
 
@@ -151,5 +155,44 @@ export function record(input: RecordInput): RecordResult {
 }
 
 export function reset(): void {
-  write({ decisions: [], rules: [], activity: [] });
+  write({ decisions: [], rules: [], activity: [], alignment: [] });
+}
+
+/* ---------- what leadership decided ---------- */
+
+export function listAlignment(): AlignmentDecision[] {
+  return read().alignment;
+}
+
+/**
+ * One decision per question: deciding again replaces the earlier answer
+ * rather than stacking a second one on top of it.
+ */
+export function recordAlignment(input: {
+  question: AlignmentQuestionId;
+  choice: string;
+  source: DecisionSource;
+}): AlignmentDecision {
+  const store = read();
+  const decision: AlignmentDecision = {
+    id: `L${String(store.alignment.length + 1).padStart(4, "0")}`,
+    at: new Date().toISOString(),
+    question: input.question,
+    choice: input.choice,
+    source: input.source,
+  };
+  store.alignment = [
+    ...store.alignment.filter((d) => d.question !== input.question),
+    decision,
+  ];
+  write(store);
+  return decision;
+}
+
+export function clearAlignment(question?: AlignmentQuestionId): void {
+  const store = read();
+  store.alignment = question
+    ? store.alignment.filter((d) => d.question !== question)
+    : [];
+  write(store);
 }

@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { loadSurvey, loadVoltaraData } from "@/lib/voltaraData.server";
 import { corsHeaders, preflight } from "@/lib/cors";
 import { computeIndex, scoreMethod } from "@/lib/index";
-import { listDecisions, logActivity } from "@/lib/rules.server";
+import { applyAlignment } from "@/lib/alignment";
+import { listAlignment, listDecisions, logActivity } from "@/lib/rules.server";
 import { callerOf } from "@/lib/sources.server";
 
 export const runtime = "nodejs";
@@ -21,7 +22,8 @@ export function OPTIONS(req: NextRequest) {
 export function GET(req: NextRequest) {
   const headers = corsHeaders(req.headers.get("origin"));
   const data = loadVoltaraData();
-  const index = computeIndex(data, loadSurvey(), listDecisions());
+  const survey = applyAlignment(loadSurvey(), listAlignment());
+  const index = computeIndex(data, survey, listDecisions());
 
   // A screen refreshing its own score is not an event worth logging.
   if (req.nextUrl.searchParams.get("quiet") !== "1") {

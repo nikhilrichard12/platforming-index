@@ -5,7 +5,8 @@ import { buildSystemPrompt } from "@/lib/agent/buildSystemPrompt";
 import { VoltaraData, usd } from "@/lib/voltaraData";
 import { loadSurvey, loadVoltaraData } from "@/lib/voltaraData.server";
 import { computeIndex } from "@/lib/index";
-import { listDecisions, listRules } from "@/lib/rules.server";
+import { applyAlignment } from "@/lib/alignment";
+import { listAlignment, listDecisions, listRules } from "@/lib/rules.server";
 import { roleViewFor } from "@/lib/roleViews";
 
 export const runtime = "nodejs";
@@ -32,6 +33,44 @@ const MAX_TOKENS = 400;
 const HISTORY = 8;
 
 /**
+ * The five sentence briefs the Alignment cards ask for, written from the same
+ * figures the cards show. Offline, these are what the thread prints.
+ */
+function briefFor(t: string, data: VoltaraData): string | null {
+  if (!/draft a five sentence brief/.test(t)) return null;
+  const s = data.summary;
+  const duplicates = s.partNumbers - s.realParts;
+
+  if (/own/.test(t)) {
+    return [
+      `Voltara carries ${s.partNumbers} part numbers for ${s.realParts} real parts, and no function owns the decision that creates one.`,
+      `The ${duplicates} duplicates were approved by nobody, because approving them was nobody's job.`,
+      `Engineering writes the specification, Supply chain buys against it, and Sales promises the variant, so each function can point at another.`,
+      `One owner for cross product part decisions costs nothing to appoint and changes who has to say no.`,
+      `The index reads Decision ownership at ${data.index.dimensions[1].score} today, and that number is the share of leaders naming the same owner.`,
+    ].join("\n\n");
+  }
+
+  if (/target/.test(t)) {
+    return [
+      `No function at Voltara carries a target on complexity, so every incentive points at launching the next product.`,
+      `The price gap on shared parts is ${usd(s.yearlyPriceGapUsd)} a year, inside ${usd(s.yearlySpendUsd)} of parts spend.`,
+      `A target does not need to be clever: no new part number without a reuse check is measurable from the parts list on day one.`,
+      `Engineering should carry it, because Engineering creates part numbers, and Finance should report it beside cost.`,
+      `The index reads Incentives at ${data.index.dimensions[2].score} today, which is the share of leaders whose targets reward reuse.`,
+    ].join("\n\n");
+  }
+
+  return [
+    `${s.uniqueParts} of ${s.realParts} parts at Voltara exist on one product only, and each one was somebody's answer to a customer.`,
+    `Sales says customers need every variant, Engineering and Supply chain say they do not, and nobody has tested it.`,
+    `The test is cheap: name the differences a customer specifies in writing, and treat the rest as ours to choose.`,
+    `Every variant that fails that test is a part number, a supplier, a stock line and a lead time nobody is paid for.`,
+    `Agreeing this does not remove a product. It removes the differences inside products that customers never asked to pay for.`,
+  ].join("\n\n");
+}
+
+/**
  * Offline answers. Every figure comes from voltara_parts.json and carries the
  * same [POxxxxxx] tags the live assistant uses.
  */
@@ -47,6 +86,10 @@ function fallbackReply(
   // A dashboard tile sends its own question; answer with that tile's answer.
   const exact = kpis.find((k) => k.question.toLowerCase() === t.trim());
   if (exact) return exact.answer(data);
+
+  // The three briefs Alignment asks for, so the cards work with no key set.
+  const brief = briefFor(t, data);
+  if (brief) return brief;
 
   const cfo = roleViewFor("CFO / Finance").kpis(data);
   const eng = roleViewFor("Engineering / R&D").kpis(data);
@@ -113,7 +156,11 @@ export async function POST(req: NextRequest) {
   // The assistant quotes the same computed score the dashboard shows.
   const data = {
     ...file,
-    index: computeIndex(file, loadSurvey(), listDecisions()),
+    index: computeIndex(
+      file,
+      applyAlignment(loadSurvey(), listAlignment()),
+      listDecisions()
+    ),
   };
   const apiKey = process.env.ANTHROPIC_API_KEY;
 

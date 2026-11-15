@@ -78,9 +78,18 @@ Shared components live in `app/components/ui/`.
   Measured badge under it. The arc sweeps and the number counts once on load,
   and again only if the score moves. Reduced motion draws the filled arc and
   prints the score.
+- **Alignment cards**: one card per split question. Title, a `risk` "Split"
+  badge and the count of distinct answers; the answers grouped by answer with
+  the functions as chips (the reader's own marked "You"); a `risk` left rule on
+  an answer that names nobody, nothing or no target; "What the data shows" and
+  "What it costs", both computed; then one accent action that opens an inline
+  picker and two outline pills. A decided card collapses to two lines, a
+  `positive` "Decided" badge and an Undo link. Deciding writes to the decision
+  store and changes the survey answers the index reads, so the score on Summary
+  moves without a single part changing.
 - **Price spread panel** (`components/dashboard/PriceSpreadPanel.tsx`): one row
   per part, largest yearly cost first. Full part name (wrapped, never
-  ellipsized), the lowest price in `positive`, a `warn` bar whose length is the
+  ellipsized), the lowest price in `positive`, an `accent` bar whose length is the
   percent markup on a scale shared by every row, the highest price in `text` at
   the bar's end, the percent difference, and the yearly cost. Bars grow left to
   right staggered by row while each cost counts up; the end state is the whole
@@ -116,10 +125,12 @@ Shared components live in `app/components/ui/`.
 
 - Dark theme only. Flat. No gradients, shadows, glows, or rounded cards.
 - Corners are square or nearly square (2px on fields and chips). Every button is a pill, including the primary one; fill, not shape, marks the primary action.
-- Orange appears once per screen, on the main action. Two exceptions, both
-  carrying meaning rather than decoration: the build screen's transient marks
-  (the ring on the running stage, the 1 second left rule on an arriving
-  section), and the largest bar in the dashboard's gap chart.
+- Orange appears once per screen, on the main action. It may also mark the one
+  data series a panel exists to show: the price spread bars are accent because
+  the markup is the only thing that panel is about. Beyond that, two
+  exceptions, both carrying meaning rather than decoration: the build screen's
+  transient marks (the ring on the running stage, the 1 second left rule on an
+  arriving section), and the accent cluster in the merge animation.
 - Page gutter is 48px. 24px between blocks, 16px inside tiles.
 - Every number shows a source tag in text-3 beneath or beside it, written as
   words ("Purchase history", "Parts list", "Product master"). A file name

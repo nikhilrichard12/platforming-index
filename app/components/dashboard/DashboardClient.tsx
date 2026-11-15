@@ -10,6 +10,11 @@ import { VoltaraData } from "@/lib/voltaraData";
 import { SurveyFile } from "@/lib/survey";
 import { Decision, Rule } from "@/lib/rules";
 import { computeIndex } from "@/lib/index";
+import {
+  AlignmentDecision,
+  AlignmentQuestionId,
+  applyAlignment,
+} from "@/lib/alignment";
 import PageHeader from "@/components/ui/PageHeader";
 import Tabs from "@/components/ui/Tabs";
 import Tile from "@/components/ui/Tile";
@@ -133,9 +138,14 @@ export default function DashboardClient({
   const [busy, setBusy] = useState(false);
   const [live, setLive] = useState<boolean | null>(null);
   const [showPrompt, setShowPrompt] = useState(false);
+  const [copied, setCopied] = useState<number | null>(null);
   const [source, setSource] = useState<SourceHit | null>(null);
   const [rules, setRules] = useState<Rule[]>([]);
   const [decisions, setDecisions] = useState<Decision[]>([]);
+  const [alignment, setAlignment] = useState<AlignmentDecision[]>([]);
+  const [inventoryFilter, setInventoryFilter] = useState<
+    "all" | "shared" | "core" | "review"
+  >("all");
   const threadRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -146,12 +156,14 @@ export default function DashboardClient({
   // here rather than inside the tab that happens to display them.
   const refresh = useCallback(async () => {
     try {
-      const [r, d] = await Promise.all([
+      const [r, d, a] = await Promise.all([
         fetch("/api/rules").then((res) => res.json()),
         fetch("/api/part-decision").then((res) => res.json()),
+        fetch("/api/alignment").then((res) => res.json()),
       ]);
       setRules(r.rules ?? []);
       setDecisions(d.decisions ?? []);
+      setAlignment(a.alignment ?? []);
     } catch {
       /* the tables simply stay empty */
     }
@@ -172,7 +184,7 @@ export default function DashboardClient({
 
   // The score is computed from the parts list, the survey and the decisions
   // recorded so far, so the strip and the prompt read the same arithmetic.
-  const index = computeIndex(data, survey, decisions);
+  const index = computeIndex(data, applyAlignment(survey, alignment), decisions);
   const liveData = { ...data, index };
 
   const role = (profile.role || "CEO") as Role;
@@ -192,6 +204,41 @@ export default function DashboardClient({
   useEffect(() => {
     if (threadRef.current) threadRef.current.scrollTop = threadRef.current.scrollHeight;
   }, [messages, busy]);
+
+  /** A brief is written to be pasted somewhere else, so it can be copied. */
+  async function copyReply(index: number, text: string) {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(index);
+      setTimeout(() => setCopied(null), 1500);
+    } catch {
+      /* clipboard can be blocked; the text is selectable either way */
+    }
+  }
+
+  async function decide(question: AlignmentQuestionId, choice: string) {
+    await fetch("/api/alignment", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question, choice, source: "dashboard" }),
+    });
+    await refresh();
+  }
+
+  async function undo(question: AlignmentQuestionId) {
+    await fetch(`/api/alignment?question=${question}`, { method: "DELETE" });
+    await refresh();
+  }
+
+  async function resetDemo() {
+    await fetch("/api/rules", { method: "DELETE" });
+    await refresh();
+  }
+
+  function showParts(filter: "review" | "shared" | "core") {
+    setInventoryFilter(filter);
+    setTab("inventory");
+  }
 
   async function ask(question: string) {
     if (busy || !question.trim()) return;
@@ -305,6 +352,7 @@ export default function DashboardClient({
             {tab === "inventory" && (
               <PartsTab
                 data={data}
+                initialFilter={inventoryFilter}
                 onAsk={ask}
                 onTag={(po) => setSource(data.rowsByPo[po] ?? null)}
               />
@@ -315,7 +363,13 @@ export default function DashboardClient({
                 data={data}
                 survey={survey}
                 profile={{ ...profile, role }}
+                alignment={alignment}
+                onDecide={decide}
+                onUndo={undo}
+                onAsk={ask}
+                onJump={showParts}
                 onTag={(po) => setSource(data.rowsByPo[po] ?? null)}
+                onReset={resetDemo}
               />
             )}
           </div>
@@ -362,10 +416,21 @@ export default function DashboardClient({
                           </span>
                           <div className="min-w-0 flex-1">
                             {m.content ? (
-                              <Reply
-                                text={m.content}
-                                onTag={(po) => setSource(data.rowsByPo[po] ?? null)}
-                              />
+                              <>
+                                <Reply
+                                  text={m.content}
+                                  onTag={(po) => setSource(data.rowsByPo[po] ?? null)}
+                                />
+                                {i > 0 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => copyReply(i, m.content)}
+                                    className="mt-3 text-[12px] text-text-3 underline-offset-4 transition-colors hover:text-text-2 hover:underline"
+                                  >
+                                    {copied === i ? "Copied" : "Copy"}
+                                  </button>
+                                )}
+                              </>
                             ) : (
                               <p className="text-[14px] text-text-3">Thinking…</p>
                             )}

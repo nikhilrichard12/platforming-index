@@ -178,7 +178,7 @@ export default function PriceSpreadPanel({
               <span
                 data-bar
                 data-width={barWidth(r)}
-                className="block shrink-0 bg-warn"
+                className="block shrink-0 bg-accent"
                 style={{ width: barWidth(r), height: BAR_H }}
               />
               <span className="shrink-0 text-[12px] tabular-nums text-text">

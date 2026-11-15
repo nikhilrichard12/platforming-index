@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Field from "@/components/ui/Field";
 import Badge from "@/components/ui/Badge";
 import PartMergeAnimation from "./PartMergeAnimation";
@@ -20,16 +20,25 @@ const NUM = "text-right tabular-nums";
 
 export default function PartsTab({
   data,
+  initialFilter = "all",
   onAsk,
   onTag,
 }: {
   data: VoltaraData;
+  /** Alignment can send the reader here with a filter already applied. */
+  initialFilter?: FilterId;
   onAsk: (question: string) => void;
   onTag: (po: string) => void;
 }) {
   const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState<FilterId>("all");
+  const [filter, setFilter] = useState<FilterId>(initialFilter);
   const [open, setOpen] = useState<string | null>(null);
+
+  // Arriving from a card on Alignment opens the matching filter.
+  useEffect(() => {
+    setFilter(initialFilter);
+    setOpen(null);
+  }, [initialFilter]);
 
   const s = data.summary;
   const filters: { id: FilterId; label: string }[] = [
