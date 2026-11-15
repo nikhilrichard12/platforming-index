@@ -8,7 +8,7 @@ import Tile from "@/components/ui/Tile";
 import { Button, PrimaryButton } from "@/components/ui/Button";
 import { getRoleConfig } from "@/lib/roles";
 import { UserProfile } from "@/lib/types";
-import { usd } from "@/lib/voltaraData";
+import { rate, usd } from "@/lib/voltaraData";
 import {
   ASSUMPTIONS,
   BallparkAnswers,
@@ -54,7 +54,7 @@ function Assumptions({ costEach }: { costEach: number }) {
     ],
     [
       "Cost of carrying one part number for a year",
-      usd(costEach),
+      rate(costEach),
       ASSUMPTIONS.costPerPartNumberPerYear.source,
     ],
     [
@@ -110,13 +110,18 @@ export default function BallparkResult({
       {/* The score */}
       <div className="bg-panel p-6">
         <div className="flex flex-wrap items-center gap-4">
-          <span className="text-[56px] font-light leading-none tabular-nums text-text">
-            {b.scoreRange.low} to {b.scoreRange.high}
-          </span>
-          <span className="text-[13px] text-text-3">of 100</span>
+          <div className="flex items-baseline gap-2">
+            <span className="text-[56px] font-light leading-none tabular-nums text-text">
+              {b.score}
+            </span>
+            <span className="text-[13px] text-text-3">of 100</span>
+          </div>
           <Badge tone="warn">Ballpark</Badge>
         </div>
         <p className="mt-3 text-[13px] text-text-2">
+          Likely between {b.scoreRange.low} and {b.scoreRange.high}.
+        </p>
+        <p className="mt-1 text-[13px] text-text-3">
           From 8 answers. Not measured yet.
         </p>
 
@@ -142,20 +147,23 @@ export default function BallparkResult({
         {[
           {
             label: "Duplicate part numbers",
-            value: range(b.duplicateRange),
+            value: num(b.duplicatePartNumbers),
+            band: `Likely ${range(b.duplicateRange)}`,
             sub: `About ${Math.round(b.share.share * 100)} percent of ${num(
               answers.partNumbers ?? 0
             )}`,
           },
           {
             label: "Yearly cost of carrying them",
-            value: money(b.costRange),
-            sub: `At ${usd(b.costEach)} per part number per year`,
+            value: usd(b.yearlyCarryingCost),
+            band: `Likely ${money(b.costRange)}`,
+            sub: `At ${rate(b.costEach)} per part number per year`,
           },
           {
             label: "Where this puts you",
             value: `Step ${b.step}`,
-            sub: step,
+            band: step,
+            sub: "On the three step path",
           },
         ].map((t) => (
           <Tile key={t.label}>
@@ -171,7 +179,8 @@ export default function BallparkResult({
                 >
                   {t.value}
                 </p>
-                <p className="mt-2 text-[12px] text-text-3">{t.sub}</p>
+                <p className="mt-2 text-[12px] text-text-3">{t.band}</p>
+                <p className="text-[12px] text-text-3">{t.sub}</p>
               </div>
             </div>
           </Tile>
@@ -208,7 +217,7 @@ duplicate part numbers
   ${num(answers.partNumbers ?? 0)} part numbers x ${b.share.share.toFixed(2)} = ${num(b.duplicatePartNumbers)}
 
 yearly cost of carrying them
-  ${num(b.duplicatePartNumbers)} x ${usd(b.costEach)} = ${usd(b.yearlyCarryingCost)}
+  ${num(b.duplicatePartNumbers)} x ${rate(b.costEach)} = ${usd(b.yearlyCarryingCost)}
 
 range
   every figure above, minus and plus ${Math.round(ASSUMPTIONS.rangeSpread.value * 100)} percent

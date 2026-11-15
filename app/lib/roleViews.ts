@@ -74,14 +74,14 @@ export const ROLE_VIEWS: Record<RoleKey, RoleView> = {
         {
           value: usd(d.summary.yearlyPriceGapUsd),
           label: "Yearly price gap on shared parts",
-          source: "voltara_spend_cube.csv",
+          source: "Purchase history",
           question: `Why is the yearly price gap on shared parts ${usd(d.summary.yearlyPriceGapUsd)}?`,
           answer: priceGapAnswer,
         },
         {
           value: String(dupes),
           label: "Duplicate part numbers carried",
-          source: "voltara_boms.csv",
+          source: "Parts list",
           question: `Why do we carry ${dupes} duplicate part numbers, and what do they cost?`,
           answer: () =>
             [
@@ -93,7 +93,7 @@ export const ROLE_VIEWS: Record<RoleKey, RoleView> = {
         {
           value: priceSpan(cap.min, cap.max),
           label: "One capacitor, three suppliers",
-          source: "voltara_spend_cube.csv",
+          source: "Purchase history",
           question: "Why do we pay three different prices for the DC link capacitor?",
           answer: () =>
             [
@@ -104,7 +104,7 @@ export const ROLE_VIEWS: Record<RoleKey, RoleView> = {
         {
           value: usd(d.summary.yearlySpendUsd),
           label: "Yearly parts spend in scope",
-          source: "voltara_spend_cube.csv",
+          source: "Purchase history",
           question: `What makes up the ${usd(d.summary.yearlySpendUsd)} yearly parts spend?`,
           answer: () =>
             [
@@ -133,7 +133,7 @@ export const ROLE_VIEWS: Record<RoleKey, RoleView> = {
         {
           value: `${hours.toLocaleString("en-US")} hrs`,
           label: "Sustaining hours per year",
-          source: "voltara_product_master.csv",
+          source: "Product master",
           question: `Where do the ${hours.toLocaleString("en-US")} sustaining hours a year go?`,
           answer: () =>
             [
@@ -144,7 +144,7 @@ export const ROLE_VIEWS: Record<RoleKey, RoleView> = {
         {
           value: `${d.summary.partNumbers} to ${d.summary.realParts}`,
           label: "Part numbers versus real parts",
-          source: "voltara_boms.csv",
+          source: "Parts list",
           question: `Why do ${d.summary.partNumbers} part numbers map to only ${d.summary.realParts} real parts?`,
           answer: () =>
             [
@@ -155,7 +155,7 @@ export const ROLE_VIEWS: Record<RoleKey, RoleView> = {
         {
           value: String(d.summary.coreCandidates),
           label: "Parts that fit a common core",
-          source: "voltara_boms.csv",
+          source: "Parts list",
           question: `Which ${d.summary.coreCandidates} parts fit a common core, and why?`,
           answer: () =>
             [
@@ -166,7 +166,7 @@ export const ROLE_VIEWS: Record<RoleKey, RoleView> = {
         {
           value: String(d.summary.needsReviewLines),
           label: "Lines waiting for your review",
-          source: "voltara_boms.csv",
+          source: "Parts list",
           question: `Which ${d.summary.needsReviewLines} lines need engineering review, and why?`,
           answer: () =>
             [
@@ -196,14 +196,14 @@ export const ROLE_VIEWS: Record<RoleKey, RoleView> = {
         {
           value: usd(d.summary.yearlyPriceGapUsd),
           label: "Yearly price gap to negotiate",
-          source: "voltara_spend_cube.csv",
+          source: "Purchase history",
           question: `Where does the ${usd(d.summary.yearlyPriceGapUsd)} price gap come from, and where should I negotiate first?`,
           answer: priceGapAnswer,
         },
         {
           value: `${premium}%`,
           label: "Premium paid by the smallest line",
-          source: "voltara_spend_cube.csv",
+          source: "Purchase history",
           question: `Why does the smallest product line pay ${premium}% more for the same fan?`,
           answer: () =>
             [
@@ -214,7 +214,7 @@ export const ROLE_VIEWS: Record<RoleKey, RoleView> = {
         {
           value: `${d.summary.multiSupplierParts} of ${d.summary.realParts}`,
           label: "Parts with two or more suppliers",
-          source: "voltara_spend_cube.csv",
+          source: "Purchase history",
           question: `Why are ${d.summary.multiSupplierParts} of ${d.summary.realParts} parts bought from more than one supplier?`,
           answer: () =>
             [
@@ -225,7 +225,7 @@ export const ROLE_VIEWS: Record<RoleKey, RoleView> = {
         {
           value: String(d.summary.suppliers),
           label: "Suppliers in scope",
-          source: "voltara_spend_cube.csv",
+          source: "Purchase history",
           question: "Which suppliers carry the most spend?",
           answer: () =>
             [
@@ -254,7 +254,7 @@ export const ROLE_VIEWS: Record<RoleKey, RoleView> = {
         {
           value: String(d.summary.uniqueParts),
           label: "Parts unique to one product",
-          source: "voltara_boms.csv",
+          source: "Parts list",
           question: "Which parts stay unique to one product, and does consolidation touch them?",
           answer: () =>
             [
@@ -265,7 +265,7 @@ export const ROLE_VIEWS: Record<RoleKey, RoleView> = {
         {
           value: String(d.summary.sharedParts),
           label: "Shared parts customers never see",
-          source: "voltara_boms.csv",
+          source: "Parts list",
           question: `What are the ${d.summary.sharedParts} shared parts, and would a customer notice a change?`,
           answer: () =>
             [
@@ -276,7 +276,7 @@ export const ROLE_VIEWS: Record<RoleKey, RoleView> = {
         {
           value: `${lo} to ${hi} wks`,
           label: "Lead time across the line",
-          source: "voltara_product_master.csv",
+          source: "Product master",
           question: `Why does lead time run from ${lo} to ${hi} weeks across the line?`,
           answer: () =>
             [
@@ -287,7 +287,7 @@ export const ROLE_VIEWS: Record<RoleKey, RoleView> = {
         {
           value: "6 of 6",
           label: "Products kept in the plan",
-          source: "voltara_product_master.csv",
+          source: "Product master",
           question: "Does this plan remove any product or option?",
           answer: () =>
             [

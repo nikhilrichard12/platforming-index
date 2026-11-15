@@ -108,7 +108,14 @@ Shared components live in `app/components/ui/`.
   (the ring on the running stage, the 1 second left rule on an arriving
   section), and the largest bar in the dashboard's gap chart.
 - Page gutter is 48px. 24px between blocks, 16px inside tiles.
-- Every number shows a source tag in text-3 beneath or beside it.
+- Every number shows a source tag in text-3 beneath or beside it, written as
+  words ("Purchase history", "Parts list", "Product master"). A file name
+  belongs in the source popover, where the file itself is the evidence.
+- A rate is written in whole dollars: "$100 per part number", not "$100.00".
+  `rate()` in `lib/voltaraData.ts`; `usd()` still formats prices and totals.
+- The top bar names the sample company only on the screens that run on sample
+  data. The ballpark is about the reader's own company, so it reads "Your
+  company" with no sample badge.
 - One money format everywhere, `usd()` in `lib/voltaraData.ts`, mirrored in the
   side panel's host extension because it does not share our bundle: two decimals
   under $1,000, no decimals above it, K at ten thousand, M at a million,
@@ -120,11 +127,20 @@ Shared components live in `app/components/ui/`.
   label: a CEO is never told they are "Finance".
 - No em dashes in UI copy. This covers prompt text rendered on screen, so `lib/agent/buildSystemPrompt.ts` carries none either.
 - Every number on screen reads from `data/derived/*.json` through `lib/voltaraData.server.ts`. No figure is typed into a component, including the counts in filter labels and the evidence lines on the alignment view.
+- The measured index is computed, never set. `lib/index.ts` holds four
+  formulas, each a ratio of two numbers in the data, and the strip carries a
+  "How the score works" disclosure that prints them with this company's
+  figures in them. A recorded reuse retires a part number, so Complexity
+  control rises out of the arithmetic rather than being credited points. The
+  counter beside the score, "Part numbers avoided", is what moves on every
+  single decision.
 - Two levels, never confused. A ballpark comes from 8 answers and is always a
   range with a `warn` badge, named constants and visible arithmetic. A measured
   index comes from a parts list, carries a `positive` "Measured" badge and the
   line "From 252 part numbers and 1,109 purchase orders.", and prints single
-  figures. Where both exist the dashboard shows "Ballpark was <range>" beside
+  figures. A ballpark prints one headline figure with its range on the line
+  below ("33 of 100", then "Likely between 23 and 43"), never a range as the
+  headline. Where both exist the dashboard shows "Ballpark said 33" beside
   the measured score, so the gap between guessing and measuring is on screen
   rather than in an argument.
 - The index score leads the dashboard. It sits above the fold at 1440x900, with the KPI tiles and the top of the chart.

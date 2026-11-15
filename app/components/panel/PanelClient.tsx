@@ -21,7 +21,6 @@ import {
   IndexShape,
   ReasonKind,
   Rule,
-  liveIndex,
   reasonLabel,
 } from "@/lib/rules";
 import {
@@ -88,11 +87,11 @@ export default function PanelClient({ data }: { data: VoltaraData }) {
       ]);
       setRules(r.rules ?? []);
       setDecisions(d.decisions ?? []);
-      setIndex(liveIndex(data.index, d.decisions ?? []));
+      setIndex((await fetch("/api/index?quiet=1").then((res) => res.json())).index);
     } catch {
       /* the panel keeps what it had */
     }
-  }, [data.index]);
+  }, []);
 
   useEffect(() => {
     refresh();

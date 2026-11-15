@@ -7,7 +7,8 @@ import { buildSystemPrompt } from "@/lib/agent/buildSystemPrompt";
 import { roleViewFor } from "@/lib/roleViews";
 import { Part, VoltaraData, usd } from "@/lib/voltaraData";
 import { SurveyFile } from "@/lib/survey";
-import { Decision, Rule, liveIndex } from "@/lib/rules";
+import { Decision, Rule } from "@/lib/rules";
+import { computeIndex } from "@/lib/index";
 import PageHeader from "@/components/ui/PageHeader";
 import Tabs from "@/components/ui/Tabs";
 import Tile from "@/components/ui/Tile";
@@ -191,9 +192,9 @@ export default function DashboardClient({
     if (latestId) refresh();
   }, [latestId, refresh]);
 
-  // Complexity control moves with recorded reuses, so the strip and the
-  // prompt both read the computed score rather than the file's baseline.
-  const index = liveIndex(data.index, decisions);
+  // The score is computed from the parts list, the survey and the decisions
+  // recorded so far, so the strip and the prompt read the same arithmetic.
+  const index = computeIndex(data, survey, decisions);
   const liveData = { ...data, index };
 
   const role = (profile.role || "CEO") as Role;
@@ -345,8 +346,9 @@ export default function DashboardClient({
                 <ExplodedView data={data} onAsk={ask} />
 
                 <p className="text-[12px] leading-relaxed text-text-3">
-                  Sample company and sample data. The score method and the peer
-                  benchmark are provisional. A price gap is not booked savings.
+                  Sample company and sample data. The score is computed from
+                  the parts list and the survey; there is no peer benchmark
+                  yet. A price gap is not booked savings.
                 </p>
               </div>
             )}

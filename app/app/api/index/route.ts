@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { loadVoltaraData } from "@/lib/voltaraData.server";
+import { loadSurvey, loadVoltaraData } from "@/lib/voltaraData.server";
 import { corsHeaders, preflight } from "@/lib/cors";
-import { liveIndex } from "@/lib/rules";
+import { computeIndex, scoreMethod } from "@/lib/index";
 import { listDecisions, logActivity } from "@/lib/rules.server";
 import { callerOf } from "@/lib/sources.server";
 
@@ -21,19 +21,23 @@ export function OPTIONS(req: NextRequest) {
 export function GET(req: NextRequest) {
   const headers = corsHeaders(req.headers.get("origin"));
   const data = loadVoltaraData();
-  const index = liveIndex(data.index, listDecisions());
+  const index = computeIndex(data, loadSurvey(), listDecisions());
 
-  logActivity({
-    ...callerOf(req),
-    tool: "get_index",
-    summary: `Read the index, ${index.score} of 100`,
-  });
+  // A screen refreshing its own score is not an event worth logging.
+  if (req.nextUrl.searchParams.get("quiet") !== "1") {
+    logActivity({
+      ...callerOf(req),
+      tool: "get_index",
+      summary: `Read the index, ${index.score} of 100`,
+    });
+  }
 
   return NextResponse.json(
     {
       company: data.company,
       period: data.period,
       index,
+      method: scoreMethod(index),
       read: "Sharing parts, not yet a platform.",
       steps: STEPS,
       summary: data.summary,

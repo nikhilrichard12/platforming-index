@@ -18,35 +18,36 @@
   "leadTimeWeeksMax": 14
  },
  "index": {
-  "score": 34,
-  "status": "provisional",
+  "score": 26,
+  "status": "measured",
   "dimensions": [
    {
     "name": "Shared architecture",
-    "score": 18,
-    "basis": "10 of 252 part numbers reused across products",
-    "source": "parts data"
+    "score": 38,
+    "basis": "23 of 60 real parts are used by 5 or more products",
+    "source": "parts list"
    },
    {
     "name": "Decision ownership",
     "score": 40,
-    "basis": "Functions name different owners",
+    "basis": "2 of 5 functions name Engineering",
     "source": "survey"
    },
    {
     "name": "Incentives",
-    "score": 28,
-    "basis": "No function reports a complexity target",
+    "score": 0,
+    "basis": "0 of 5 functions carry a target that rewards reuse",
     "source": "survey"
    },
    {
     "name": "Complexity control",
-    "score": 50,
-    "basis": "No data yet on new part numbers per year",
-    "source": "midpoint"
+    "score": 24,
+    "basis": "60 real parts across 252 active part numbers",
+    "source": "parts list"
    }
   ],
-  "step": 1
+  "step": 1,
+  "note": "Scores are computed at read time by app/lib/index.ts from this file's summary and voltara_survey.json. The values below are the snapshot that produced them with no decisions recorded; only step is read from this file."
  },
  "note": "Part groups come from voltara_answer_key.csv until the matcher exists. gap = yearly spend above the lowest average price Voltara already pays for that part. Each row carries one source purchase order.",
  "parts": [
