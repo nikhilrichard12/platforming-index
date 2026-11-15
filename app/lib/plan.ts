@@ -186,7 +186,12 @@ const BARE_RATING = /^\d+(?:\.\d+)?\s*[a-z]{1,9}$/i;
 function itemsInSentence(sentence: string): string[] {
   const parts = sentence.split(CLAUSE);
   const tail = parts.length > 1 ? parts.slice(1).join(" ") : sentence;
-  return tail.split(/,| and (?=[a-z0-9])/i);
+  // "a 600 V, 50 A module" is one rating written with a comma, not two parts.
+  // Hide a comma between two ratings from the split, then put it back.
+  const guarded = tail.replace(/(\d\s?[a-z%]{1,5}),(\s*\d)/gi, "$1\u0001$2");
+  return guarded
+    .split(/,| and (?=[a-z0-9])/i)
+    .map((piece) => piece.replace(/\u0001/g, ","));
 }
 
 /**
@@ -275,7 +280,11 @@ export function looksLikeComponent(fragment: string): boolean {
   return UNIT.test(f) || RATING.test(f);
 }
 
-/** Nothing useful survived, so ask rather than show an empty panel. */
+/**
+ * Fewer needs than this is usually a page that is not a requirements list, so
+ * the panel asks instead. A page with fewer still shows its result when at
+ * least one need matched a part the company already buys.
+ */
 export const ASK_FLOOR = 3;
 
 /** How many needs one page may contribute. */

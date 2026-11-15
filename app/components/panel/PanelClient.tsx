@@ -137,18 +137,22 @@ export default function PanelClient({ data }: { data: VoltaraData }) {
           return;
         }
         setStale(false);
-        if (result.needs.length < ASK_FLOOR) {
-          // Not enough to show. Ask, and show what was read.
+        if (result.needs.length < ASK_FLOOR && result.summary.covered === 0) {
+          // Too little to show and nothing matched. Ask, and show what was read.
           setPlan(null);
           setAskName(name || productFromTitle(context.title));
           setChips(
-            [
-              ...result.needs.map((n) => n.need),
-              // What the reader looked at, minus one word scraps.
-              ...(result.considered ?? []).filter(
-                (c) => c.length > 10 && c.trim().split(/\s+/).length >= 2
-              ),
-            ].slice(0, 6)
+            // A phrase can be both a need and something the reader looked at.
+            // Chips are keyed and removed by their text, so each must be unique.
+            Array.from(
+              new Set([
+                ...result.needs.map((n) => n.need),
+                // What the reader looked at, minus one word scraps.
+                ...(result.considered ?? []).filter(
+                  (c) => c.length > 10 && c.trim().split(/\s+/).length >= 2
+                ),
+              ])
+            ).slice(0, 6)
           );
         } else {
           setPlan(result);
