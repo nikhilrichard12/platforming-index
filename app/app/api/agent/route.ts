@@ -1,10 +1,11 @@
 import { NextRequest } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
-import { UserProfile } from "@/lib/types";
+import { Role, UserProfile } from "@/lib/types";
 import { buildSystemPrompt } from "@/lib/agent/buildSystemPrompt";
 import { VoltaraData, usd } from "@/lib/voltaraData";
 import { loadSurvey, loadVoltaraData } from "@/lib/voltaraData.server";
-import { computeIndex } from "@/lib/index";
+import { CORE_PRODUCTS, computeIndex } from "@/lib/index";
+import { groupOf } from "@/lib/roleHighlights";
 import { applyAlignment } from "@/lib/alignment";
 import { listAlignment, listDecisions, listRules } from "@/lib/rules.server";
 import { roleViewFor } from "@/lib/roleViews";
@@ -71,6 +72,53 @@ function briefFor(t: string, data: VoltaraData): string | null {
 }
 
 /**
+ * "What should I do next?", answered for the reader's role. Offline, this is
+ * the whole answer; every figure is one the dashboard already shows, and the
+ * tag cites the purchase order behind the largest price gap.
+ */
+function recommendationFor(role: Role | "", data: VoltaraData): string {
+  const s = data.summary;
+  const idx = data.index;
+  const dupes = s.partNumbers - s.realParts;
+  const top = data.byGap.slice(0, 3);
+  const weakest = [...idx.dimensions].sort((a, b) => a.score - b.score)[0];
+
+  switch (groupOf(role || "CEO")) {
+    case "cfo":
+      return [
+        `Start with the price gap. Voltara pays different prices for the same part depending on which product orders it, and closing that gap is worth ${usd(s.yearlyPriceGapUsd)} a year, ${((s.yearlyPriceGapUsd / s.yearlySpendUsd) * 100).toFixed(1)}% of ${usd(s.yearlySpendUsd)} of parts spend. [${top[0].rows[0].po}]`,
+        `Take the three largest first: ${top.map((g) => `${g.name} (${usd(g.gap)})`).join(", ")}.`,
+        `${s.multiSupplierParts} of ${s.realParts} parts have two or more suppliers, so volume is split and no supplier has a reason to compete for it. Consolidating that volume is the lever.`,
+        `This is a gap, not booked savings. Capturing it needs supplier negotiation and engineering sign-off, and what each duplicate part number costs to carry stays an assumption until Finance sets it.`,
+      ].join("\n\n");
+
+    case "engineering":
+      return [
+        `Clear the review queue first. ${s.needsReviewLines} lines are waiting for engineering because their descriptions say too little to match, so they stay outside every grouping until someone reads the drawing.`,
+        `Then take the ${s.coreCandidates} parts that already appear on ${CORE_PRODUCTS} or more products. They are the first candidates for a shared core.`,
+        `${s.partNumbers} part numbers describe ${s.realParts} real parts, so ${dupes} are duplicates, and each one adds drawings, qualification and change orders.`,
+        `Ask for one owner of cross product part decisions. The index reads ${idx.dimensions[1].name} at ${idx.dimensions[1].score} today.`,
+      ].join("\n\n");
+
+    case "sales":
+      return [
+        `Protect the choices customers actually see. ${s.uniqueParts} of ${s.realParts} parts exist on one product only, and each one started as an answer to a customer.`,
+        `The ${s.sharedParts} shared parts are already invisible to customers, so building around them changes nothing a customer can see.`,
+        `Test the unique ones. Ask which differences a customer specifies in writing, and treat the rest as ours to simplify.`,
+        `Take that list to the next planning review, so Engineering and Supply chain can see which variants are worth keeping.`,
+      ].join("\n\n");
+
+    default:
+      return [
+        `The index is ${idx.score} of 100 and Voltara is on step ${idx.step} of three.`,
+        `The weakest dimension is ${weakest.name} at ${weakest.score}. ${weakest.basis}.`,
+        `Three moves, in order: name one owner for cross product part decisions, set a target that no new part number is created without a reuse check, and capture the ${usd(s.yearlyPriceGapUsd)} yearly price gap through supplier negotiation. [${top[0].rows[0].po}]`,
+        `Each one is measurable from the parts list, so the index will show whether it worked.`,
+      ].join("\n\n");
+  }
+}
+
+/**
  * Offline answers. Every figure comes from voltara_parts.json and carries the
  * same [POxxxxxx] tags the live assistant uses.
  */
@@ -90,6 +138,9 @@ function fallbackReply(
   // The three briefs Alignment asks for, so the cards work with no key set.
   const brief = briefFor(t, data);
   if (brief) return brief;
+
+  // The Summary's "What should you do next?" button: a recommendation for this role.
+  if (/what should i do next/.test(t)) return recommendationFor(profile.role, data);
 
   const cfo = roleViewFor("CFO / Finance").kpis(data);
   const eng = roleViewFor("Engineering / R&D").kpis(data);
@@ -115,7 +166,7 @@ function fallbackReply(
   if (/score|index|provisional/.test(t)) {
     const idx = data.index;
     return [
-      `The Platforming Index is ${idx.score} of 100, computed from the parts list and the survey. Four dimensions, equal weights: ${idx.dimensions.map((d) => `${d.name} ${d.score}`).join(", ")}.`,
+      `The Complexity Index is ${idx.score} of 100, computed from the parts list and the survey. Four dimensions, equal weights: ${idx.dimensions.map((d) => `${d.name} ${d.score}`).join(", ")}.`,
       `${idx.dimensions[0].basis}. ${idx.dimensions[3].name} is a midpoint because there is no data yet on new part numbers per year.`,
       `The score reads as sharing parts, not yet a platform. Voltara is on step ${idx.step} of three.`,
     ].join("\n\n");

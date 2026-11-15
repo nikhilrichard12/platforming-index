@@ -10,7 +10,6 @@ import {
   CONFLICT_CAP,
   Chip,
   Lane,
-  MatcherEval,
   REVIEW,
   SAME,
   Similarity,
@@ -23,12 +22,11 @@ import { PartRow, VoltaraData } from "@/lib/voltaraData";
 /**
  * How 252 part numbers became 60 parts, drawn once and then left standing.
  *
- * Three bands, top to bottom: the equation two real rows go through, the
- * decision that equation feeds (a score track with two thresholds), and what
- * that decision was graded at. Every figure is computed here from the parts
- * data, lib/similarity.ts or data/derived/matcher_eval.json. A row or a file
- * the story depends on that is missing raises an error rather than leaving a
- * gap in the diagram.
+ * Two bands, top to bottom: the equation two real rows go through, and the
+ * decision that equation feeds (a score track with two thresholds). Every
+ * figure is computed here from the parts data or lib/similarity.ts. A row the
+ * story depends on that is missing raises an error rather than leaving a gap in
+ * the diagram.
  */
 
 const n2 = (v: number) => v.toFixed(2);
@@ -85,7 +83,6 @@ interface Hero {
   lanes: { term: string; weight: number; value: number; slots: Slot[] }[];
   result: Similarity;
   markers: Marker[];
-  seeDwgLines: number;
   parts: number;
   partNumbers: number;
 }
@@ -145,38 +142,14 @@ function buildHero(data: VoltaraData): Hero {
     lanes,
     result,
     markers,
-    seeDwgLines: rows.filter((r) => /see dwg/i.test(r.desc)).length,
     parts: data.summary.realParts,
     partNumbers: data.summary.partNumbers,
   };
 }
 
-/** The tiles and the closing line, read from the graded run. */
-function readEval(evaluation: MatcherEval) {
-  const wrong = must(
-    evaluation.worst.find((w) => w.kind === "wrong merge"),
-    "matcher_eval.json lists no wrong merge to name"
-  );
-  // The tile names the wrong merge in plain words. If the grading ever finds a
-  // different one, this copy is stale: say so instead of printing a false line.
-  if (!/dual input/i.test(wrong.truthA) || !/triple input/i.test(wrong.truthB)) {
-    throw new Error(
-      `Inventory diagram: the wrong merge is now "${wrong.truthA}" with "${wrong.truthB}", not dual-input with triple-input. Update the tile.`
-    );
-  }
-  return {
-    precision: evaluation.pairwisePrecision * 100,
-    correct: evaluation.correctMerges,
-    merged: evaluation.mergedPairs,
-    recall: Math.round(evaluation.pairwiseRecall * 100),
-    wrongMerges: evaluation.wrongMerges,
-    groups: evaluation.groupsFound,
-  };
-}
-
 /* ---------- timing ---------- */
 
-/** When each part of the diagram starts, in ms. The run is about ten seconds. */
+/** When each part of the diagram starts, in ms. The last marker lands at about 8.3 s. */
 const AT = {
   cards: 0,
   equation: 600,
@@ -187,24 +160,14 @@ const AT = {
   bandB: 5600,
   markers: 6100,
   markerGap: 550,
-  bandC: 8500,
-  flow: 9300,
-  foot: 9800,
 };
 
 const TICK_PATH = "M2.5 6.5 L5.5 9.5 L10.5 3.5";
 
 /* ---------- the diagram ---------- */
 
-export default function MatchingPanel({
-  data,
-  evaluation,
-}: {
-  data: VoltaraData;
-  evaluation: MatcherEval | null;
-}) {
+export default function MatchingPanel({ data }: { data: VoltaraData }) {
   const hero = useMemo(() => buildHero(data), [data]);
-  const stats = useMemo(() => (evaluation ? readEval(evaluation) : null), [evaluation]);
   const reduced = useReducedMotion();
   const root = useRef<HTMLDivElement>(null);
   const bandA = useRef<HTMLDivElement>(null);
@@ -248,16 +211,14 @@ export default function MatchingPanel({
   /** Every element at its resting place and value. */
   const settle = useCallback(() => {
     tlRef.current?.pause();
-    const all = q("[data-a],[data-b],[data-c]");
+    const all = q("[data-a],[data-b]");
     utils.set(all, { opacity: 1, x: 0, y: 0, scale: 1 });
     utils.set(q("[data-a='ghost']"), { opacity: 0.35 });
     utils.set(q("[data-a='fuse']"), { opacity: 0 });
     utils.set(q("[data-a='path']"), { opacity: 0.25, strokeDashoffset: 0 });
     utils.set(q("[data-a='tick']"), { opacity: 1, scale: 1 });
-    utils.set(q("[data-c='rule']"), { scaleX: 1 });
     q("[data-a='value']").forEach((el) => (el.textContent = n2(Number(el.dataset.value))));
     q("[data-a='result']").forEach((el) => (el.textContent = n2(hero.result.score)));
-    q("[data-c='num']").forEach((el) => (el.textContent = Number(el.dataset.value).toFixed(Number(el.dataset.dp))));
     drawConnectors();
   }, [q, hero, drawConnectors]);
 
@@ -305,11 +266,6 @@ export default function MatchingPanel({
     utils.set(q("[data-b='zone']"), { opacity: 0 });
     utils.set(q("[data-b='thr']"), { opacity: 0 });
     utils.set(q("[data-b='marker']"), { opacity: 0, y: -26 });
-    utils.set(q("[data-c='tile']"), { opacity: 0, y: 14 });
-    utils.set(q("[data-c='rule']"), { scaleX: 0 });
-    utils.set(q("[data-c='flowtext']"), { opacity: 0 });
-    utils.set(q("[data-c='foot']"), { opacity: 0 });
-    q("[data-c='num']").forEach((el) => (el.textContent = (0).toFixed(Number(el.dataset.dp))));
 
     const tl = createTimeline({ defaults: { ease: "inOutQuad" } });
 
@@ -357,18 +313,6 @@ export default function MatchingPanel({
       tl.add(m, { opacity: 1, y: 0, duration: 560, ease: "outBack" }, AT.markers + i * AT.markerGap);
     });
 
-    /* C. the result: what the matcher scored when graded blind */
-    tl.add(q("[data-c='tile']"), { opacity: 1, y: 0, duration: 520, ease: "outCubic", delay: stagger(140) }, AT.bandC);
-    q("[data-c='num']").forEach((el, i) => {
-      const c = { v: 0 };
-      const to = Number(el.dataset.value);
-      const dp = Number(el.dataset.dp);
-      tl.add(c, { v: to, duration: 900, ease: "outQuad", onUpdate: () => (el.textContent = c.v.toFixed(dp)) }, AT.bandC + i * 140);
-    });
-    tl.add(q("[data-c='rule']"), { scaleX: 1, duration: 520, delay: stagger(180) }, AT.flow);
-    tl.add(q("[data-c='flowtext']"), { opacity: 1, duration: 420, delay: stagger(180) }, AT.flow);
-    tl.add(q("[data-c='foot']"), { opacity: 1, duration: 520 }, AT.foot);
-
     tlRef.current = tl;
   }, [reduced, flyers, hero, q, settle, drawConnectors]);
 
@@ -398,9 +342,10 @@ export default function MatchingPanel({
   return (
     <AnimationPanel
       title={`How ${hero.partNumbers} part numbers became ${hero.parts} parts`}
+      controls={<Badge tone="positive">Sample data</Badge>}
       onReplay={play}
     >
-      <div ref={root} className="flex flex-col gap-[14px] lg:h-[484px]">
+      <div ref={root} className="flex flex-col gap-[14px] lg:h-[338px]">
         {/* ─── A. the equation ─── */}
         <div ref={bandA} className="relative flex flex-col justify-between lg:h-[176px]">
           <svg aria-hidden className="pointer-events-none absolute inset-0 z-0 h-full w-full overflow-visible">
@@ -538,11 +483,7 @@ export default function MatchingPanel({
                         <span className="text-[13px] text-text">{m.title}</span>
                       </p>
                       <p className="mt-[3px] whitespace-nowrap text-[12px] leading-tight text-text-2">{m.note}</p>
-                      {m.madeUp && (
-                        <span className="mt-[3px]">
-                          <Badge tone="warn">Made-up example</Badge>
-                        </span>
-                      )}
+                      {m.madeUp && <p className="mt-[3px] text-[11px] leading-none text-text-3">Illustrative</p>}
                     </div>
                     <span className="absolute bottom-[11px] left-0 block h-[10px] w-px -translate-x-1/2" style={{ background: tone }} />
                     <span
@@ -581,46 +522,6 @@ export default function MatchingPanel({
           </div>
         </div>
 
-        {/* ─── C. the result ─── */}
-        <div className="border-t border-line pt-[14px] lg:h-[132px]">
-          {stats ? (
-            <div className="flex h-full flex-col justify-between">
-              <div className="grid grid-cols-3 gap-4">
-                <Tile
-                  value={stats.precision}
-                  dp={1}
-                  unit=" percent"
-                  label={`of merges correct, ${stats.correct} of ${stats.merged}`}
-                />
-                <Tile value={stats.recall} dp={0} unit=" percent" label="of duplicates found alone" />
-                <Tile
-                  value={stats.wrongMerges}
-                  dp={0}
-                  unit={stats.wrongMerges === 1 ? " wrong merge" : " wrong merges"}
-                  label="dual-input vs triple-input board"
-                />
-              </div>
-
-              <div className="flex items-center gap-3 text-[14px] text-text">
-                <span data-c="flowtext" className="whitespace-nowrap">Matcher proposes {stats.groups} groups.</span>
-                <Rule />
-                <span data-c="flowtext" className="whitespace-nowrap">Engineer confirms.</span>
-                <Rule arrow />
-                <span data-c="flowtext" className="whitespace-nowrap">{hero.parts} parts.</span>
-              </div>
-
-              <p data-c="foot" className="text-[12px] leading-snug text-text-3">
-                Next: read datasheets and drawings for the {hero.seeDwgLines} SEE DWG lines. Source: Anthropic, Testing
-                Claude on real-world electronics design, Nov 9 2026, BenchCAD 2.1 83.5 percent.
-              </p>
-            </div>
-          ) : (
-            <p className="text-[13px] text-text-2">
-              The matcher has not been graded yet, so there are no results to show. Run engine/evaluate_matcher.ts to
-              write data/derived/matcher_eval.json.
-            </p>
-          )}
-        </div>
       </div>
     </AnimationPanel>
   );
@@ -674,36 +575,6 @@ function Zone({ from, to, color, label }: { from: number; to: number; color: str
     >
       {label}
     </div>
-  );
-}
-
-function Tile({ value, dp, unit, label }: { value: number; dp: number; unit: string; label: string }) {
-  return (
-    <div data-c="tile" className="flex items-center gap-3 bg-surface px-4 py-[7px]">
-      <p className="whitespace-nowrap text-[22px] font-light leading-none text-text">
-        <span data-c="num" data-value={value} data-dp={dp} className="tabular-nums">
-          {value.toFixed(dp)}
-        </span>
-        <span className="text-[14px]">{unit}</span>
-      </p>
-      <div className="min-w-0">
-        <p className="text-[12px] leading-snug text-text-2">{label}</p>
-        <p className="font-mono text-[11px] text-text-3">matcher_eval.json</p>
-      </div>
-    </div>
-  );
-}
-
-function Rule({ arrow = false }: { arrow?: boolean }) {
-  return (
-    <span className="relative flex h-[10px] flex-1 items-center">
-      <span data-c="rule" className="block h-px w-full origin-left bg-text-3" />
-      {arrow && (
-        <svg data-c="flowtext" aria-hidden viewBox="0 0 8 10" className="absolute -right-px h-[10px] w-[8px]">
-          <path d="M0.5 1 L6.5 5 L0.5 9" fill="none" stroke={TOKEN.text2} strokeWidth={1.2} strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      )}
-    </span>
   );
 }
 

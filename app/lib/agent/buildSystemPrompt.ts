@@ -115,7 +115,7 @@ export function buildPromptSections(
       body: [
         `Company: ${data.company}. Period: ${data.period}.`,
         `Summary: ${s.partNumbers} part numbers describe ${s.realParts} real parts. ${s.sharedParts} parts are shared by 2 or more products, ${s.coreCandidates} by 5 or more (common core candidates), ${s.uniqueParts} are unique to one product. ${s.partNumbersReusedAcrossProducts} part numbers are already reused across products. Yearly parts spend $${s.yearlySpendUsd} (${usd(s.yearlySpendUsd)}). Yearly price gap on shared parts if every line paid the lowest price Voltara already pays: $${s.yearlyPriceGapUsd} (${usd(s.yearlyPriceGapUsd)}). ${s.needsReviewLines} battery cabinet lines say only "SEE DWG" and wait for engineering review. ${s.suppliers} suppliers; ${s.multiSupplierParts} parts have 2 or more suppliers. Sustaining engineering ${s.sustainingHoursPerYear} hours a year. Lead time ${s.leadTimeWeeksMin} to ${s.leadTimeWeeksMax} weeks.`,
-        `Platforming Index: ${idx.score} of 100, ${idx.status}, equal weights. ${idx.dimensions.map((d) => `${d.name} ${d.score} (${d.basis}) [${d.source}]`).join("; ")}. Path: step 1 cut cost on current products (now), step 2 consolidate duplicate parts, step 3 common core plus modules for the next generation. Voltara is on step ${idx.step}.`,
+        `Complexity Index: ${idx.score} of 100, ${idx.status}, equal weights. ${idx.dimensions.map((d) => `${d.name} ${d.score} (${d.basis}) [${d.source}]`).join("; ")}. Path: step 1 cut cost on current products (now), step 2 consolidate duplicate parts, step 3 common core plus modules for the next generation. Voltara is on step ${idx.step}.`,
         surveyLines(survey, profile),
         `Peer benchmark [kearney_survey]: ${survey.benchmark.text}`,
         `Products [product_master] (id, name, units per year, lead time weeks, sustaining engineering hours per year):`,
@@ -176,7 +176,7 @@ export function buildPromptSections(
         `A1: Part groups come from voltara_answer_key.csv until the matcher exists. Every group is correct by construction, not matched, so matching accuracy is still unmeasured.`,
         `A2: The ${usd(s.yearlyPriceGapUsd)} yearly price gap is computed, not a stated fact: for each shared part, yearly spend above the lowest average price Voltara already pays for that part, summed across parts. It is a gap, not booked savings.`,
         `A3: Unit prices are average prices from voltara_spend_cube.csv. Each row carries one source purchase order; a part number bought many times shows its average.`,
-        `A4: The Platforming Index score of ${idx.score} is computed from the parts list and the survey, four dimensions at equal weight: ${idx.dimensions
+        `A4: The Complexity Index of ${idx.score} is computed from the parts list and the survey, four dimensions at equal weight: ${idx.dimensions
           .map((d) => `${d.name} ${d.score} (${d.basis})`)
           .join("; ")}. Every dimension is a ratio of two numbers in the data, not a judgement. There is no peer benchmark, so the score has nothing to be compared against yet.`,
         `A5: Time to market is qualitative only. Lead time by product exists; no launch-to-ship data exists in the sample files.`,

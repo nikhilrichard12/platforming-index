@@ -7,6 +7,8 @@ export type TabItem = {
   label: string;
   /** Draws a small risk dot after the label. */
   flagged?: boolean;
+  /** This is where the reader's role leads: the label reads brighter. */
+  lead?: boolean;
 };
 
 export default function Tabs({
@@ -14,15 +16,24 @@ export default function Tabs({
   active,
   onSelect,
   actions,
+  center = false,
 }: {
   items: TabItem[];
   active: string;
   onSelect: (id: string) => void;
   actions?: ReactNode;
+  /** Centre the tabs, with the action centred beneath them. */
+  center?: boolean;
 }) {
   return (
-    <div className="mt-8 flex items-end justify-between border-b border-line">
-      <div className="flex items-end gap-7">
+    <div
+      className={
+        center
+          ? "mt-8 flex flex-col items-center gap-5"
+          : "mt-8 flex items-end justify-between border-b border-line"
+      }
+    >
+      <div className={center ? "flex w-full items-end justify-center gap-7 border-b border-line" : "flex items-end gap-7"}>
         {items.map((t) => {
           const isActive = t.id === active;
           return (
@@ -33,6 +44,8 @@ export default function Tabs({
               className={`-mb-px flex items-center gap-2 border-b pb-2 text-[14px] transition-colors ${
                 isActive
                   ? "border-text text-text"
+                  : t.lead
+                  ? "border-transparent text-text"
                   : "border-transparent text-text-2 hover:text-text"
               }`}
             >
@@ -47,7 +60,7 @@ export default function Tabs({
           );
         })}
       </div>
-      {actions ? <div className="pb-2">{actions}</div> : null}
+      {actions ? <div className={center ? "" : "pb-2"}>{actions}</div> : null}
     </div>
   );
 }

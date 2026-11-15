@@ -16,8 +16,7 @@ export default function TopBar() {
     <header className="sticky top-0 z-50 h-11 bg-chrome">
       <div className="flex h-full items-center justify-between px-12">
         <span className="text-[15px] leading-none tracking-tight text-text">
-          <span className="font-bold">Platforming</span>{" "}
-          <span className="font-light">Index</span>
+          <span className="font-bold">PlatInform</span>
         </span>
         <div className="flex items-center gap-3">
           <span className="text-[13px] leading-none text-text-2">

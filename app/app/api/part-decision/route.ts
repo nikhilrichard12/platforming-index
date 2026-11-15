@@ -117,7 +117,7 @@ export async function POST(req: NextRequest) {
       recorded: result.decision,
       rule: result.rule,
       indexScoreUnchanged: true,
-      note: "An exception does not lower the Platforming Index score. Complexity a rule requires is not complexity anyone chose.",
+      note: "An exception does not lower the Complexity Index. Complexity a rule requires is not complexity anyone chose.",
     },
     { headers }
   );

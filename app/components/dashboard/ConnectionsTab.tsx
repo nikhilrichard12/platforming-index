@@ -202,7 +202,7 @@ export default function ConnectionsTab() {
             ))}
           </ul>
           <p className="mt-3 text-[12px] text-text-3">
-            Page text goes to the Platforming Index and nowhere else.
+            Page text goes to PlatInform and nowhere else.
           </p>
         </div>
       </div>
