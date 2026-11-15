@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { PLATFORMING } from "@/lib/pitch";
 import { PRODUCT_MASTER } from "@/lib/voltaraData";
 import type { ScreenProps } from "../PitchDeck";
@@ -20,16 +19,12 @@ import { Frame, Reveal, Source, Typed } from "../parts";
  * draws what is in the file; it does not describe it.
  */
 export default function ScreenWhat({ bundle, step, printing }: ScreenProps) {
-  /** The strike lands inside the first beat, a beat after the line types. */
-  const [struck, setStruck] = useState(printing);
-  useEffect(() => {
-    if (printing) {
-      setStruck(true);
-      return;
-    }
-    const id = setTimeout(() => setStruck(true), 900);
-    return () => clearTimeout(id);
-  }, [printing]);
+  /*
+   * The first definition stays readable until the presenter advances: the
+   * line through it is the advance, not a timer, so the room has as long as
+   * it needs to read the thing being struck out.
+   */
+  const struck = step >= 1 || printing;
 
   const records = PLATFORMING.blockIds
     .map((id) => bundle.interfaces.find((i) => i.id === id))
@@ -47,7 +42,7 @@ export default function ScreenWhat({ bundle, step, printing }: ScreenProps) {
   const first = products[0];
   const rest = products.slice(1);
 
-  const picture = step >= 2;
+  const picture = step >= 3;
 
   return (
     <Frame>
@@ -65,7 +60,7 @@ export default function ScreenWhat({ bundle, step, printing }: ScreenProps) {
         </p>
 
         <p className="mt-4 h-[42px] shrink-0 text-[30px] font-light leading-snug text-text">
-          {step >= 1 ? (
+          {step >= 2 ? (
             <Typed text={PLATFORMING.real} play={!printing} />
           ) : null}
         </p>
@@ -171,7 +166,11 @@ export default function ScreenWhat({ bundle, step, printing }: ScreenProps) {
             <p className="text-[19px] font-light leading-snug text-text-2">
               {PLATFORMING.caption}
             </p>
-            <div className="mt-2">
+            <p className="mt-2 text-[13px] leading-snug text-text-3">
+              {PLATFORMING.conceptLead} {products.length}{" "}
+              {PLATFORMING.conceptTail}
+            </p>
+            <div className="mt-1">
               <Source>{PLATFORMING.source}</Source>
             </div>
           </Reveal>

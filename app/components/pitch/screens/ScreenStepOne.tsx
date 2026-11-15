@@ -2,48 +2,49 @@
 
 import { CLIPS, STEP_ONE } from "@/lib/pitch";
 import type { ScreenProps } from "../PitchDeck";
-import Clip from "../Clip";
-import { Frame, Reveal } from "../parts";
+import ClipFrame from "../ClipFrame";
+import { Frame, Reveal, StepCount } from "../parts";
 
 /**
- * Screen 7. The free step, and what it is for.
+ * Screen 7. The free step.
  *
- * Two recordings run back to back, the questions and then the result. Where
- * a recording does not exist yet the Clip shows a still of the same screen
- * instead, so the deck always has the real product on it.
+ * The two recordings run back to back in the same frame: the questions on
+ * the first advance, the result they produce on the second. The clip holds
+ * the left of the stage at the same size the plugin screen uses, so the
+ * three step screens and the product screen all carry the same weight.
  */
+const CLIP_W = 740;
+const CLIP_H = 500;
+
 export default function ScreenStepOne({ step, active, printing }: ScreenProps) {
-  const shots = [CLIPS.survey, CLIPS.ballpark];
+  const clip = step >= 2 ? CLIPS.ballpark : CLIPS.survey;
 
   return (
-    <Frame title={STEP_ONE.title}>
-      <div className="flex h-full flex-col">
-        <p className="max-w-[1040px] shrink-0 text-[19px] leading-snug text-text-2">
-          {STEP_ONE.body}
-        </p>
+    <Frame>
+      <div className="flex h-full items-center gap-10">
+        <ClipFrame
+          key={clip.src}
+          clip={clip}
+          width={CLIP_W}
+          height={CLIP_H}
+          play={active && step >= 1 && !printing}
+          caption={step >= 1 ? clip.label : null}
+        />
 
-        <div className="mt-7 grid min-h-0 flex-1 grid-cols-2 gap-8">
-          {shots.map((c, i) => (
-            <Reveal key={c.src} show={step >= i + 1} className="flex flex-col">
-              <div className="min-h-0 flex-1">
-                <Clip
-                  src={c.src}
-                  label={c.label}
-                  still={c.still}
-                  play={active && step >= i + 1 && !printing}
-                  loop
-                />
-              </div>
-              <p className="mt-3 shrink-0 text-[15px] leading-snug text-text-2">
-                {c.label}
-              </p>
-            </Reveal>
-          ))}
+        <div className="flex min-w-0 flex-1 flex-col">
+          <StepCount n={1} />
+          <h1 className="mt-5 text-[40px] font-light leading-[1.14] text-text">
+            {STEP_ONE.title}
+          </h1>
+          <p className="mt-6 text-[17px] leading-snug text-text-2">
+            {STEP_ONE.body}
+          </p>
+          <Reveal show={step >= 1} className="mt-6">
+            <p className="text-[13px] leading-snug text-text-3">
+              {STEP_ONE.note}
+            </p>
+          </Reveal>
         </div>
-
-        <p className="mt-5 shrink-0 text-[13px] leading-none text-text-3">
-          {STEP_ONE.note}
-        </p>
       </div>
     </Frame>
   );

@@ -34,7 +34,7 @@ import ScreenStepTwo from "./screens/ScreenStepTwo";
 import ScreenStepThree from "./screens/ScreenStepThree";
 import ScreenLoop from "./screens/ScreenLoop";
 import ScreenVelocity from "./screens/ScreenVelocity";
-import ScreenClose from "./screens/ScreenClose";
+import ScreenBusiness from "./screens/ScreenBusiness";
 
 /** Everything the server read, in the shape every screen reads it. */
 export interface PitchBundle {
@@ -90,7 +90,7 @@ const COMPONENTS = [
   ScreenStepThree,
   ScreenLoop,
   ScreenVelocity,
-  ScreenClose,
+  ScreenBusiness,
 ];
 
 /** The stage is drawn at 1280x720 and scaled; 16:9 is the safe area. */

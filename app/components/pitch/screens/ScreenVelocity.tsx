@@ -17,11 +17,11 @@ export default function ScreenVelocity({ step }: ScreenProps) {
   return (
     <Frame title={VELOCITY.title}>
       <div className="flex h-full gap-10">
-        <div className="flex w-[380px] shrink-0 flex-col justify-center gap-7">
+        <div className="flex w-[340px] shrink-0 flex-col justify-center gap-7">
           {VELOCITY.items.map((item, i) => (
             <p
               key={item.image}
-              className="text-[17px] leading-snug transition-opacity duration-300"
+              className="text-[16px] leading-snug transition-opacity duration-300"
               style={{
                 color: i === step ? "#FFFFFF" : "#818182",
                 opacity: i <= step ? 1 : 0.25,

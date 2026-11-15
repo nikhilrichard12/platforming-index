@@ -40,7 +40,7 @@ export const PROBLEM = {
   effortRead: "name engineering effort as the top challenge",
   effortSource:
     "Kearney PERLab survey of 100 leaders, November 2026. docs/CONTEXT.md line 9.",
-  adoptionHead: "Most companies are not doing it.",
+  adoptionHead: "Most companies do not see the potential.",
   chartTitle: "Companies running a platforming strategy at scale, by industry",
   chartSource: "Kearney Platforming Survey, 2026.",
   bars: [
@@ -53,8 +53,11 @@ export const PROBLEM = {
     { name: "Telecom", value: 38, accent: false },
     { name: "Energy and power", value: 20, accent: true },
   ],
+  /** The four industries under half, which the bracket names. */
+  targetUnder: 50,
+  targetLabel: "Our target market",
   close:
-    "52 percent of companies that platform at scale set no complexity target, so nobody owns the result.",
+    "Both problems are the opportunity: more companies to bring into platforming, and engineering work that continues after the first project.",
 } as const;
 
 /* ---------- 3. what platforming is ---------- */
@@ -67,6 +70,9 @@ export const PLATFORMING = {
   oneProduct: "One product",
   caption:
     "Reuse the block, inherit the brackets, harness, firmware, and tests. Start from there.",
+  /** Read from the first block record: the same block, this many products. */
+  conceptLead: "Design concept: a shared power stage module, the same block built into",
+  conceptTail: "products.",
   source:
     "Sample data. data/derived/voltara_interfaces.json, the two power stage records.",
 } as const;
@@ -79,8 +85,6 @@ export interface ClipSpec {
   /** Filmed size, so a frame can take the clip's own shape. */
   width: number;
   height: number;
-  /** A still to show instead when the recording does not exist yet. */
-  still?: string;
 }
 
 export const CLIPS: Record<string, ClipSpec> = {
@@ -92,24 +96,27 @@ export const CLIPS: Record<string, ClipSpec> = {
   },
   survey: {
     src: "/pitch/clips/survey.mp4",
-    label: "The eight questions",
-    width: 16,
-    height: 10,
-    still: "/pitch/stills/survey.png",
+    label: "Eight questions about the company",
+    width: 1254,
+    height: 1080,
   },
   ballpark: {
     src: "/pitch/clips/ballpark.mp4",
-    label: "A rough index and a rough cost, from eight answers",
-    width: 16,
-    height: 10,
-    still: "/pitch/stills/ballpark.png",
+    label: "A rough index and a rough cost, from those answers",
+    width: 1910,
+    height: 1080,
   },
   summary: {
     src: "/pitch/clips/summary.mp4",
     label: "The measured index, read from the company's own parts list",
-    width: 16,
-    height: 10,
-    still: "/pitch/stills/summary.png",
+    width: 1782,
+    height: 1080,
+  },
+  alignment: {
+    src: "/pitch/clips/alignment.mp4",
+    label: "Decisions recorded where the functions disagree",
+    width: 1782,
+    height: 1080,
   },
 };
 
@@ -169,8 +176,8 @@ export const STEP_BACK = {
 /* ---------- 7, 8, 9. the three steps ---------- */
 
 export const STEP_ONE = {
-  title: "Step one: a two-minute ballpark for the CEO.",
-  body: `Eight plain questions produce a rough ${SCORE_NAME} and a rough cost. For Kearney this is a business development opening: any manufacturer can take it, and each result starts a conversation.`,
+  title: "Step one: a two-minute ballpark for the C-suite.",
+  body: `Eight plain questions produce a rough ${SCORE_NAME} and a rough cost, so executives see the size of the problem before anyone opens a parts list. For Kearney this is a business development opening: any manufacturer can take it, and each result starts a conversation.`,
   note: "Questions shaped with Andrew Cecola of Kearney PERLab.",
 } as const;
 
@@ -187,14 +194,24 @@ export const STEP_THREE = {
 
 /* ---------- 10. the loop ---------- */
 
+/**
+ * The circle the three steps close. The last segment, from the decisions
+ * back to the ballpark, is the one the screen is about: it is what makes the
+ * next answer better than the last one.
+ */
 export const LOOP = {
   nodes: [
-    "Foot in the door",
-    "A reason for every function",
-    "The plugin at each decision",
-    "Decisions feed the data",
+    { name: "Ballpark", line: "Executives see a rough score." },
+    { name: "Measured index", line: "Every function sees its cost." },
+    { name: "Plugin", line: "Teams reuse proven designs." },
+    { name: "Decisions return", line: "Each choice goes back in." },
   ],
-  center: `${PRODUCT} grows with use.`,
+  /** What the two nodes the closing segment improves are labelled with. */
+  gains: { plugin: "better answers", measured: "sharper index" },
+  center: "Every decision improves the data and the plugin.",
+  /** The two alignment decisions, with the index either side of them. */
+  decisionsLead: "Two leadership decisions: index",
+  decisionsTail: "no part changed.",
 } as const;
 
 /* ---------- 11. Velocity AI Studio ---------- */
@@ -237,11 +254,33 @@ export const VELOCITY = {
   ] as VelocityItem[],
 } as const;
 
-/* ---------- 12. close ---------- */
+/* ---------- 12. why this is a business ---------- */
 
-export const CLOSE = {
-  title: `What ${PRODUCT} becomes.`,
-  next: "Next: more of a company's designs, read from drawings and datasheets, in every tool its teams use.",
+/**
+ * The last screen answers the two problems the second screen opened with,
+ * in the same two positions on the stage. Both figures under the left column
+ * are computed from the purchase history; the chart on the right is the same
+ * one screen 2 draws, at a quarter of the size.
+ */
+export const BUSINESS = {
+  title: "Why this is a business.",
+  left: {
+    was: "It takes real engineering effort.",
+    now: "Sustained work.",
+    body: "Platforming is never one project. Each product line, each acquisition, and each new design brings more to measure and more to reuse. The plugin keeps the client engaged between projects.",
+  },
+  right: {
+    was: "Most companies do not see the potential.",
+    now: "Business development.",
+    body: "A two-minute ballpark gives any manufacturer a number to react to. Every result is a reason to start a conversation with Kearney.",
+    chartLabel: "Where the conversations start",
+  },
+  steps: [
+    { name: "Ballpark", what: "free, opens the door." },
+    { name: "Measured index", what: "a paid diagnostic." },
+    { name: "Plugin", what: "a yearly license that keeps the gain." },
+  ],
+  close: `${PRODUCT} turns Kearney's own research into the first meeting, the first project, and the reason to stay.`,
 } as const;
 
 /* ---------- the deck itself ---------- */
@@ -285,26 +324,28 @@ export const SCREENS: ScreenMeta[] = [
     id: "problem",
     title: "The problem",
     steps: 3,
-    targetSeconds: 40,
+    targetSeconds: 35,
     rubric: ["Commercial potential", "Final pitch"],
     script: [
       "Platforming has two problems, and each one makes the other worse.",
       "The first is that it takes real engineering effort: every decision has to account for what the company already designed and bought, across every team.",
       "In Kearney PERLab's survey of a hundred manufacturing leaders, 43 percent named engineering effort as the top challenge.",
-      "The second problem is that most companies are not doing it, and the gap between industries is wide.",
+      "The second is that most companies do not see the potential, and the gap between industries is wide.",
       "Aerospace and defence runs platforming at scale in 80 percent of companies. Energy and power is at 20.",
-      "And 52 percent of the companies that do platform at scale set no complexity target at all, so nobody owns the result.",
+      "The four industries under half are the ones we are aiming at, and they are most of the market.",
+      "Both problems are the opportunity: more companies to bring into platforming, and engineering work that continues after the first project.",
     ],
   },
   {
     n: 3,
     id: "what",
     title: "What platforming is",
-    steps: 3,
+    steps: 4,
     targetSeconds: 20,
     rubric: ["Final pitch"],
     script: [
-      "Platforming is not making every product use the same parts. That is parts reuse, and most companies stop there.",
+      "Here is the definition most people have in their heads.",
+      "It is wrong, or at least it is only the first half: that is parts reuse, and most companies stop there.",
       "Platforming is never losing a design the company already proved.",
       "Voltara proved its power stage in 2019, and six products later the brackets, the harness, the firmware and the tests all came with it.",
     ],
@@ -314,7 +355,7 @@ export const SCREENS: ScreenMeta[] = [
     id: "plugin",
     title: "The plugin",
     steps: 4,
-    targetSeconds: 50,
+    targetSeconds: 45,
     rubric: ["Deliverable", "Technical feasibility"],
     script: [
       "PlatInform sits where product decisions actually get made.",
@@ -328,7 +369,7 @@ export const SCREENS: ScreenMeta[] = [
     id: "similar",
     title: "How similarity is calculated",
     steps: 3,
-    targetSeconds: 55,
+    targetSeconds: 50,
     rubric: ["Technical feasibility"],
     script: [
       "A judge, BK, asked us on Saturday how we know that one part can replace another.",
@@ -337,7 +378,7 @@ export const SCREENS: ScreenMeta[] = [
       "The method is Fellegi-Sunter record linkage, from 1969: weighted fields, two thresholds, and a human review band between them.",
       "A different kind of thing scores zero, and one rating that disagrees caps the score at nought point three.",
       "Graded blind against a hand-labelled key, 99.8 percent of the merges were correct, with one mistake in 602.",
-      "Then there is the harder question: two products that share no part numbers at all.",
+      "Then the harder question: two products that share no part numbers at all are still built on the same power block.",
       "Part matching finds identical parts. Design matching finds what different products have in common.",
       "Next is reading datasheets and drawings for the parts that text cannot describe. That is planned, not built.",
     ],
@@ -363,8 +404,9 @@ export const SCREENS: ScreenMeta[] = [
     targetSeconds: 30,
     rubric: ["Commercial potential"],
     script: [
-      "Step one is a two-minute ballpark aimed at the CEO.",
-      "Eight plain questions produce a rough Platforming Index and a rough cost.",
+      "Step one is a two-minute ballpark aimed at the C-suite.",
+      "Eight plain questions about the company, and no data to upload.",
+      "Executives get a rough Platforming Index and a rough cost, so they see the size of the problem before anyone opens a parts list.",
       "For Kearney this is a business development opening: any manufacturer can take it, and every result starts a conversation.",
       "The questions were shaped with Andrew Cecola of Kearney PERLab.",
     ],
@@ -393,7 +435,8 @@ export const SCREENS: ScreenMeta[] = [
     script: [
       "Step three is the plugin, which puts the index inside every product decision.",
       "The first version works on purchasing data, because that is the low-hanging fruit.",
-      "Each time someone uses the plugin, their decision goes back into the company's data, so the answers get better for the next team.",
+      "Where functions disagree, the decision is recorded, and each one goes back into the company's data.",
+      "So the answers get better for the next team.",
     ],
   },
   {
@@ -404,10 +447,10 @@ export const SCREENS: ScreenMeta[] = [
     targetSeconds: 20,
     rubric: ["Commercial potential"],
     script: [
-      "Put the three steps together and they close a loop.",
-      "The ballpark is the foot in the door. The measured index gives every function a reason to care.",
-      "The plugin sits at each decision, and those decisions feed the data the next answer is read from.",
-      "PlatInform grows with use.",
+      "Put the three steps together and they close a circle.",
+      "The ballpark gets executives a score. The measured index gives every function its own cost. The plugin gets teams reusing proven designs.",
+      "And this is the segment that matters: every decision goes back in, which makes the plugin's answers better and the index sharper.",
+      "Two leadership decisions moved this sample from 28 to 66 without changing a single part.",
     ],
   },
   {
@@ -425,14 +468,19 @@ export const SCREENS: ScreenMeta[] = [
   },
   {
     n: 12,
-    id: "close",
-    title: "Close",
-    steps: 2,
-    targetSeconds: 15,
-    rubric: ["Final pitch"],
+    id: "business",
+    title: "Why this is a business",
+    steps: 5,
+    targetSeconds: 30,
+    rubric: ["Commercial potential"],
     script: [
-      "In a six-product sample, PlatInform found 1.13 million dollars a year on 39.33 million dollars of spend.",
-      "Next is more of a company's designs, read from drawings and datasheets, in every tool its teams use.",
+      "Back to the two problems we opened with, because each one is why this is a business.",
+      "The engineering effort is sustained work. Platforming is never one project: each product line, each acquisition and each new design brings more to measure and more to reuse, and the plugin keeps the client engaged between projects.",
+      "In a six-product sample that was 1.13 million dollars a year on 39.33 million of parts spend, about 3 percent.",
+      "And the companies that do not see the potential are the business development opening. A two-minute ballpark gives any manufacturer a number to react to.",
+      "The four industries under half are where those conversations start.",
+      "Ballpark is free and opens the door. The measured index is a paid diagnostic. The plugin is a yearly license that keeps the gain.",
+      "PlatInform turns Kearney's own research into the first meeting, the first project, and the reason to stay.",
       "We are the Ladebuggers. Thank you.",
     ],
   },

@@ -45,7 +45,11 @@ export function Frame({
   return (
     <div className="relative h-full w-full overflow-hidden">
       <Backdrop />
-      <div className="relative flex h-full w-full flex-col px-12 py-11">
+      {/*
+        The title sits low and the content ends as far from the bottom edge
+        as the title is from the top, so no screen crowds either edge.
+      */}
+      <div className="relative flex h-full w-full flex-col px-12 pb-14 pt-14">
         {title ? (
           <h1 className="max-w-[1120px] text-[40px] font-light leading-[1.14] text-text">
             {title}
@@ -104,6 +108,18 @@ export function Reveal({
     >
       {children}
     </div>
+  );
+}
+
+/**
+ * The counter on the three step screens: which of the three this is, in the
+ * accent, so a judge can see the shape of the argument without the words.
+ */
+export function StepCount({ n, of = 3 }: { n: number; of?: number }) {
+  return (
+    <p className="text-[15px] font-light leading-none tracking-wide text-accent">
+      {n} of {of}
+    </p>
   );
 }
 

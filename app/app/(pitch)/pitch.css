@@ -112,29 +112,9 @@ nextjs-portal {
   }
 }
 
-/*
- * The arc on screen 10, travelling the circle once on arrival. The length is
- * the circle's own circumference, set in the component's dasharray.
- */
-@keyframes pitch-loop-travel {
-  from {
-    stroke-dashoffset: 1106;
-  }
+/* Each segment of the loop on screen 10 draws itself once. */
+@keyframes pitch-draw-seg {
   to {
     stroke-dashoffset: 0;
-  }
-}
-
-.pitch-loop-arc {
-  animation: pitch-loop-travel 1400ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-/* Each node on screen 10 lights as the arc reaches it. */
-@keyframes pitch-node-light {
-  from {
-    stroke: #6a7275;
-  }
-  to {
-    stroke: #ec5e31;
   }
 }
