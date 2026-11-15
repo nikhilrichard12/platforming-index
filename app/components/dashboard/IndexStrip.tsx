@@ -4,6 +4,7 @@ import { useState } from "react";
 import Badge from "@/components/ui/Badge";
 import CountUp from "@/components/ui/CountUp";
 import ScoreNote from "./BallparkNote";
+import ScoreGauge from "./ScoreGauge";
 import { ComputedIndex, scoreMethod } from "@/lib/index";
 import { VoltaraData } from "@/lib/voltaraData";
 
@@ -29,28 +30,53 @@ export default function IndexStrip({
 
   return (
     <div className="bg-panel">
-      <div className="px-6 py-7">
-        {/* Score, centred, with everything it rests on under it */}
-        <div className="text-center">
-          <div className="flex items-baseline justify-center gap-2">
-            <CountUp
-              value={idx.score}
-              className="text-[64px] font-light leading-none text-text"
-            />
-            <span className="text-[15px] text-text-3">of 100</span>
+      <div className="px-6 pb-5 pt-4">
+        {/* The score on the left, what it means on the right */}
+        <div className="grid grid-cols-1 items-center gap-6 lg:grid-cols-2">
+          <div className="flex justify-center lg:justify-start">
+            <div className="flex w-[260px] flex-col items-center">
+              <ScoreGauge score={idx.score} />
+              <div className="-mt-10">
+                <Badge tone="positive">Measured</Badge>
+              </div>
+            </div>
           </div>
-          <div className="mt-3 flex justify-center">
-            <Badge tone="positive">Measured</Badge>
+
+          <div>
+            <p className="text-[17px] leading-snug text-text">
+              Sharing parts, not yet a platform
+            </p>
+            {basis && <p className="mt-1 text-[12px] text-text-3">{basis}</p>}
+            <ScoreNote avoided={idx.avoided} />
+
+            <div className="mt-4 grid grid-cols-3 gap-4">
+              {STEPS.map((s, i) => {
+                const current = i + 1 === idx.step;
+                return (
+                  <div
+                    key={s}
+                    className={`border-t pt-2 ${current ? "border-text" : "border-line"}`}
+                  >
+                    <p className={`text-[11px] ${current ? "text-text" : "text-text-3"}`}>
+                      Step {i + 1}
+                      {current ? " · now" : ""}
+                    </p>
+                    <p
+                      className={`mt-1 text-[12px] leading-snug ${
+                        current ? "text-text" : "text-text-2"
+                      }`}
+                    >
+                      {s}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-          {basis && <p className="mt-2 text-[12px] text-text-3">{basis}</p>}
-          <ScoreNote avoided={idx.avoided} />
-          <p className="mt-3 text-[15px] text-text">
-            Sharing parts, not yet a platform
-          </p>
         </div>
 
-        {/* The four dimensions, two by two */}
-        <div className="mx-auto mt-6 grid max-w-[640px] grid-cols-1 gap-x-10 gap-y-4 sm:grid-cols-2">
+        {/* The four dimensions, across the whole width */}
+        <div className="mt-5 grid grid-cols-2 gap-x-8 gap-y-4 lg:grid-cols-4">
           {idx.dimensions.map((d) => (
             <div key={d.name} title={`${d.basis} (${d.source})`}>
               <div className="flex items-baseline justify-between gap-3">
@@ -65,31 +91,6 @@ export default function IndexStrip({
               </div>
             </div>
           ))}
-        </div>
-
-        {/* The three steps, one row */}
-        <div className="mx-auto mt-7 grid max-w-[640px] grid-cols-3 gap-4">
-          {STEPS.map((s, i) => {
-            const current = i + 1 === idx.step;
-            return (
-              <div
-                key={s}
-                className={`border-t pt-2 ${current ? "border-text" : "border-line"}`}
-              >
-                <p className={`text-[11px] ${current ? "text-text" : "text-text-3"}`}>
-                  Step {i + 1}
-                  {current ? " · now" : ""}
-                </p>
-                <p
-                  className={`mt-1 text-[12px] leading-snug ${
-                    current ? "text-text" : "text-text-2"
-                  }`}
-                >
-                  {s}
-                </p>
-              </div>
-            );
-          })}
         </div>
       </div>
 
